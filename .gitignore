@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+
+# Cursor
+.cursor/
+.agents/
+
+# Node
+node_modules/
+
+# Logs
+*.log
+
+# Temp
+tmp/
+temp/
+
+# Build
+dist/
+build/
+
+# Swift
+DerivedData/
+*.xcworkspace
+*.xcuserdata

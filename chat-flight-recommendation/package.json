@@ -1,0 +1,15 @@
+{
+  "name": "chat-flight-recommendation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "通义对话流：经济舱 + 商务舱 Block、CabinKB、SSE 演示",
+  "scripts": {
+    "start": "node orchestrator/server.js",
+    "validate": "node qa-metrics/validate-blocks.js"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  }
+}

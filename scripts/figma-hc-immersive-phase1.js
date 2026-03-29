@@ -1,0 +1,266 @@
+// Phase 1: layout + text (no SVG) — HC_Immersive_Root 204:2856
+const ROOT_ID = '204:2856';
+const PAGE_PAD_X = 40;
+const BODY_INNER_PAD = 16;
+const TEXT_MAX = 670 - 48;
+
+const root = await figma.getNodeByIdAsync(ROOT_ID);
+if (!root || root.type !== 'FRAME') {
+  return { error: 'ROOT_NOT_FRAME', id: ROOT_ID };
+}
+
+const page = root.parent && root.parent.type === 'PAGE' ? root.parent : figma.currentPage;
+await figma.setCurrentPageAsync(page);
+
+const mutated = new Set();
+function mark(n) {
+  if (n && n.id) mutated.add(n.id);
+}
+
+const fontsLoaded = new Set();
+async function loadForText(n) {
+  if (n.type !== 'TEXT') return;
+  const len = n.characters.length;
+  if (len === 0) return;
+  async function loadOne(f) {
+    if (f === figma.mixed) return;
+    const key = f.family + '\0' + f.style;
+    if (!fontsLoaded.has(key)) {
+      await figma.loadFontAsync(f);
+      fontsLoaded.add(key);
+    }
+  }
+  if (n.fontName !== figma.mixed) {
+    await loadOne(n.fontName);
+    return;
+  }
+  for (let i = 0; i < len; i++) {
+    await loadOne(n.getRangeFontName(i, i + 1));
+  }
+}
+
+async function fixTextNode(n) {
+  if (n.type !== 'TEXT') return;
+  await loadForText(n);
+  n.textAutoResize = 'HEIGHT';
+  if (n.width > TEXT_MAX) {
+    n.resize(TEXT_MAX, n.height);
+    mark(n);
+  }
+}
+
+async function fixTextsInSubtree(node) {
+  const texts = node.findAll((x) => x.type === 'TEXT');
+  for (const t of texts) {
+    await fixTextNode(t);
+    mark(t);
+  }
+}
+
+function isAccentLayer(node) {
+  return (
+    node.name === 'Feed_Accent' ||
+    (node.type === 'RECTANGLE' && node.name === 'Rectangle')
+  );
+}
+
+async function fixFeedRow(row) {
+  if (row.type !== 'FRAME') return;
+  row.layoutMode = 'HORIZONTAL';
+  row.primaryAxisSizingMode = 'AUTO';
+  row.counterAxisSizingMode = 'FIXED';
+  row.layoutSizingHorizontal = 'FILL';
+  row.itemSpacing = 0;
+  row.paddingLeft = row.paddingRight = row.paddingTop = row.paddingBottom = 0;
+  mark(row);
+
+  for (const c of row.children) {
+    if (isAccentLayer(c)) {
+      if (c.type === 'RECTANGLE' || c.name === 'Feed_Accent') {
+        c.layoutSizingHorizontal = 'FIXED';
+        c.layoutSizingVertical = 'FILL';
+        if (c.width !== 4) {
+          c.resize(4, Math.max(c.height, 40));
+        }
+        mark(c);
+      }
+    }
+    if (
+      c.type === 'FRAME' &&
+      (c.name === 'Feed_Body' || c.name === 'Frame')
+    ) {
+      c.layoutMode = 'VERTICAL';
+      c.primaryAxisSizingMode = 'AUTO';
+      c.counterAxisSizingMode = 'FIXED';
+      c.layoutSizingHorizontal = 'FILL';
+      c.layoutGrow = 1;
+      c.paddingLeft = BODY_INNER_PAD;
+      c.paddingRight = BODY_INNER_PAD;
+      c.paddingTop = 0;
+      c.paddingBottom = 12;
+      c.itemSpacing = 8;
+      c.counterAxisAlignItems = 'MIN';
+      mark(c);
+      await fixTextsInSubtree(c);
+    }
+  }
+}
+
+root.layoutMode = 'VERTICAL';
+root.primaryAxisSizingMode = 'AUTO';
+root.counterAxisSizingMode = 'FIXED';
+root.paddingLeft = PAGE_PAD_X;
+root.paddingRight = PAGE_PAD_X;
+root.paddingTop = 0;
+root.paddingBottom = 32;
+root.itemSpacing = 24;
+root.counterAxisAlignItems = 'MIN';
+root.resizeWithoutConstraints(750, root.height);
+mark(root);
+
+for (const child of root.children) {
+  if (child.type === 'FRAME' || child.type === 'COMPONENT' || child.type === 'INSTANCE') {
+    child.layoutSizingHorizontal = 'FILL';
+    child.layoutAlign = 'STRETCH';
+    mark(child);
+  }
+
+  if (child.name === 'Feed_Message' || child.name.startsWith('Feed_CX_')) {
+    if (child.name === 'Feed_CX_ImageSlot') {
+      child.layoutMode = 'VERTICAL';
+      child.primaryAxisSizingMode = 'AUTO';
+      child.counterAxisSizingMode = 'FIXED';
+      child.layoutSizingHorizontal = 'FILL';
+      child.itemSpacing = 12;
+      mark(child);
+      for (const sub of child.children) {
+        if (sub.name === 'Feed_CX_ImageIntro') await fixFeedRow(sub);
+        if (sub.name === 'CX_Image_Placeholder') {
+          sub.layoutMode = 'VERTICAL';
+          sub.primaryAxisSizingMode = 'AUTO';
+          sub.counterAxisSizingMode = 'FIXED';
+          sub.layoutSizingHorizontal = 'FILL';
+          sub.paddingLeft = sub.paddingRight = 16;
+          sub.paddingTop = sub.paddingBottom = 16;
+          sub.itemSpacing = 12;
+          sub.fills = [
+            {
+              type: 'SOLID',
+              color: { r: 0.96, g: 0.98, b: 0.99 },
+            },
+          ];
+          sub.strokes = [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 0.92 } }];
+          sub.strokeWeight = 1;
+          sub.cornerRadius = 12;
+          mark(sub);
+          await fixTextsInSubtree(sub);
+        }
+      }
+    } else {
+      await fixFeedRow(child);
+    }
+  }
+
+  if (child.name === 'Module_Feed_Compare') {
+    child.layoutMode = 'VERTICAL';
+    child.primaryAxisSizingMode = 'AUTO';
+    child.layoutSizingHorizontal = 'FILL';
+    mark(child);
+    for (const sub of child.children) {
+      if (sub.name === 'Feed_Message') await fixFeedRow(sub);
+    }
+  }
+}
+
+const moduleConfigs = [
+  'Module_TopBar',
+  'Module_Stepper',
+  'Module_TopSummary',
+  'Module_ValueCard',
+  'Module_OrderPreview',
+  'Module_CompareTable',
+  'Module_FormFill',
+  'Module_PaySummary',
+  'Module_BottomCTA',
+];
+
+for (const name of moduleConfigs) {
+  const m = root.children.find((c) => c.name === name);
+  if (!m || m.type !== 'FRAME') continue;
+  m.layoutMode = 'VERTICAL';
+  m.primaryAxisSizingMode = 'AUTO';
+  m.counterAxisSizingMode = 'FIXED';
+  m.layoutSizingHorizontal = 'FILL';
+  m.itemSpacing = name === 'Module_TopBar' ? 0 : 12;
+  m.paddingLeft = m.paddingRight = 0;
+  m.paddingTop = m.paddingBottom = 0;
+  mark(m);
+
+  if (name === 'Module_TopBar') {
+    m.layoutMode = 'HORIZONTAL';
+    m.paddingLeft = m.paddingRight = 16;
+    m.paddingTop = m.paddingBottom = 12;
+    m.primaryAxisAlignItems = 'CENTER';
+    m.counterAxisAlignItems = 'CENTER';
+    m.itemSpacing = 12;
+    await fixTextsInSubtree(m);
+  } else {
+    m.paddingLeft = m.paddingRight = 24;
+    m.paddingTop = m.paddingBottom = 24;
+    await fixTextsInSubtree(m);
+  }
+
+  for (const ch of m.children) {
+    if (ch.type === 'FRAME') {
+      ch.layoutSizingHorizontal = 'FILL';
+      mark(ch);
+    }
+  }
+}
+
+await fixTextsInSubtree(root);
+
+const textUpdates = [
+  { id: '233:2876', text: '图证（FlightData · SVG）' },
+  {
+    id: '233:2877',
+    text:
+      '本机国泰 B777「00-完整页面.png」当前为无效占位（体积极小）。Phase2 将嵌入 A350-1000 目录风格 SVG（星级条 + 媒体图标）作为图证示例。',
+  },
+  {
+    id: '233:2878',
+    text: '若需真实机舱照片，请替换为有效 PNG/JPG 或使用 seatmaps 导出后再拖入。',
+  },
+  { id: '233:2880', text: 'SVG 图证将内嵌 · 内容宽 670' },
+  {
+    id: '205:2862',
+    text:
+      '可选第二落点：再放一张机舱/座椅图。请使用有效图片文件；当前 FlightData 内部分 PNG 可能为空占位。',
+  },
+];
+
+for (const u of textUpdates) {
+  const tn = await figma.getNodeByIdAsync(u.id);
+  if (tn && tn.type === 'TEXT') {
+    await loadForText(tn);
+    tn.textAutoResize = 'HEIGHT';
+    tn.characters = u.text;
+    if (tn.width > TEXT_MAX) tn.resize(TEXT_MAX, tn.height);
+    mark(tn);
+  }
+}
+
+// Feed_CX_FinalAdvice：整行宽度曾撑到 1600+，强制为横向 FILL + fixFeedRow
+const finalAdvice = root.children.find((c) => c.name === 'Feed_CX_FinalAdvice');
+if (finalAdvice && finalAdvice.type === 'FRAME') {
+  await fixFeedRow(finalAdvice);
+  mark(finalAdvice);
+}
+
+return {
+  ok: true,
+  phase: 1,
+  mutatedCount: mutated.size,
+  mutatedNodeIds: Array.from(mutated),
+  note: '670 content width, feeds auto-layout; run phase2 for SVG row',
+};

@@ -1,0 +1,903 @@
+{
+  "version": "2.9",
+  "children": [
+    {
+      "type": "frame",
+      "id": "7SpWQ",
+      "x": 0,
+      "y": 0,
+      "name": "Dual_Canvas",
+      "width": 860,
+      "height": 1680,
+      "fill": "#e8eaed",
+      "gap": 32,
+      "padding": 24,
+      "children": [
+        {
+          "type": "frame",
+          "id": "ttjXZ",
+          "name": "HighCabin_Page_Main",
+          "clip": true,
+          "width": 390,
+          "height": 1600,
+          "fill": "#f7f8fa",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            62,
+            20,
+            32,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "vm2Yu",
+              "name": "Section_TripSummary",
+              "width": "fill_container",
+              "fill": "#ffffff",
+              "cornerRadius": 16,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#eeeeee"
+              },
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "L6jhq",
+                  "name": "TripTitle",
+                  "fill": "#0f131a",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "行程摘要",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "YR9ef",
+                  "name": "TripBody",
+                  "fill": "#222",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "上海 → 香港 · 国泰航空 · A350-1000 · 直飞 · 示例参考价 ¥2480 起",
+                  "lineHeight": 1.45,
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "gHQkO",
+              "name": "Section_ValueCard",
+              "width": "fill_container",
+              "fill": "#ffffff",
+              "cornerRadius": 16,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#eeeeee"
+              },
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Wq2fK",
+                  "name": "ValueHeroImage",
+                  "metadata": {
+                    "type": "unsplash",
+                    "username": "notwakeupsid",
+                    "link": "https://unsplash.com/@notwakeupsid",
+                    "author": "Sidharth Sabu"
+                  },
+                  "width": "fill_container",
+                  "height": 160,
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "./assets/cx-a3501000/seatmap-03.jpg",
+                    "mode": "fill"
+                  },
+                  "cornerRadius": 12
+                },
+                {
+                  "type": "text",
+                  "id": "YHssY",
+                  "name": "ValueHeadline",
+                  "fill": "#0f131a",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "全平躺商务舱，长途到达更有状态",
+                  "fontFamily": "Inter",
+                  "fontSize": 20,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "AqdSW",
+                  "name": "ValueSub",
+                  "fill": "#666",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "卖点：睡眠 · 空间 · 服务 · 证据见机型详情",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "G9qHt",
+                  "name": "ValueChips",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "UmJ7Q",
+                      "name": "Chip1",
+                      "fill": "#ebebff",
+                      "cornerRadius": 999,
+                      "padding": [
+                        6,
+                        10
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "w0fK5",
+                          "name": "c1t",
+                          "fill": "#4466ff",
+                          "content": "全平躺",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Xwr1q",
+                      "name": "Chip2",
+                      "fill": "#ebebff",
+                      "cornerRadius": 999,
+                      "padding": [
+                        6,
+                        10
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "hyJxz",
+                          "name": "c2t",
+                          "fill": "#4466ff",
+                          "content": "更宽座椅",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "OelcC",
+                      "name": "Chip3",
+                      "fill": "#ebebff",
+                      "cornerRadius": 999,
+                      "padding": [
+                        6,
+                        10
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "YajkI",
+                          "name": "c3t",
+                          "fill": "#4466ff",
+                          "content": "精致服务",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "inZLl",
+                  "name": "Evidence",
+                  "fill": "#666",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "国泰 A350-1000 商务舱 46 座 · 综合评分 4.62/5（480 条评论）",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "tFRGZ",
+              "name": "Section_Compare",
+              "width": "fill_container",
+              "fill": "#ffffff",
+              "cornerRadius": 16,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#eeeeee"
+              },
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "jWrdF",
+                  "name": "cp",
+                  "fill": "#0f131a",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "舱位对比（同维度）",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "tLzkf",
+                  "name": "r1",
+                  "fill": "#222",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "平躺能力：商务舱 180° 全平躺 · 经济舱 不可平躺",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "AJj9o",
+                  "name": "r2",
+                  "fill": "#222",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "座椅宽度：商务舱约 20 英寸（51cm）· 经济舱以航司公布为准",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "vSv2B",
+                  "name": "r3",
+                  "fill": "#222",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "腿部空间：商务舱间距 45–75 英寸（114–190cm）",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "r1Bwk",
+                  "name": "r4",
+                  "fill": "#222",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "服务等级：商务舱优先餐食与服务响应 · 经济舱标准服务",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "YH1on",
+              "name": "Section_Scenarios",
+              "width": "fill_container",
+              "fill": "#ffffff",
+              "cornerRadius": 16,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#eeeeee"
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "R9UzI",
+                  "name": "st",
+                  "fill": "#0f131a",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "场景化卖点",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "KEYLi",
+                  "name": "sb1",
+                  "fill": "#444",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "夜航：全平躺更易入睡，到达后状态更好。",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "yJNAP",
+                  "name": "sb2",
+                  "fill": "#444",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "商务出行：私密性与效率，减少旅途消耗。",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "TW6cI",
+                  "name": "sb3",
+                  "fill": "#444",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "家庭出行：更宽座椅与空间，亲子更舒适（以机型为准）。",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "tnagt",
+              "name": "Section_Trust",
+              "width": "fill_container",
+              "fill": "#f0f4ff",
+              "cornerRadius": 16,
+              "layout": "vertical",
+              "gap": 8,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "kcoKI",
+                  "name": "tr",
+                  "fill": "#0f131a",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "信任证据",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "OxK6l",
+                  "name": "tu",
+                  "fill": "#444",
+                  "textGrowth": "fixed-width",
+                  "width": 320,
+                  "content": "用户评价摘要：长途航线休息质量、餐食与服务响应获较多正向反馈；具体以航司与航班为准。",
+                  "lineHeight": 1.45,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "sJsH6",
+              "name": "Section_CTA",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "padding": [
+                8,
+                0,
+                0,
+                0
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "XjujK",
+                  "name": "PrimaryCTA",
+                  "width": "fill_container",
+                  "height": 52,
+                  "fill": "#4466ff",
+                  "cornerRadius": 28,
+                  "layout": "vertical",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "WFCJm",
+                      "name": "pt",
+                      "fill": "#ffffff",
+                      "content": "立即预订高舱",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "9oefm",
+                  "name": "SecondaryCTA",
+                  "width": "fill_container",
+                  "height": 48,
+                  "fill": "#ffffff",
+                  "cornerRadius": 24,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#dddddd"
+                  },
+                  "layout": "vertical",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "39upG",
+                      "name": "st",
+                      "fill": "#4466ff",
+                      "content": "查看舱位详情 / 对比更多航班",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Tk3VS",
+          "name": "HC_Immersive_Root",
+          "clip": true,
+          "width": 390,
+          "height": 1600,
+          "fill": "#f7f8fa",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": [
+            62,
+            16,
+            120,
+            16
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "wcOca",
+              "name": "Module_TopBar",
+              "width": "fill_container",
+              "height": 44,
+              "padding": [
+                0,
+                4,
+                8,
+                4
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "o5u38",
+                  "name": "nL",
+                  "fill": "#0f131a",
+                  "content": "‹",
+                  "fontFamily": "Inter",
+                  "fontSize": 22,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "HKcZJ",
+                  "name": "nT",
+                  "fill": "#0f131a",
+                  "content": "机票帮帮",
+                  "fontFamily": "Inter",
+                  "fontSize": 17,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "XIjYv",
+                  "name": "nR",
+                  "fill": "#0f131a",
+                  "content": "···",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "kHJvo",
+              "name": "Feed_Scroll",
+              "width": "fill_container",
+              "fill": "#00000000",
+              "layout": "vertical",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "dQ2oJ",
+                  "name": "Row_User",
+                  "width": "fill_container",
+                  "justifyContent": "end",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "stXKS",
+                      "name": "User_Bubble",
+                      "fill": "#e8e8ff",
+                      "cornerRadius": 20,
+                      "layout": "vertical",
+                      "padding": [
+                        12,
+                        16
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "CGReh",
+                          "name": "ut",
+                          "fill": "#222",
+                          "textGrowth": "fixed-width",
+                          "width": 248,
+                          "content": "上海→香港，帮我看下商务舱值不值",
+                          "lineHeight": 1.4,
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "kfivh",
+                  "name": "Row_Advisor",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "giEyC",
+                      "name": "Feed_Body",
+                      "width": "fill_container",
+                      "fill": "#ffffff",
+                      "cornerRadius": 16,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#eeeeee"
+                      },
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#0f131a18",
+                        "offset": {
+                          "x": 0,
+                          "y": 2
+                        },
+                        "blur": 14
+                      },
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": [
+                        0,
+                        16,
+                        16,
+                        16
+                      ],
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": [
+                            4,
+                            4,
+                            0,
+                            0
+                          ],
+                          "id": "hDU7W",
+                          "name": "Feed_Accent",
+                          "fill": "#4466ff",
+                          "width": "fill_container",
+                          "height": 4
+                        },
+                        {
+                          "type": "text",
+                          "id": "67gIU",
+                          "name": "mt",
+                          "fill": "#666",
+                          "textGrowth": "fixed-width",
+                          "width": 300,
+                          "content": "● 飞猪顾问 · 刚刚",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Ztw4d",
+                          "name": "tt",
+                          "fill": "#0f131a",
+                          "textGrowth": "fixed-width",
+                          "width": 320,
+                          "content": "国泰 A350-1000 商务舱推荐",
+                          "fontFamily": "Inter",
+                          "fontSize": 20,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "7IVvt",
+                          "name": "bd",
+                          "fill": "#444",
+                          "textGrowth": "fixed-width",
+                          "width": 320,
+                          "content": "已验证：46 座商务舱 · 座椅宽约 20 英寸 · 间距 45–75 英寸 · 180° 平躺 · 评分 4.62/5（480 条评论）。卖点→证据→你可一键看价。",
+                          "lineHeight": 1.45,
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "WmL9n",
+                          "name": "Module_HeroImage",
+                          "metadata": {
+                            "type": "unsplash",
+                            "username": "reisetopia",
+                            "link": "https://unsplash.com/@reisetopia",
+                            "author": "reisetopia"
+                          },
+                          "width": "fill_container",
+                          "height": 188,
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "./assets/cx-a3501000/seat-09.jpg",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 14
+                        },
+                        {
+                          "type": "frame",
+                          "id": "wJWSI",
+                          "name": "CX_Image_Thumb_Row",
+                          "width": "fill_container",
+                          "height": 76,
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "KdCmd",
+                              "name": "Thumb_1",
+                              "metadata": {
+                                "type": "unsplash",
+                                "username": "bradynshock",
+                                "link": "https://unsplash.com/@bradynshock",
+                                "author": "Bradyn Shock"
+                              },
+                              "width": "fill_container",
+                              "height": 76,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "./assets/cx-a3501000/seat-10.jpg",
+                                "mode": "fill"
+                              },
+                              "cornerRadius": 10
+                            },
+                            {
+                              "type": "frame",
+                              "id": "IqS8k",
+                              "name": "Thumb_2",
+                              "metadata": {
+                                "type": "unsplash",
+                                "username": "carlmalmer",
+                                "link": "https://unsplash.com/@carlmalmer",
+                                "author": "Carl Malmer"
+                              },
+                              "width": "fill_container",
+                              "height": 76,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "./assets/cx-a3501000/seat-11.jpg",
+                                "mode": "fill"
+                              },
+                              "cornerRadius": 10
+                            },
+                            {
+                              "type": "frame",
+                              "id": "lxWw7",
+                              "name": "Thumb_3",
+                              "metadata": {
+                                "type": "unsplash",
+                                "username": "jontyson",
+                                "link": "https://unsplash.com/@jontyson",
+                                "author": "Jon Tyson"
+                              },
+                              "width": "fill_container",
+                              "height": 76,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "./assets/cx-a3501000/seat-12.jpg",
+                                "mode": "fill"
+                              },
+                              "cornerRadius": 10
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "LQWlC",
+                          "name": "PriceLine",
+                          "fill": "#ff5533",
+                          "textGrowth": "fixed-width",
+                          "width": 320,
+                          "content": "示例参考价 ¥3,860 起",
+                          "fontFamily": "Inter",
+                          "fontSize": 22,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "lf3UP",
+                          "name": "Module_BottomCTA",
+                          "width": "fill_container",
+                          "gap": 10,
+                          "padding": [
+                            4,
+                            0,
+                            0,
+                            0
+                          ],
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "auyqQ",
+                              "name": "PrimaryBook",
+                              "width": "fill_container",
+                              "height": 48,
+                              "fill": "#4466ff",
+                              "cornerRadius": 24,
+                              "layout": "vertical",
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "pTlbm",
+                                  "name": "ptx",
+                                  "fill": "#ffffff",
+                                  "content": "查看高舱价格",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 15,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "DM4nD",
+                              "name": "SecondaryDetail",
+                              "width": 120,
+                              "height": 48,
+                              "fill": "#f7f8fa",
+                              "cornerRadius": 24,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "#ddd"
+                              },
+                              "layout": "vertical",
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "5xZuM",
+                                  "name": "stx",
+                                  "fill": "#4466ff",
+                                  "content": "详情",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 14,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "LfJtk",
+              "name": "Composer_Area",
+              "width": "fill_container",
+              "height": 48,
+              "fill": "#ffffff",
+              "cornerRadius": 22,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#e0e0e0"
+              },
+              "gap": 10,
+              "padding": [
+                10,
+                14
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "TqO0s",
+                  "name": "ph",
+                  "fill": "#919499",
+                  "textGrowth": "fixed-width",
+                  "width": 260,
+                  "content": "问问机票、舱位对比或行李额度…",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

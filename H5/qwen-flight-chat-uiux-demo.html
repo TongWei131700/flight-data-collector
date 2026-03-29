@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>千问 · 机票推荐（经济舱 + 商务舱 Block Demo）</title>
+  <!--
+    UI-UX-ProMax 设计系统摘要（本机 search.py 不可用时的可执行规范）
+    Product: 通义千问对话内机票推荐 | Audience: 出行用户
+    Pattern: 用户气泡 → AI 摘要 → 经济方案×2 → 经济聚合 CTA → 公务舱 + 富媒体 → chips → 输入栏
+    Style: Professional / Trust | 避免紫粉渐变滥用 | Typography: PingFang SC
+    Colors: bg #f5f6f8 surface #fff text #0f131a secondary #5c6370 border #e8eaed price #e64500 action #1677ff
+    A11y: accordion 使用 button + aria-expanded；图片有 alt
+  -->
+  <style>
+    :root {
+      --bg-page: #f5f6f8;
+      --surface: #ffffff;
+      --text-primary: #0f131a;
+      --text-secondary: #5c6370;
+      --text-tertiary: #919499;
+      --border: #e8eaed;
+      --price: #e64500;
+      --action-primary: #1677ff;
+      --action-primary-weak: #e8f1ff;
+      --bubble-user: linear-gradient(180deg, #e8f1ff 0%, #dcecff 100%);
+      --radius-card: 12px;
+      --radius-pill: 999px;
+      --shadow-card: 0 2px 12px rgba(15, 19, 26, 0.06);
+      --space-page: 14px;
+      --font: "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg-page); color: var(--text-primary); font-family: var(--font); font-size: 15px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+    .app { max-width: 390px; margin: 0 auto; min-height: 100vh; padding-bottom: 140px; }
+    .topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: center; padding: 10px var(--space-page); background: rgba(245, 246, 248, 0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); font-size: 17px; font-weight: 600; }
+    .user-row { padding: 12px var(--space-page) 0; display: flex; justify-content: flex-end; }
+    .user-bubble { max-width: 300px; padding: 12px 14px; border-radius: 16px; background: var(--bubble-user); font-size: 15px; font-weight: 500; }
+    .ai-block { padding: 10px var(--space-page) 0; }
+    .ai-lead { font-size: 15px; line-height: 1.62; margin: 0 0 14px; }
+    .ai-lead strong { font-weight: 600; }
+    .scheme { margin-bottom: 16px; }
+    .scheme__title { font-size: 17px; font-weight: 600; margin: 0 0 6px; }
+    .scheme__reason { font-size: 14px; color: var(--text-secondary); line-height: 1.55; margin: 0 0 10px; }
+    .card { background: var(--surface); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 14px; border: 1px solid rgba(15, 19, 26, 0.04); }
+    .card__meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary); }
+    .card__airline { display: flex; align-items: center; gap: 6px; }
+    .airline-dot { width: 18px; height: 18px; border-radius: 4px; background: #c8102e; }
+    .times-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-top: 4px; }
+    .time-big { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+    .airport { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .mid-col { flex: 0 0 auto; text-align: center; padding-top: 6px; min-width: 72px; }
+    .mid-col span { display: block; font-size: 11px; color: var(--text-tertiary); }
+    .mid-line { height: 2px; background: var(--border); margin: 6px 0; border-radius: 1px; position: relative; }
+    .mid-line::after { content: ""; position: absolute; right: -2px; top: -3px; border: 4px solid transparent; border-left: 5px solid var(--text-tertiary); }
+    .legs { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); display: grid; gap: 8px; }
+    .leg { display: flex; justify-content: space-between; font-size: 13px; }
+    .leg small { color: var(--text-secondary); }
+    .card__foot { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 12px; gap: 10px; }
+    .price { font-size: 22px; font-weight: 700; color: var(--price); font-variant-numeric: tabular-nums; }
+    .price small { font-size: 12px; font-weight: 600; color: var(--price); }
+    .cabin-tag { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+    .btn { border: none; border-radius: 10px; font-size: 13px; font-weight: 600; padding: 10px 18px; cursor: pointer; font-family: inherit; }
+    .btn--primary { background: var(--action-primary-weak); color: var(--action-primary); }
+    .btn--ghost { background: #f2f3f5; color: var(--text-primary); }
+    .full-cta { display: block; width: 100%; margin: 4px 0 2px; padding: 12px 14px; text-align: center; border-radius: var(--radius-card); border: 1px solid var(--border); background: var(--surface); font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: var(--shadow-card); color: inherit; }
+    .rich-block { margin-top: 10px; }
+    .accordion { border: 1px solid var(--border); border-radius: var(--radius-card); overflow: hidden; background: var(--surface); }
+    .acc-item + .acc-item { border-top: 1px solid var(--border); }
+    .acc-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border: none; background: #f8f9fb; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; text-align: left; }
+    .acc-btn:focus-visible { outline: 2px solid var(--action-primary); outline-offset: -2px; }
+    .acc-btn .chev { font-size: 12px; color: var(--text-tertiary); transition: transform 0.2s ease; }
+    .acc-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+    .acc-panel { display: none; padding: 0 14px 14px; background: #fafbfc; }
+    .acc-panel.open { display: block; }
+    .acc-panel img { width: 100%; height: auto; border-radius: 10px; margin-top: 8px; display: block; background: #eceef2; }
+    .acc-panel p { margin: 10px 0 0; font-size: 13px; line-height: 1.55; color: var(--text-secondary); }
+    .acc-panel ul { margin: 8px 0 0; padding-left: 18px; font-size: 13px; color: var(--text-secondary); }
+    .cta-business { display: block; width: 100%; margin-top: 12px; padding: 13px 14px; text-align: center; border-radius: var(--radius-card); background: var(--action-primary); color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; box-shadow: 0 4px 14px rgba(22, 119, 255, 0.28); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; padding: 0 var(--space-page); }
+    .chip { padding: 8px 12px; border-radius: var(--radius-pill); background: var(--surface); border: 1px solid var(--border); font-size: 13px; }
+    .dock { position: fixed; left: 0; right: 0; bottom: 0; max-width: 390px; margin: 0 auto; padding: 10px var(--space-page) max(10px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, rgba(245, 246, 248, 0) 0%, var(--bg-page) 28%); }
+    .input-fake { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 22px; font-size: 14px; color: var(--text-tertiary); }
+    .input-fake .cam { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border); display: grid; place-items: center; font-size: 14px; color: var(--text-secondary); }
+    .dev-hint { margin: 16px var(--space-page) 0; padding: 10px 12px; font-size: 12px; color: var(--text-tertiary); background: #fff; border: 1px dashed var(--border); border-radius: 10px; line-height: 1.5; }
+    .dev-hint code { font-size: 11px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar" role="banner">千问</header>
+    <div class="user-row">
+      <div class="user-bubble">帮我推荐去北京的机票，两大一小亲子行程。</div>
+    </div>
+    <section class="ai-block" aria-label="AI 回复">
+      <p class="ai-lead">已按<strong>杭州 → 北京</strong>、<strong>4 月 6 日（周六）</strong>、<strong>2 成人 + 1 儿童</strong>整理方案。下面先给经济舱直飞与中转，再给<strong>舒适公务舱</strong>备选；舱位卖点与图片来自<strong>结构化数据块</strong>，避免模型编造参数。</p>
+      <article class="scheme" data-slot="economy_direct">
+        <h2 class="scheme__title">方案一：直飞最低价</h2>
+        <p class="scheme__reason">直飞省时、换乘少，更适合带娃与行李较多的家庭。</p>
+        <div class="card">
+          <div class="card__meta"><span>4月6日 周六</span><div class="card__airline"><span class="airline-dot" aria-hidden="true"></span><span>国航</span></div></div>
+          <div class="times-row">
+            <div><div class="time-big">07:30</div><div class="airport">杭州 HGH · T3</div></div>
+            <div class="mid-col"><span>直飞</span><div class="mid-line" aria-hidden="true"></div><span>2h20m</span></div>
+            <div style="text-align:right"><div class="time-big">09:50</div><div class="airport">北京首都 PEK · T3</div></div>
+          </div>
+          <div class="card__foot">
+            <div><div class="price"><small>¥</small>624<small>起</small></div><div class="cabin-tag">经济舱</div></div>
+            <button type="button" class="btn btn--primary">订票</button>
+          </div>
+        </div>
+      </article>
+      <article class="scheme" data-slot="economy_transfer">
+        <h2 class="scheme__title">方案二：高性价比中转</h2>
+        <p class="scheme__reason">较直飞再省一笔预算；若时间弹性大，可作为性价比之选。</p>
+        <div class="card">
+          <div class="card__meta"><span>4月6日 周六</span><div class="card__airline"><span class="airline-dot" style="background:#1a56a8" aria-hidden="true"></span><span>东航系</span></div></div>
+          <div class="legs">
+            <div class="leg"><span>第一程 <small>10:45–12:40</small></span><span>HGH → SHA</span></div>
+            <div class="leg"><span>第二程 <small>14:00–15:40</small></span><span>SHA → PKX</span></div>
+          </div>
+          <div class="card__foot">
+            <div><div class="price"><small>¥</small>510<small>起</small></div><div class="cabin-tag">经济舱 · 中转</div></div>
+            <button type="button" class="btn btn--ghost">详情</button>
+          </div>
+        </div>
+      </article>
+      <a class="full-cta" href="#" onclick="return false;">查看更多经济舱方案</a>
+      <article class="scheme" data-slot="business_upsell" style="margin-top:18px">
+        <h2 class="scheme__title">方案三：舒适出行</h2>
+        <p class="scheme__reason">全新宽体机<strong>公务舱</strong>：优先值机登机、更好休息品质；下列座椅与设施说明来自<strong>机型知识库</strong>，与报价卡片绑定展示。</p>
+        <div class="card">
+          <div class="card__meta"><span>4月6日 周六</span><div class="card__airline"><span class="airline-dot" aria-hidden="true"></span><span>国航 · 宽体</span></div></div>
+          <div class="times-row">
+            <div><div class="time-big">07:30</div><div class="airport">杭州 HGH · T3</div></div>
+            <div class="mid-col"><span>直飞</span><div class="mid-line" aria-hidden="true"></div><span>2h20m</span></div>
+            <div style="text-align:right"><div class="time-big">09:50</div><div class="airport">北京首都 PEK · T3</div></div>
+          </div>
+          <div class="card__foot">
+            <div><div class="price"><small>¥</small>3624<small>起</small></div><div class="cabin-tag">公务舱</div></div>
+            <button type="button" class="btn btn--primary">选舱</button>
+          </div>
+          <div class="rich-block">
+            <div class="accordion" role="region" aria-label="机型与座椅详情">
+              <div class="acc-item">
+                <button type="button" class="acc-btn" aria-expanded="true" aria-controls="acc-panel-seat" id="acc-seat">宽敞舒适的座椅<span class="chev" aria-hidden="true">▼</span></button>
+                <div class="acc-panel open" id="acc-panel-seat">
+                  <img src="assets/business-cabin-chat-demo.png" width="800" height="450" alt="宽体公务舱客舱实拍：全平躺座椅与舷窗氛围灯" loading="lazy" />
+                  <p><strong>180° 全平躺座椅</strong>、更优私密性与休息质量；优先值机与登机服务以航司当日规则为准。</p>
+                  <ul><li>座椅布局与设施以<strong>当日执飞机型</strong>为准</li><li>图片与参数来自业务数据块，非模型臆测</li></ul>
+                </div>
+              </div>
+              <div class="acc-item">
+                <button type="button" class="acc-btn" aria-expanded="false" aria-controls="acc-panel-ife" id="acc-ife">娱乐设施：高清个人屏<span class="chev" aria-hidden="true">▼</span></button>
+                <div class="acc-panel" id="acc-panel-ife" hidden>
+                  <p>个人娱乐系统（片源与屏幕规格以航班实际配备为准）。</p>
+                </div>
+              </div>
+            </div>
+            <a class="cta-business" href="#" onclick="return false;">订购公务舱机票</a>
+          </div>
+        </div>
+      </article>
+    </section>
+    <div class="chips" role="navigation" aria-label="追问建议">
+      <span class="chip">退改签政策</span><span class="chip">行李额度</span><span class="chip">儿童票说明</span><span class="chip">查看更多航班</span>
+    </div>
+    <p class="dev-hint"><strong>UI-UX-ProMax：</strong>本页为静态高保真演示。结构化 SSE 见 <code>Qwen/chat-flight-recommendation/</code>，运行 <code>npm start</code> 后打开 <code>client/chat-blocks-demo.html</code>。</p>
+    <div class="dock"><div class="input-fake"><span class="cam" aria-hidden="true">◎</span><span>用千问搜一搜，问一问...</span></div></div>
+  </div>
+  <script>
+    (function(){document.querySelectorAll(".acc-btn").forEach(function(btn){btn.addEventListener("click",function(){var ex=btn.getAttribute("aria-expanded")==="true";var id=btn.getAttribute("aria-controls");var panel=id?document.getElementById(id):null;btn.setAttribute("aria-expanded",ex?"false":"true");if(panel){panel.classList.toggle("open",!ex);panel.hidden=ex;}});});})();
+  </script>
+</body>
+</html>

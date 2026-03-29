@@ -1,0 +1,983 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>飞猪千问 · 商务舱推荐（沉浸式 Demo）</title>
+  <style>
+    /**
+     * 视觉对齐：Figma「Qwen-沉浸式」node 1:1584 子结构
+     * https://www.figma.com/design/YJivJiM80jHttJvfV3ejpG/Qwen-%E6%B2%89%E6%B5%B8%E5%BC%8F?node-id=1-1584
+     * 画布 750 宽按 375 逻辑宽折算字号与间距（约 0.5×），层级与组件关系与稿一致。
+     */
+    :root {
+      --color-text: #0f131a;
+      --color-text-2: #222;
+      --color-text-3: #666;
+      --color-text-4: #999;
+      --color-text-5: #99a1af;
+      --color-placeholder: #919499;
+      --color-border: #eee;
+      --color-divider: #e0e0e0;
+      --color-page: #f7f8fa;
+      --color-card: #fff;
+      --color-price: #f53;
+      --color-brand: #66f;
+      --color-book-bg: #ebebff;
+      --gradient-user-t: #e4e4ff;
+      --gradient-user-b: #ededff;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-pill: 999px;
+      --space-page: 15px;
+      --shadow-composer: 0 4px 24px rgba(15, 19, 26, 0.06);
+      --font: "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--color-text);
+      background: var(--color-page);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* 沉浸式底：与稿「底部输入」渐变氛围一致 */
+    .immersive-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(120% 80% at 10% 0%, rgba(255, 236, 210, 0.55) 0%, transparent 55%),
+        radial-gradient(100% 70% at 90% 100%, rgba(220, 210, 255, 0.45) 0%, transparent 50%),
+        var(--color-page);
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      max-width: 375px;
+      margin: 0 auto;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+
+    /* —— 顶部组件（稿 1:1586）—— */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px 4px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text);
+    }
+    .status-bar .sys-icons {
+      display: flex;
+      gap: 4px;
+      font-size: 12px;
+      letter-spacing: -1px;
+      color: var(--color-text);
+    }
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px 10px;
+      min-height: 44px;
+    }
+    .nav-bar .nav-side {
+      width: 72px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-bar .nav-side.right { justify-content: flex-end; }
+    .nav-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      color: var(--color-text);
+      background: transparent;
+    }
+    .nav-title {
+      font-size: 18px;
+      font-weight: 500;
+      line-height: 1.4;
+      text-align: center;
+      flex: 1;
+    }
+
+    .scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 var(--space-page) 200px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* —— 用户输入气泡（稿「内容输入」1:1590）—— */
+    .user-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 12px;
+    }
+    .user-bubble {
+      max-width: 86%;
+      padding: 15px 18px;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(180deg, var(--gradient-user-t) 0%, var(--gradient-user-b) 100%);
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.4;
+      color: var(--color-text);
+    }
+
+    /* —— AI 输出标题（稿「输出内容」）—— */
+    .out-title {
+      display: flex;
+      align-items: center;
+      padding-top: 10px;
+      padding-bottom: 4px;
+      font-size: 17px;
+      font-weight: 500;
+      line-height: 1.4;
+      color: var(--color-text);
+    }
+    .out-title .emoji { margin-right: 6px; }
+
+    .desc-block {
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--color-text-3);
+      margin: 0 0 12px;
+    }
+
+    /* —— 机票卡：单程·国内 直飞（稿 1:1609）—— */
+    .flight-card {
+      background: var(--color-card);
+      border-radius: var(--radius-lg);
+      padding: 14px 14px 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 16px rgba(15, 19, 26, 0.04);
+    }
+    .flight-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .flight-date-route {
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.7;
+      color: var(--color-text-3);
+    }
+    .flight-logo {
+      height: 18px;
+      min-width: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      font-size: 11px;
+      font-weight: 600;
+      color: #ff9000;
+    }
+    .flight-logo span { color: var(--color-text); margin-left: 2px; font-weight: 500; }
+
+    .flight-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .flight-times {
+      flex: 1;
+      min-width: 0;
+    }
+    .timeline {
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
+      gap: 4px;
+      padding-top: 6px;
+    }
+    .tl-col {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .tl-col.left { align-items: flex-start; width: 30%; }
+    .tl-col.right { align-items: flex-end; text-align: right; width: 30%; }
+    .tl-time {
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.1;
+      color: var(--color-text-2);
+    }
+    .tl-sub {
+      font-size: 13px;
+      color: var(--color-text-2);
+    }
+    .tl-local {
+      font-size: 12px;
+      color: var(--color-text-2);
+      margin-bottom: -2px;
+    }
+    .tl-mid {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      min-width: 0;
+    }
+    .tl-duration {
+      font-size: 11px;
+      color: var(--color-text-4);
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .tl-line {
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, #d0d0d0 0%, #e8e8e8 100%);
+      position: relative;
+    }
+    .tl-line::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 5px solid #bbb;
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+    }
+
+    .flight-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--color-text-4);
+    }
+    .flight-meta-row .sep {
+      width: 1px;
+      height: 9px;
+      background: var(--color-divider);
+    }
+    .flight-meta-row strong { color: var(--color-text-3); font-weight: 400; }
+
+    .flight-side {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      padding-top: 4px;
+      flex-shrink: 0;
+    }
+    .price-line {
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+      color: var(--color-text);
+    }
+    .price-yen { font-size: 12px; font-weight: 700; }
+    .price-num { font-size: 21px; font-weight: 700; letter-spacing: -0.5px; font-family: ui-rounded, system-ui, sans-serif; }
+    .price-suffix { font-size: 11px; font-weight: 400; color: var(--color-text-3); }
+    .promo-line {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: var(--color-price);
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    .promo-line .dot-sep {
+      width: 1px;
+      height: 10px;
+      background: rgba(255, 85, 51, 0.35);
+    }
+    .btn-book {
+      border: none;
+      border-radius: 10px;
+      padding: 8px 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-brand);
+      background: var(--color-book-bg);
+      cursor: pointer;
+    }
+    .btn-book:active { opacity: 0.9; }
+
+    .policy-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--color-border);
+      font-size: 11px;
+      color: var(--color-text-2);
+    }
+    .policy-row .sep {
+      width: 1px;
+      height: 9px;
+      background: var(--color-border);
+    }
+
+    /* —— 座椅 / 沉浸大卡（稿「座椅卡片」1:1623）+ 手风琴展开区 —— */
+    .seat-wrap {
+      margin-bottom: 12px;
+    }
+    .seat-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: 21px;
+      padding: 12px;
+    }
+    .seat-visual {
+      position: relative;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      aspect-ratio: 16 / 10;
+      background: #1a1f2e;
+    }
+    .seat-visual img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .seat-play {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+    }
+    .seat-play .circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      display: grid;
+      place-items: center;
+    }
+    .seat-play .tri {
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 7px 0 7px 12px;
+      border-color: transparent transparent transparent var(--color-brand);
+      margin-left: 3px;
+    }
+
+    .spec-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 0 4px;
+    }
+    .spec-cell {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 8px 6px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(6px);
+    }
+    .spec-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+    }
+    .spec-text .t {
+      font-size: 12px;
+      font-weight: 500;
+      color: #1e2939;
+      line-height: 1.3;
+    }
+    .spec-text .v {
+      font-size: 11px;
+      color: var(--color-text-5);
+      line-height: 1.3;
+      margin-top: 1px;
+    }
+
+    /* 手风琴：嵌在方案内，默认豪华首项展开 */
+    .accordion {
+      margin-top: 10px;
+      border-top: 1px solid var(--color-border);
+      padding-top: 4px;
+    }
+    .acc-item + .acc-item { border-top: 1px solid var(--color-border); }
+    .acc-trigger {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      background: none;
+      border: none;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text);
+      text-align: left;
+      cursor: pointer;
+    }
+    .acc-chevron {
+      color: var(--color-text-4);
+      font-size: 10px;
+      transition: transform 0.2s ease;
+    }
+    .acc-item.open .acc-chevron { transform: rotate(180deg); }
+    .acc-panel { display: none; padding-bottom: 10px; }
+    .acc-item.open .acc-panel { display: block; }
+    .acc-list {
+      margin: 0;
+      padding-left: 16px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--color-text-3);
+    }
+    .acc-list li { margin-bottom: 4px; }
+    .evidence-note {
+      font-size: 10px;
+      color: var(--color-placeholder);
+      margin-top: 8px;
+    }
+    /* CX 图集行：CabinUpsell.images.gallery → 10/11/12（FlightData 国泰 A350-1000） */
+    .cx-thumb-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .cx-thumb-row img {
+      flex: 1;
+      width: 0;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    /* —— 追问词条（稿「追问」）—— */
+    .follow-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .follow-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      font-size: 13px;
+      color: var(--color-text);
+      box-shadow: 0 2px 8px rgba(15, 19, 26, 0.04);
+    }
+    .follow-chip .arr { color: var(--color-text-4); font-size: 12px; }
+
+    .scheme-gap { height: 8px; }
+
+    /* —— 底部固定区（稿「底部输入」1:1752 + 转化 CTA）—— */
+    .bottom-dock {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 0;
+      width: 100%;
+      max-width: 375px;
+      z-index: 20;
+      padding: 10px 15px 0;
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, rgba(247, 248, 250, 0) 0%, rgba(247, 248, 250, 0.92) 18%, #f7f8fa 100%);
+    }
+    .cta-more {
+      display: block;
+      width: 100%;
+      text-align: center;
+      text-decoration: none;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      border-radius: var(--radius-lg);
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, #6b6bff 0%, #5a5fef 100%);
+      box-shadow: 0 6px 20px rgba(102, 102, 255, 0.35);
+    }
+    .cta-more:active { opacity: 0.94; }
+    .cta-caption {
+      font-size: 10px;
+      color: var(--color-placeholder);
+      text-align: center;
+      margin: -4px 0 10px;
+    }
+    .tool-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .tool-pill {
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      color: var(--color-text);
+      border: 1px solid #fff;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, #fff 100%);
+      box-shadow: var(--shadow-composer);
+    }
+    .composer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 48px;
+      padding: 8px 12px;
+      background: #fff;
+      border: 2px solid var(--color-brand);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-composer);
+    }
+    .composer .left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+    .composer .mic {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+    }
+    .composer .placeholder {
+      font-size: 13px;
+      color: var(--color-placeholder);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .composer .right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      font-size: 18px;
+      color: var(--color-text);
+    }
+    .home-bar {
+      height: 28px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 6px;
+    }
+    .home-bar i {
+      display: block;
+      width: 120px;
+      height: 4px;
+      border-radius: 4px;
+      background: var(--color-text);
+      opacity: 0.2;
+    }
+  </style>
+</head>
+<body>
+  <div class="immersive-bg" aria-hidden="true"></div>
+
+  <div class="shell">
+    <header>
+      <div class="status-bar">
+        <span>9:41</span>
+        <span class="sys-icons" aria-hidden="true">●●●● 📶 🔋</span>
+      </div>
+      <div class="nav-bar">
+        <div class="nav-side">
+          <span class="nav-icon" aria-label="菜单">☰</span>
+        </div>
+        <div class="nav-title">飞猪千问</div>
+        <div class="nav-side right">
+          <span class="nav-icon" title="新建对话">💬</span>
+          <span class="nav-icon" title="收起">⌄</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="scroll">
+      <!-- 用户诉求：对应稿「内容输入」 -->
+      <div class="user-row">
+        <div class="user-bubble">
+          帮我看一下经济舱之外，北京到新加坡还有哪些商务舱方案更值得买？
+        </div>
+      </div>
+
+      <!-- 方案一：豪华商务舱 -->
+      <div class="out-title"><span class="emoji" aria-hidden="true">✈️</span>国泰 CX · 豪华商务舱（A350-1000）</div>
+      <p class="desc-block">
+        全平躺 + 更宽座椅与更大间距，夜航睡眠质量更高；下列参数与评分来自任务书可验证数据池，便于你对照决策。
+      </p>
+
+      <article class="flight-card" aria-label="机票卡片">
+        <div class="flight-card-head">
+          <div class="flight-date-route">5月4日周一 北京首都 — 新加坡</div>
+          <div class="flight-logo" aria-hidden="true">🐷<span>飞猪</span></div>
+        </div>
+        <div class="flight-main">
+          <div class="flight-times">
+            <div class="timeline">
+              <div class="tl-col left">
+                <div class="tl-time">09:55</div>
+                <div class="tl-sub">首都 T3</div>
+              </div>
+              <div class="tl-mid">
+                <div class="tl-duration">总 6h30m · 直飞</div>
+                <div class="tl-line" role="presentation"></div>
+              </div>
+              <div class="tl-col right">
+                <div class="tl-local">当地</div>
+                <div class="tl-time">16:25</div>
+                <div class="tl-sub">樟宜 T1</div>
+              </div>
+            </div>
+            <div class="flight-meta-row">
+              <span><strong>国泰航空</strong> CX</span>
+              <span class="sep" aria-hidden="true"></span>
+              <span>空客 A350-1000</span>
+              <span class="sep" aria-hidden="true"></span>
+              <span>商务舱</span>
+            </div>
+          </div>
+          <div class="flight-side">
+            <div class="price-line">
+              <span class="price-yen">¥</span>
+              <span class="price-num">8800</span>
+              <span class="price-suffix">起</span>
+            </div>
+            <div class="promo-line">
+              <span>千问专享</span>
+              <span class="dot-sep" aria-hidden="true"></span>
+              <span>优惠 ¥200</span>
+            </div>
+            <button type="button" class="btn-book">预订</button>
+          </div>
+        </div>
+        <div class="policy-row">
+          <span>商务舱 可退改</span>
+          <span class="sep" aria-hidden="true"></span>
+          <span>托运行李 32 公斤</span>
+          <span class="sep" aria-hidden="true"></span>
+          <span>退改 ¥500 起</span>
+        </div>
+      </article>
+
+      <!-- CabinUpsell 映射（对话流商务舱推荐）：facts→spec-row；images.hero→seat-visual；images.gallery→cx-thumb-row；images.seatmap→可选用 seatmap-03；accordion→下方面板 -->
+      <div class="seat-wrap">
+        <div class="seat-card">
+          <div class="seat-visual">
+            <img src="../Pencil/assets/cx-a3501000/seat-09.jpg" alt="国泰 A350-1000 商务舱座椅示意" />
+            <div class="seat-play"><div class="circle"><div class="tri" aria-hidden="true"></div></div></div>
+          </div>
+          <div class="spec-row">
+            <div class="spec-cell">
+              <div class="spec-icon" aria-hidden="true">∠</div>
+              <div class="spec-text">
+                <div class="t">躺平角度</div>
+                <div class="v">180° 全平躺</div>
+              </div>
+            </div>
+            <div class="spec-cell">
+              <div class="spec-icon" aria-hidden="true">↔</div>
+              <div class="spec-text">
+                <div class="t">座椅间距</div>
+                <div class="v">45–75 英寸</div>
+              </div>
+            </div>
+            <div class="spec-cell">
+              <div class="spec-icon" aria-hidden="true">▢</div>
+              <div class="spec-text">
+                <div class="t">座椅宽度</div>
+                <div class="v">20 英寸（约 51cm）</div>
+              </div>
+            </div>
+          </div>
+          <div class="cx-thumb-row" aria-hidden="true">
+            <img src="../Pencil/assets/cx-a3501000/seat-10.jpg" alt="" />
+            <img src="../Pencil/assets/cx-a3501000/seat-11.jpg" alt="" />
+            <img src="../Pencil/assets/cx-a3501000/seat-12.jpg" alt="" />
+          </div>
+
+          <div class="accordion" role="region" aria-label="豪华商务舱详情">
+            <div class="acc-item open" data-acc>
+              <button type="button" class="acc-trigger" aria-expanded="true">
+                <span>机型详情</span>
+                <span class="acc-chevron" aria-hidden="true">▼</span>
+              </button>
+              <div class="acc-panel">
+                <ul class="acc-list">
+                  <li>商务舱座位数：46</li>
+                  <li>间距 45–75 英寸（约 114–190cm）</li>
+                  <li>综合评分 4.62/5（480 条评论）</li>
+                </ul>
+                <p class="evidence-note">口径：high-cabin-purchase-task §3.1</p>
+              </div>
+            </div>
+            <div class="acc-item" data-acc>
+              <button type="button" class="acc-trigger" aria-expanded="false">
+                <span>舱位卖点</span>
+                <span class="acc-chevron" aria-hidden="true">▼</span>
+              </button>
+              <div class="acc-panel">
+                <ul class="acc-list">
+                  <li>空间：全平躺、大腿部空间、更宽座椅</li>
+                  <li>休息：夜航睡眠质量更高，到达后状态更好</li>
+                  <li>服务：优先服务、餐食品质、乘务响应</li>
+                </ul>
+              </div>
+            </div>
+            <div class="acc-item" data-acc>
+              <button type="button" class="acc-trigger" aria-expanded="false">
+                <span>娱乐与设施</span>
+                <span class="acc-chevron" aria-hidden="true">▼</span>
+              </button>
+              <div class="acc-panel">
+                <ul class="acc-list">
+                  <li>Wi-Fi</li>
+                  <li>USB 电源、个人设备充电端口</li>
+                  <li>机上娱乐系统</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="follow-row">
+        <span class="follow-chip">讲解这款座椅 <span class="arr">→</span></span>
+      </div>
+
+      <div class="scheme-gap"></div>
+
+      <!-- 方案二：智选商务舱（默认手风琴全收） -->
+      <div class="out-title"><span class="emoji" aria-hidden="true">✈️</span>新航 SQ · 智选商务舱（A350-900 V.1）</div>
+      <p class="desc-block">
+        与国泰样本对照：同系列机型不同客舱布局下，商务舱数量与空间参数不同，便于理解「版本差异」。
+      </p>
+
+      <article class="flight-card">
+        <div class="flight-card-head">
+          <div class="flight-date-route">5月4日周一 北京首都 — 新加坡</div>
+          <div class="flight-logo" aria-hidden="true">🐷<span>飞猪</span></div>
+        </div>
+        <div class="flight-main">
+          <div class="flight-times">
+            <div class="timeline">
+              <div class="tl-col left">
+                <div class="tl-time">09:55</div>
+                <div class="tl-sub">首都 T3</div>
+              </div>
+              <div class="tl-mid">
+                <div class="tl-duration">总 6h10m · 直飞</div>
+                <div class="tl-line" role="presentation"></div>
+              </div>
+              <div class="tl-col right">
+                <div class="tl-local">当地</div>
+                <div class="tl-time">15:25</div>
+                <div class="tl-sub">樟宜 T3</div>
+              </div>
+            </div>
+            <div class="flight-meta-row">
+              <span><strong>新加坡航空</strong> SQ</span>
+              <span class="sep" aria-hidden="true"></span>
+              <span>空客 A350-900（V.1）</span>
+              <span class="sep" aria-hidden="true"></span>
+              <span>商务舱</span>
+            </div>
+          </div>
+          <div class="flight-side">
+            <div class="price-line">
+              <span class="price-yen">¥</span>
+              <span class="price-num">9200</span>
+              <span class="price-suffix">起</span>
+            </div>
+            <div class="promo-line">
+              <span>千问专享</span>
+              <span class="dot-sep" aria-hidden="true"></span>
+              <span>优惠 ¥150</span>
+            </div>
+            <button type="button" class="btn-book">预订</button>
+          </div>
+        </div>
+        <div class="policy-row">
+          <span>商务舱 可退改</span>
+          <span class="sep" aria-hidden="true"></span>
+          <span>托运行李 40 公斤</span>
+          <span class="sep" aria-hidden="true"></span>
+          <span>退改以航司规则为准</span>
+        </div>
+      </article>
+
+      <div class="seat-wrap">
+        <div class="seat-card">
+          <div class="seat-visual">
+            <img src="https://www.figma.com/api/mcp/asset/8bec9f12-d88b-49e4-b409-6e1642942df6" alt="座舱示意占位" />
+          </div>
+          <div class="spec-row">
+            <div class="spec-cell">
+              <div class="spec-icon" aria-hidden="true">∠</div>
+              <div class="spec-text">
+                <div class="t">躺平角度</div>
+                <div class="v">180° 平躺</div>
+              </div>
+            </div>
+            <div class="spec-cell">
+              <div class="spec-icon" aria-hidden="true">↔</div>
+              <div class="spec-text">
+                <div class="t">腿部空间</div>
+                <div class="v">60 英寸</div>
+              </div>
+            </div>
+            <div class="spec-cell">
+              <div class="spec-icon" aria-hidden="true">▢</div>
+              <div class="spec-text">
+                <div class="t">座椅宽度</div>
+                <div class="v">28 英寸</div>
+              </div>
+            </div>
+          </div>
+          <div class="accordion" role="region" aria-label="智选商务舱详情">
+            <div class="acc-item" data-acc>
+              <button type="button" class="acc-trigger" aria-expanded="false">
+                <span>机型详情</span>
+                <span class="acc-chevron" aria-hidden="true">▼</span>
+              </button>
+              <div class="acc-panel">
+                <ul class="acc-list">
+                  <li>253 座布局：商务舱 42，优选经济舱 24，经济舱 187</li>
+                  <li>评分 4.48/5（469 条评论）</li>
+                </ul>
+                <p class="evidence-note">口径：high-cabin-purchase-task §3.2</p>
+              </div>
+            </div>
+            <div class="acc-item" data-acc>
+              <button type="button" class="acc-trigger" aria-expanded="false">
+                <span>舱位卖点</span>
+                <span class="acc-chevron" aria-hidden="true">▼</span>
+              </button>
+              <div class="acc-panel">
+                <ul class="acc-list">
+                  <li>效率：高价值旅客节省体力与决策成本</li>
+                </ul>
+              </div>
+            </div>
+            <div class="acc-item" data-acc>
+              <button type="button" class="acc-trigger" aria-expanded="false">
+                <span>娱乐与设施</span>
+                <span class="acc-chevron" aria-hidden="true">▼</span>
+              </button>
+              <div class="acc-panel">
+                <ul class="acc-list">
+                  <li>本样本未在任务书列出 IFE 明细——上线请接 FlightData 或标注「暂无可靠数据」。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="follow-row">
+        <span class="follow-chip">讲解航班餐食 <span class="arr">→</span></span>
+      </div>
+    </main>
+  </div>
+
+  <footer class="bottom-dock">
+    <a id="cta-link" class="cta-more" href="#">查看更多商务舱优选</a>
+    <p class="cta-caption">search_id · offer_id 归因参数由脚本写入</p>
+    <div class="tool-row">
+      <span class="tool-pill">拍照讲解</span>
+      <span class="tool-pill">抄作业</span>
+    </div>
+    <div class="composer" role="search">
+      <div class="left">
+        <span class="mic" aria-hidden="true">🎙</span>
+        <span class="placeholder">发消息或者按住说话...</span>
+      </div>
+      <div class="right" aria-hidden="true">
+        <span>📷</span>
+        <span>＋</span>
+      </div>
+    </div>
+    <div class="home-bar"><i aria-hidden="true"></i></div>
+  </footer>
+
+  <script>
+    (function () {
+      var searchId = "demo_search_" + Date.now().toString(36);
+      var offerId = "demo_offer_bc_reco_v1";
+      var base = "https://example.com/flight/list";
+      var url = new URL(base);
+      url.searchParams.set("search_id", searchId);
+      url.searchParams.set("offer_id", offerId);
+      url.searchParams.set("cabin", "business");
+      var a = document.getElementById("cta-link");
+      if (a) a.href = url.toString();
+
+      document.querySelectorAll(".accordion").forEach(function (root) {
+        root.addEventListener("click", function (e) {
+          var btn = e.target.closest(".acc-trigger");
+          if (!btn || !root.contains(btn)) return;
+          var item = btn.closest("[data-acc]");
+          if (!item) return;
+          var willOpen = !item.classList.contains("open");
+          root.querySelectorAll("[data-acc].open").forEach(function (sib) {
+            sib.classList.remove("open");
+            var b = sib.querySelector(".acc-trigger");
+            if (b) b.setAttribute("aria-expanded", "false");
+          });
+          if (willOpen) {
+            item.classList.add("open");
+            btn.setAttribute("aria-expanded", "true");
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
