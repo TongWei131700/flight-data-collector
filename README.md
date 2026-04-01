@@ -10,9 +10,15 @@
 
 ## 效果演示
 
+### H5 页面效果
 项目最终效果演示视频：[`assets/previews/H5页面.mp4`](assets/previews/H5页面.mp4)
 
 该视频展示了 H5 页面的完整交互效果。
+
+### Skill 抓取示例 - 阿联酋航空
+本 Skill 抓取数据的示例视频：[`assets/previews/阿联酋航空爬取 - 02.mp4`](assets/previews/阿联酋航空爬取%20-%2002.mp4)
+
+该视频展示了使用本 Skill 抓取阿联酋航空数据的完整过程，是第一个成功运行的 Skill 抓取数据示例。
 
 ## 快速开始
 
