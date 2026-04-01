@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5, user-scalable=yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta name="color-scheme" content="dark">
+  <title>高舱 DEMO — Jesko 开屏 + CX857 商务舱</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈</text></svg>">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      font-size: 10px;
+      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: #0a0a0f;
+      color: #f0f1f5;
+      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      line-height: 1.4;
+    }
+    #section-jesko {
+      position: relative;
+      z-index: 2;
+    }
+    #section-b777 {
+      max-width: 750px;
+      margin: 0 auto;
+      margin-top: -100vh;
+      padding-bottom: calc(192px + env(safe-area-inset-bottom, 0px));
+      position: relative;
+      z-index: 1;
+      --b777-reveal: 0;
+      opacity: var(--b777-reveal);
+      transform: translateY(calc((1 - var(--b777-reveal)) * 32px)) scale(calc(0.985 + var(--b777-reveal) * 0.015));
+      transform-origin: center top;
+      pointer-events: none;
+      will-change: opacity, transform;
+    }
+    #section-b777.transition-visible { pointer-events: auto; }
+    #section-b777 .s-hero .hero-content {
+      opacity: calc(1 - var(--bridge-block, 0));
+      transition: opacity 0.22s ease;
+    }
+    #b777CopyBridge {
+      position: fixed;
+      left: 50%;
+      bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+      width: min(100%, 750px);
+      transform: translateX(-50%);
+      padding: 0 60px;
+      z-index: 4;
+      pointer-events: none;
+      opacity: 0;
+      --bridge-reveal: 0;
+      --bridge-mask: 0;
+    }
+    #b777CopyBridge.is-active {
+      opacity: 1;
+    }
+    #b777CopyBridge .bridge-copy-shell {
+      width: min(654px, 100%);
+      margin: 0;
+      color: #d6dfea;
+      opacity: var(--bridge-reveal);
+      transform: translateY(calc((1 - var(--bridge-reveal)) * 28px));
+      filter: blur(calc((1 - var(--bridge-reveal)) * 10px));
+      transition: opacity 0.16s linear, transform 0.16s linear, filter 0.16s linear;
+      -webkit-mask-image: linear-gradient(
+        180deg,
+        rgba(0,0,0,calc(0.58 + var(--bridge-mask) * 0.42)) 0%,
+        rgba(0,0,0,1) 24%,
+        rgba(0,0,0,1) 100%
+      );
+      mask-image: linear-gradient(
+        180deg,
+        rgba(0,0,0,calc(0.58 + var(--bridge-mask) * 0.42)) 0%,
+        rgba(0,0,0,1) 24%,
+        rgba(0,0,0,1) 100%
+      );
+    }
+    #b777CopyBridge .bridge-title {
+      margin: 0;
+      font-size: clamp(40px, 9.6vw, 72px);
+      line-height: 1.06;
+      letter-spacing: -2.16px;
+      font-weight: 600;
+      color: #d6dfea;
+      text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+    }
+    #b777CopyBridge .bridge-title-line {
+      display: block;
+    }
+    #b777CopyBridge .bridge-title-line + .bridge-title-line {
+      margin-top: 12px;
+    }
+    #b777CopyBridge .bridge-price {
+      color: #e5d6a6;
+    }
+    #b777CopyBridge .bridge-support {
+      margin: 24px 0 0;
+      font-size: clamp(22px, 4vw, 30px);
+      line-height: clamp(40px, 6.8vw, 51px);
+      color: rgba(214, 223, 234, 0.8);
+      font-weight: 400;
+    }
+    #b777CopyBridge .bridge-support strong {
+      font-weight: 600;
+      color: #e8e6e3;
+    }
+    #b777CopyBridge .bridge-quote {
+      margin: 32px 0 0;
+      padding: 0 0 0 31px;
+      border-left: 3px solid rgba(255, 255, 255, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #b777CopyBridge .bridge-quote p {
+      margin: 0;
+      font-size: clamp(22px, 3.73vw, 28px);
+      line-height: clamp(34px, 6.16vw, 46.2px);
+      color: #d6dfea;
+      font-weight: 400;
+    }
+    #b777CopyBridge .bridge-quote cite {
+      font-size: clamp(18px, 2.93vw, 22px);
+      font-style: normal;
+      color: rgba(214, 223, 234, 0.5);
+      font-weight: 400;
+    }
+    html.jesko-complete #section-jesko .hero-viewport::after {
+      opacity: 0 !important;
+    }
+    #section-b777 .hero-top-group,
+    #section-b777 .progress,
+    #section-b777 .nav-dots,
+    #section-b777 .sticky-book-bar {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    #section-b777.transition-visible .hero-top-group,
+    #section-b777.transition-visible .progress,
+    #section-b777.transition-visible .nav-dots {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .demo-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #0a0a0f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1.2rem;
+      transition: opacity 0.5s ease;
+    }
+    .demo-loader.fade { opacity: 0; pointer-events: none; }
+    .demo-loader span {
+      font-size: 1.4rem;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: rgba(240,241,245,0.5);
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js"></script>
+</head>
+<body>
+
+  <div class="demo-loader" id="demoLoader"><span>Loading...</span></div>
+  <div id="section-jesko"></div>
+  <div id="b777CopyBridge" aria-hidden="true">
+    <div class="bridge-copy-shell">
+      <h2 class="bridge-title">
+        <span class="bridge-title-line">多花 <span class="bridge-price">¥1999</span></span>
+        <span class="bridge-title-line">换来真正能休息的</span>
+        <span class="bridge-title-line">长途体验</span>
+      </h2>
+      <p class="bridge-support">
+        北京直飞新加坡 6 小时 30 分。如果你更在意<strong>能让孩子和老人在机上更好休息</strong>，国泰 A350-1000 商务舱值得考虑的最佳方案。
+      </p>
+      <blockquote class="bridge-quote">
+        <p>“商务舱平躺床位睡眠质量很好，长途飞行不再疲惫。”</p>
+        <cite>— 来自 FlightData/国泰航空 CX/A350-1000 旅客评价</cite>
+      </blockquote>
+    </div>
+  </div>
+  <div id="section-b777"></div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    var SKIP_SRC = ["gsap", "ScrollTrigger", "figma.com"];
+
+    function shouldSkipScript(el) {
+      if (!el.src) return false;
+      for (var i = 0; i < SKIP_SRC.length; i++) {
+        if (el.src.indexOf(SKIP_SRC[i]) !== -1) return true;
+      }
+      return false;
+    }
+
+    function stripBodyHtmlRules(css) {
+      return css
+        .replace(/(?:^|\})\s*html\s*\{[^}]*\}/g, "")
+        .replace(/(?:^|\})\s*body\s*\{[^}]*\}/g, "");
+    }
+
+    function activateScripts(container) {
+      var scripts = Array.from(container.querySelectorAll("script"));
+      var chain = Promise.resolve();
+
+      scripts.forEach(function (old) {
+        if (shouldSkipScript(old)) { old.remove(); return; }
+
+        chain = chain.then(function () {
+          return new Promise(function (resolve) {
+            var ns = document.createElement("script");
+            if (old.src) {
+              ns.src = old.src;
+              if (old.async) ns.async = true;
+              ns.onload = ns.onerror = resolve;
+            } else {
+              ns.textContent = old.textContent;
+            }
+            old.parentNode.replaceChild(ns, old);
+            if (!old.src) resolve();
+          });
+        });
+      });
+
+      return chain;
+    }
+
+    function injectPreloads(doc) {
+      doc.querySelectorAll('link[rel="preload"]').forEach(function (link) {
+        var cl = link.cloneNode(true);
+        document.head.appendChild(cl);
+      });
+    }
+
+    async function loadSection(url, containerId) {
+      var resp = await fetch(url);
+      var text = await resp.text();
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(text, "text/html");
+      var container = document.getElementById(containerId);
+
+      injectPreloads(doc);
+
+      doc.querySelectorAll("style").forEach(function (styleEl) {
+        var s = document.createElement("style");
+        s.textContent = stripBodyHtmlRules(styleEl.textContent);
+        container.appendChild(s);
+      });
+
+      var tmp = document.createElement("div");
+      tmp.innerHTML = doc.body.innerHTML;
+      while (tmp.firstChild) {
+        container.appendChild(tmp.firstChild);
+      }
+
+      await activateScripts(container);
+    }
+
+    (async function () {
+      window.__JESKO_EMBEDDED_DEMO__ = true;
+      await loadSection("jesko-window-demo.html", "section-jesko");
+      await loadSection("business-upgrade-editorial-b777.html", "section-b777");
+
+      var jeskoViewport = document.querySelector("#section-jesko .hero-viewport");
+      if (jeskoViewport) {
+        jeskoViewport.style.setProperty("--bg", "#05060d");
+        jeskoViewport.style.background = "transparent";
+      }
+
+      var b777 = document.getElementById("section-b777");
+      var bridgeCopy = document.getElementById("b777CopyBridge");
+      var jeskoArea = document.querySelector("#section-jesko .hero-scroll-area");
+      var b777Hero = document.querySelector("#section-b777 .s-hero");
+      var docEl = document.documentElement;
+      var revealStart = 0.64;
+      var revealSpan = 0.24;
+      var bridgeRevealStart = 0.48;
+      var bridgeRevealSpan = 0.18;
+      var transitionEndY = 0;
+      var landingResistanceDistance = 0;
+      var anchorSettleDistance = 0;
+      var reverseUnlockDistance = 0;
+      var bridgeExitDistance = 0;
+      var lastKnownScrollY = 0;
+      var anchorHoldUntil = 0;
+      var wheelGestureLock = false;
+      var wheelUnlockTimer = 0;
+      var b777Entered = false;
+      var b777Visible = false;
+      var b777Anchored = false;
+      var reverseUnlockArmed = false;
+      var reverseIntent = 0;
+      var reverseIntentLastTs = 0;
+      var reverseReleaseUntil = 0;
+      var touchState = { tracking: false, lastY: 0, blockCurrentGesture: false };
+
+      function clamp(n, min, max) {
+        return Math.max(min, Math.min(max, n));
+      }
+
+      function getScrollY() {
+        return window.pageYOffset || docEl.scrollTop || 0;
+      }
+
+      function getTransitionMetrics() {
+        if (!jeskoArea) return null;
+        var scrollY = getScrollY();
+        var rect = jeskoArea.getBoundingClientRect();
+        var range = Math.max(rect.height - window.innerHeight, 1);
+        return {
+          rect: rect,
+          range: range,
+          progress: clamp(-rect.top / range, 0, 1),
+          scrollY: scrollY,
+          endY: scrollY + rect.top + range
+        };
+      }
+
+      function syncReverseIntent(now, isUpward) {
+        if (!isUpward) {
+          reverseIntent = 0;
+          reverseIntentLastTs = now;
+          return 0;
+        }
+        if (!reverseIntentLastTs || now - reverseIntentLastTs > 220) {
+          reverseIntent = 0;
+        }
+        reverseIntentLastTs = now;
+        return reverseIntent;
+      }
+
+      function settleAtB777Anchor(forceBehavior) {
+        if (!transitionEndY) return;
+        b777Anchored = true;
+        reverseUnlockArmed = true;
+        reverseIntent = 0;
+        reverseIntentLastTs = 0;
+        anchorHoldUntil = Date.now() + 520;
+        wheelGestureLock = true;
+        if (wheelUnlockTimer) {
+          clearTimeout(wheelUnlockTimer);
+          wheelUnlockTimer = 0;
+        }
+        touchState.blockCurrentGesture = touchState.tracking;
+        window.scrollTo({
+          top: transitionEndY,
+          behavior: forceBehavior || "auto"
+        });
+      }
+
+      function getLandingResistanceFactor(scrollY) {
+        if (!transitionEndY || !landingResistanceDistance) return 1;
+        if (scrollY < transitionEndY) return 1;
+        if (scrollY >= transitionEndY + landingResistanceDistance) return 1;
+        var zoneProgress = clamp((scrollY - transitionEndY) / landingResistanceDistance, 0, 1);
+        return 0.22 + Math.pow(zoneProgress, 1.35) * 0.78;
+      }
+
+      function shouldGateReverse(scrollY) {
+        if (!transitionEndY || !reverseUnlockArmed) return false;
+        return scrollY >= transitionEndY - 2 && scrollY <= transitionEndY + anchorSettleDistance;
+      }
+
+      function scheduleWheelGestureUnlock() {
+        if (wheelUnlockTimer) clearTimeout(wheelUnlockTimer);
+        wheelUnlockTimer = setTimeout(function () {
+          wheelGestureLock = false;
+          wheelUnlockTimer = 0;
+        }, 160);
+      }
+
+      function applyDirectionalScrollControl(deltaY, source) {
+        if (!deltaY) return false;
+        var now = performance.now();
+        var scrollY = getScrollY();
+        var targetY = scrollY + deltaY;
+
+        if (deltaY > 0) {
+          syncReverseIntent(now, false);
+          if (scrollY < transitionEndY && targetY >= transitionEndY - 2) {
+            settleAtB777Anchor("auto");
+            return true;
+          }
+          if (source === "touch" && touchState.blockCurrentGesture && b777Anchored && scrollY <= transitionEndY + anchorSettleDistance) {
+            window.scrollTo(0, transitionEndY);
+            return true;
+          }
+          if (source === "wheel" && wheelGestureLock && b777Anchored && scrollY <= transitionEndY + anchorSettleDistance) {
+            scheduleWheelGestureUnlock();
+            window.scrollTo(0, transitionEndY);
+            return true;
+          }
+          if (b777Anchored && Date.now() < anchorHoldUntil && scrollY <= transitionEndY + anchorSettleDistance) {
+            window.scrollTo(0, transitionEndY);
+            return true;
+          }
+          var factor = getLandingResistanceFactor(scrollY);
+          if (factor < 0.999) {
+            window.scrollTo(0, scrollY + deltaY * factor);
+            return true;
+          }
+          return false;
+        }
+
+        if (Date.now() < reverseReleaseUntil) {
+          syncReverseIntent(now, true);
+          return false;
+        }
+
+        if (!shouldGateReverse(scrollY)) {
+          syncReverseIntent(now, false);
+          return false;
+        }
+
+        reverseIntent = syncReverseIntent(now, true) + Math.abs(deltaY);
+        if (reverseIntent < reverseUnlockDistance) {
+          window.scrollTo(0, Math.max(transitionEndY, scrollY + deltaY * 0.08));
+          return true;
+        }
+
+        reverseUnlockArmed = false;
+        reverseReleaseUntil = Date.now() + 900;
+        reverseIntent = 0;
+        reverseIntentLastTs = 0;
+        b777Anchored = false;
+        window.scrollTo(0, Math.max(0, transitionEndY - Math.min(window.innerHeight * 0.18, 120)));
+        return true;
+      }
+
+      function syncContinuousTransition() {
+        if (!jeskoArea || !b777) return;
+        var metrics = getTransitionMetrics();
+        if (!metrics) return;
+        var progress = metrics.progress;
+        var reveal = clamp((progress - revealStart) / revealSpan, 0, 1);
+        var bridgeReveal = clamp((progress - bridgeRevealStart) / bridgeRevealSpan, 0, 1);
+        var heroTopReached = b777Hero && b777Hero.getBoundingClientRect().top <= window.innerHeight * 0.08;
+        transitionEndY = metrics.endY;
+        landingResistanceDistance = Math.max(window.innerHeight * 0.92, 360);
+        anchorSettleDistance = Math.max(window.innerHeight * 0.72, 300);
+        reverseUnlockDistance = Math.max(window.innerHeight * 0.58, 320);
+        bridgeExitDistance = Math.max(window.innerHeight * 0.18, 120);
+        var bridgeExit = clamp((metrics.scrollY - (transitionEndY + window.innerHeight * 0.04)) / bridgeExitDistance, 0, 1);
+        var bridgeVisible = clamp(bridgeReveal * (1 - bridgeExit), 0, 1);
+        b777Visible = b777Visible
+          ? (reveal > 0.005 || metrics.scrollY > transitionEndY)
+          : reveal > 0.018;
+        b777Entered = b777Entered
+          ? (reveal > 0.74 || metrics.scrollY > transitionEndY + window.innerHeight * 0.04)
+          : (reveal > 0.88 || heroTopReached);
+
+        if (!b777Anchored && lastKnownScrollY < transitionEndY - 2 && metrics.scrollY >= transitionEndY - 2) {
+          settleAtB777Anchor("auto");
+        }
+
+        if (metrics.scrollY > transitionEndY + anchorSettleDistance) {
+          b777Anchored = true;
+          reverseUnlockArmed = false;
+          reverseIntent = 0;
+          reverseIntentLastTs = 0;
+          anchorHoldUntil = 0;
+          wheelGestureLock = false;
+        } else if (metrics.scrollY >= transitionEndY - 2 && Date.now() >= reverseReleaseUntil) {
+          reverseUnlockArmed = true;
+        }
+
+        if (metrics.scrollY < transitionEndY - Math.max(window.innerHeight * 0.1, 64)) {
+          b777Anchored = false;
+          reverseUnlockArmed = false;
+          reverseIntent = 0;
+          reverseIntentLastTs = 0;
+          reverseReleaseUntil = 0;
+          anchorHoldUntil = 0;
+          wheelGestureLock = false;
+          if (wheelUnlockTimer) {
+            clearTimeout(wheelUnlockTimer);
+            wheelUnlockTimer = 0;
+          }
+          touchState.blockCurrentGesture = false;
+        }
+
+        lastKnownScrollY = metrics.scrollY;
+
+        docEl.classList.toggle("jesko-complete", progress > 0.985);
+        b777.style.setProperty("--b777-reveal", reveal.toFixed(4));
+        b777.style.setProperty("--bridge-block", clamp(bridgeVisible * 1.15, 0, 1).toFixed(4));
+        b777.classList.toggle("transition-visible", b777Visible);
+        b777.classList.toggle("entered", b777Entered);
+        if (bridgeCopy) {
+          bridgeCopy.style.setProperty("--bridge-reveal", bridgeVisible.toFixed(4));
+          bridgeCopy.style.setProperty("--bridge-mask", bridgeReveal.toFixed(4));
+          bridgeCopy.classList.toggle("is-active", bridgeVisible > 0.02);
+        }
+      }
+
+      var ticking = false;
+      function queueSync() {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(function () {
+          syncContinuousTransition();
+          ticking = false;
+        });
+      }
+
+      window.addEventListener("scroll", queueSync, { passive: true });
+      window.addEventListener("resize", queueSync);
+      window.addEventListener("wheel", function (event) {
+        if (event.ctrlKey) return;
+        if (applyDirectionalScrollControl(event.deltaY, "wheel")) {
+          event.preventDefault();
+          queueSync();
+        }
+      }, { passive: false });
+      window.addEventListener("touchstart", function (event) {
+        if (!event.touches || event.touches.length !== 1) {
+          touchState.tracking = false;
+          return;
+        }
+        touchState.tracking = true;
+        touchState.lastY = event.touches[0].clientY;
+      }, { passive: true });
+      window.addEventListener("touchmove", function (event) {
+        if (!touchState.tracking || !event.touches || event.touches.length !== 1) return;
+        var currentY = event.touches[0].clientY;
+        var deltaY = touchState.lastY - currentY;
+        touchState.lastY = currentY;
+        if (applyDirectionalScrollControl(deltaY, "touch")) {
+          event.preventDefault();
+          queueSync();
+        }
+      }, { passive: false });
+      window.addEventListener("touchend", function () {
+        touchState.tracking = false;
+        touchState.blockCurrentGesture = false;
+      }, { passive: true });
+      window.addEventListener("touchcancel", function () {
+        touchState.tracking = false;
+        touchState.blockCurrentGesture = false;
+      }, { passive: true });
+      syncContinuousTransition();
+
+      var loader = document.getElementById("demoLoader");
+      loader.classList.add("fade");
+      setTimeout(function () { loader.remove(); }, 600);
+    })();
+  })();
+  </script>
+</body>
+</html>
