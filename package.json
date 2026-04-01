@@ -1,0 +1,40 @@
+{
+  "name": "flight-data-collector",
+  "version": "1.0.0",
+  "description": "飞猪机票航司机型数据收集 Skill - 系统化收集航空公司机型资料",
+  "main": "scripts/batch-process.js",
+  "scripts": {
+    "batch-process": "node scripts/batch-process.js",
+    "classify": "node scripts/classify-images-v3.js",
+    "dedup": "node scripts/dedup-images.js",
+    "check-raw": "node scripts/check-raw-data-completeness.js",
+    "fix-raw": "node scripts/fix-raw-data-dir.js"
+  },
+  "keywords": [
+    "flight",
+    "airline",
+    "seatmap",
+    "cabin",
+    "aviation",
+    "data-collector",
+    "爬虫",
+    "航司",
+    "座位图"
+  ],
+  "author": "Flight Data Collector Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "sharp": "^0.32.0",
+    "fs-extra": "^11.0.0",
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flight-data-collector/flight-data-collector.git"
+  }
+}

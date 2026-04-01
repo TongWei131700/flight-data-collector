@@ -2,29 +2,86 @@
 
 飞猪机票航司机型数据收集 Skill
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## 简介
+
+系统化收集航空公司机型资料，并整理成可复用的数据目录。支持从 seatmaps.com 抓取航司机型数据、图片分类、去重、多版本整理等功能。
+
+## 效果演示
+
+项目最终效果演示视频：[`assets/previews/H5页面.mp4`](assets/previews/H5页面.mp4)
+
+该视频展示了 H5 页面的完整交互效果。
+
+## 快速开始
+
+```bash
+# 安装依赖
+npm install
+
+# 运行批量处理
+npm run batch-process
+
+# 图片分类
+npm run classify
+
+# 图片去重
+npm run dedup
+```
+
 ## 目录结构
 
 ```
 .
-├── SKILL.md              # 技能主入口
-├── README.md             # 本文件
-├── docs/                 # 项目文档
-│   ├── requirements/     # PRD 需求文档 (原 1 Prd/)
-│   ├── iterations/       # 迭代记录 (原 4 自我迭代/)
-│   └── presentations/    # PPT 演示 (原 5 项目PPT/)
-├── assets/               # 静态资源
-│   ├── demos/            # H5 效果演示 (原 2 H5效果/)
-│   └── previews/         # 预览图片
-├── data/                 # 核心数据
-│   └── 国泰航空 CX/      # 航司数据库 (原 6 航司数据库/)
-├── references/           # 参考资料
-│   ├── specs/            # 规范文档 (原 3 其他文件/specs/)
-│   └── template.md       # 模板
-├── resources/            # 资源文件
-│   └── chat-flight-recommendation/  # 聊天推荐模块 (原 3 其他文件/)
-├── scripts/              # 可执行脚本
-└── resources/notes/      # 笔记记录
+├── SKILL.md                   # 技能主入口 (Claude Skill)
+├── README.md                  # 本文件
+├── LICENSE                    # MIT 许可证
+├── package.json               # Node.js 依赖配置
+├── .gitignore                 # Git 忽略规则
+├── .claude/settings.local.json # Claude 项目配置
+├── docs/                      # 项目文档
+│   ├── requirements/          # PRD 需求文档
+│   ├── iterations/            # 迭代记录
+│   └── presentations/         # PPT 演示
+├── assets/                    # 静态资源
+│   └── demos/                 # H5 效果演示
+├── data/                      # 核心数据
+│   └── 国泰航空 CX/           # 航司数据库
+├── references/                # 参考资料
+│   ├── specs/                 # 规范文档
+│   └── template.md            # 模板
+├── resources/                 # 资源文件
+├── scripts/                   # 可执行脚本
+│   ├── core/                  # 核心流程脚本
+│   ├── organize/              # 多版本/机型整理
+│   ├── utils/                 # 工具脚本
+│   ├── maintenance/           # 维护脚本
+│   └── mcp-temp/              # MCP 临时文件
+└── scripts/README.md          # 脚本说明文档
 ```
+
+## 可用脚本
+
+| 命令 | 说明 |
+|------|------|
+| `npm run batch-process` | 批量处理流程 |
+| `npm run classify` | 图片语义分类 |
+| `npm run dedup` | 图片去重 |
+| `npm run check-raw` | 检查原始数据完整性 |
+| `npm run fix-raw` | 修复原始数据目录 |
+
+## 技术栈
+
+- **Node.js** >= 16.0.0
+- **Python** >= 3.8
+- **核心依赖**: sharp, fs-extra, axios, cheerio
+
+## 许可证
+
+[MIT](LICENSE)
+
+---
 
 ## 迁移记录
 
@@ -34,7 +91,6 @@
 | `2 H5效果/` | `assets/demos/` |
 | `3 其他文件/scripts/` | `scripts/` |
 | `3 其他文件/specs/` | `references/specs/` |
-| `3 其他文件/chat-flight-recommendation/` | `resources/chat-flight-recommendation/` |
 | `4 自我迭代/` | `docs/iterations/` |
 | `5 项目PPT/` | `docs/presentations/` |
 | `6 航司数据库/` | `data/` |
