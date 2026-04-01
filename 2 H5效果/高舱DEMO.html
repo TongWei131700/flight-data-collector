@@ -207,8 +207,19 @@
 
     (async function () {
       window.__JESKO_EMBEDDED_DEMO__ = true;
-      await loadSection("jesko-window-demo.html", "section-jesko");
-      await loadSection("business-upgrade-editorial-b777.html", "section-b777");
+      await loadSection("子效果-jesko-window-demo.html", "section-jesko");
+      await loadSection("子效果-business-upgrade-editorial-b777.html", "section-b777");
+
+      function releaseScrollLock() {
+        // Failsafe: child sections may lock body scrolling during preload.
+        document.documentElement.style.removeProperty("overflow");
+        document.body.style.removeProperty("overflow");
+        document.body.style.removeProperty("overflow-y");
+        document.body.style.removeProperty("position");
+        document.body.style.removeProperty("touch-action");
+      }
+      var releaseScrollLockTimer = setTimeout(releaseScrollLock, 2600);
+      releaseScrollLock();
 
       var jeskoViewport = document.querySelector("#section-jesko .hero-viewport");
       if (jeskoViewport) {
@@ -222,6 +233,8 @@
       var b777HeroContent = document.querySelector("#section-b777 .s-hero .hero-content");
       var b777HeroRevealItems = b777HeroContent ? Array.from(b777HeroContent.querySelectorAll(".rv")) : [];
       var docEl = document.documentElement;
+      // Keep wrapper scroll behavior aligned with standalone b777 page.
+      var useNativeScroll = true;
       var revealStart = 0.64;
       var revealSpan = 0.24;
       var copyBridgeStart = 0.48;
@@ -364,6 +377,7 @@
       }
 
       function settleAtB777Anchor(forceBehavior) {
+        if (useNativeScroll) return;
         if (!transitionEndY) return;
         b777Anchored = true;
         reverseUnlockArmed = true;
@@ -404,6 +418,7 @@
       }
 
       function applyDirectionalScrollControl(deltaY, source) {
+        if (useNativeScroll) return false;
         if (!deltaY) return false;
         var now = performance.now();
         var scrollY = getScrollY();
@@ -547,6 +562,7 @@
       window.addEventListener("scroll", queueSync, { passive: true });
       window.addEventListener("resize", queueSync);
       window.addEventListener("wheel", function (event) {
+        if (useNativeScroll) return;
         if (event.ctrlKey) return;
         if (applyDirectionalScrollControl(event.deltaY, "wheel")) {
           event.preventDefault();
@@ -562,6 +578,7 @@
         touchState.lastY = event.touches[0].clientY;
       }, { passive: true });
       window.addEventListener("touchmove", function (event) {
+        if (useNativeScroll) return;
         if (!touchState.tracking || !event.touches || event.touches.length !== 1) return;
         var currentY = event.touches[0].clientY;
         var deltaY = touchState.lastY - currentY;
@@ -580,10 +597,15 @@
         touchState.blockCurrentGesture = false;
       }, { passive: true });
       syncContinuousTransition();
+      releaseScrollLock();
 
       var loader = document.getElementById("demoLoader");
       loader.classList.add("fade");
-      setTimeout(function () { loader.remove(); }, 600);
+      setTimeout(function () {
+        loader.remove();
+        clearTimeout(releaseScrollLockTimer);
+        releaseScrollLock();
+      }, 600);
     })();
   })();
   </script>

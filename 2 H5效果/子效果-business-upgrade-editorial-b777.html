@@ -194,7 +194,7 @@
         linear-gradient(180deg,
           rgba(5, 6, 13, 0.1) 0%,
           rgba(5, 6, 13, 0.25) 13.909%,
-          rgba(5, 6, 13, 0.85) 36.162%,
+          rgba(5, 6, 13, 0.9) 36.162%,
           rgba(5, 6, 13, 0.95) 55.634%,
           rgba(5, 6, 13, 0.97) 100%),
         linear-gradient(90deg,
@@ -220,6 +220,22 @@
       position: relative;
       padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
     }
+    .s-hero .rv {
+      opacity: 0;
+      transform: translate3d(0, 30px, 0);
+      transition:
+        opacity 1250ms cubic-bezier(0.25, 0.1, 0.25, 1),
+        transform 1250ms cubic-bezier(0.25, 0.1, 0.25, 1);
+      will-change: transform, opacity;
+    }
+    .s-hero .rv.vis {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+    .s-hero .rv[data-d="2"] { transition-delay: 0.10s; }
+    .s-hero .rv[data-d="3"] { transition-delay: 0.28s; }
+    .s-hero .rv[data-d="4"] { transition-delay: 0.46s; }
+    .s-hero .rv[data-d="5"] { transition-delay: 0.64s; }
     html.ios-standalone .s-hero .sec-inner.s-hero-inner {
       padding-top: calc(env(safe-area-inset-top, 0px) + 66px);
     }
