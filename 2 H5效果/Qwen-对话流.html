@@ -34,19 +34,20 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
     body {
-      min-height: 100vh;
+      height: 100vh;
       display: grid;
-      place-items: start center;
-      padding: 12px 0;
-      overflow: auto;
+      place-items: center;
+      padding: 0;
+      overflow: hidden;
       background: radial-gradient(circle at 12% 10%, #f9fbff 0%, #eef3fb 44%, #e9eff8 100%);
       color: var(--black100);
       font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
       -webkit-font-smoothing: antialiased;
     }
     .stage {
-      width: var(--frame-w);
-      height: 1624px;
+      width: min(var(--frame-w), 100vw);
+      height: 100dvh;
+      min-height: 100dvh;
       background: #fff;
       display: flex;
       flex-direction: column;
@@ -54,6 +55,32 @@
       box-shadow: var(--shadow);
       position: relative;
     }
+
+    /* ========== iOS status bar (simulated) ========== */
+    .ios-statusbar {
+      height: 88px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(10px);
+    }
+    .ios-time {
+      font-size: 28px;
+      font-weight: 500;
+      color: #0f131a;
+      letter-spacing: 0.4px;
+    }
+    .ios-status-icons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #0f131a;
+      opacity: 0.9;
+    }
+    .ios-status-icons svg { display: block; }
 
     /* ========== Top bar ========== */
     .topbar {
@@ -243,7 +270,7 @@
       flex-shrink: 0;
       background: #fff;
       padding: 0 30px;
-      padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      padding-bottom: 12px;
       display: flex;
       flex-direction: column;
       gap: 24px;
@@ -268,6 +295,12 @@
       display: flex; align-items: center; justify-content: center;
     }
     .tool-btn-icon svg { width: 18px; height: 18px; }
+    .tool-btn-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
     .composer-input-row {
       display: flex; align-items: center; justify-content: space-between;
       height: 102px; padding: 12px 24px; border-radius: 36px;
@@ -281,6 +314,13 @@
       display: flex; align-items: center; justify-content: center;
     }
     .composer-icon svg { width: 28px; height: 28px; }
+    .composer-icon img { width: 48px; height: 48px; display: block; object-fit: contain; }
+    .voice-figma-icon {
+      width: 48px;
+      height: 48px;
+      display: block;
+      object-fit: contain;
+    }
     .composer-input {
       flex: 1; border: 0; outline: none; resize: none; background: transparent;
       color: var(--dark-text); font-size: 30px; line-height: 1.4; font-family: inherit;
@@ -298,7 +338,29 @@
     .send-btn.visible { display: block; }
     .send-btn:disabled { background: #c9d3e8; cursor: not-allowed; }
     .composer-footer {
-      font-size: 18px; line-height: 1.4; color: #c6c6c6; text-align: center;
+      font-size: 18px;
+      line-height: 1.4;
+      color: #c6c6c6;
+      text-align: center;
+      width: 100%;
+      align-self: stretch;
+    }
+
+    /* ========== iOS indicator bar (simulated) ========== */
+    .ios-indicatorbar {
+      height: 64px;
+      padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    .ios-indicatorbar .bar {
+      width: 268px;
+      height: 10px;
+      border-radius: 10px;
+      background: #0f131a;
     }
 
     /* ========== Streaming / animation ========== */
@@ -337,6 +399,31 @@
 </head>
 <body>
   <main class="stage">
+    <div class="ios-statusbar" aria-label="iOS 状态栏">
+      <div class="ios-time">9:41</div>
+      <div class="ios-status-icons" aria-hidden="true">
+        <!-- cellular -->
+        <svg width="34" height="20" viewBox="0 0 34 20" fill="none">
+          <rect x="1" y="11" width="4" height="8" rx="1.2" fill="currentColor"/>
+          <rect x="8" y="8" width="4" height="11" rx="1.2" fill="currentColor" opacity="0.9"/>
+          <rect x="15" y="5" width="4" height="14" rx="1.2" fill="currentColor" opacity="0.85"/>
+          <rect x="22" y="2" width="4" height="17" rx="1.2" fill="currentColor" opacity="0.8"/>
+        </svg>
+        <!-- wifi -->
+        <svg width="28" height="20" viewBox="0 0 28 20" fill="none">
+          <path d="M3 7.5C8.7 2.4 19.3 2.4 25 7.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
+          <path d="M6.5 11C10.3 7.7 17.7 7.7 21.5 11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.85"/>
+          <path d="M10.5 14.5C12.6 12.9 15.4 12.9 17.5 14.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.8"/>
+          <circle cx="14" cy="17" r="1.6" fill="currentColor"/>
+        </svg>
+        <!-- battery -->
+        <svg width="40" height="20" viewBox="0 0 40 20" fill="none">
+          <rect x="1" y="4" width="32" height="12" rx="3" stroke="currentColor" stroke-width="2"/>
+          <rect x="35" y="8" width="4" height="4" rx="1" fill="currentColor"/>
+          <rect x="3.6" y="6.6" width="23" height="6.8" rx="2" fill="currentColor"/>
+        </svg>
+      </div>
+    </div>
     <header class="topbar">
       <a class="topbar-left" href="javascript:void(0)" aria-label="返回">
         <svg width="20" height="36" viewBox="0 0 20 36" fill="none"><path d="M18 2L2 18l16 16" stroke="#667085" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -355,7 +442,7 @@
       <div class="composer-tools">
         <button class="tool-btn" type="button">
           <span class="tool-btn-icon">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M12 3C7.03 3 3 7.03 3 12s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7z" fill="#667"/><circle cx="9" cy="11" r="1.2" fill="#667"/><circle cx="15" cy="11" r="1.2" fill="#667"/><path d="M12 17c-2 0-3.5-1.5-3.5-3h7c0 1.5-1.5 3-3.5 3z" fill="#667"/></svg>
+            <img src="assets/figma/deepthink-icon.png" alt="" aria-hidden="true">
           </span>
           深度思考
         </button>
@@ -363,21 +450,24 @@
       <form class="composer-input-row" id="chatForm">
         <div class="composer-left">
           <div class="composer-icon" id="voiceIcon">
-            <svg viewBox="0 0 48 48" fill="none"><path d="M24 6a6 6 0 00-6 6v12a6 6 0 0012 0V12a6 6 0 00-6-6z" stroke="#0f131a" stroke-width="3" stroke-linecap="round"/><path d="M12 22a12 12 0 0024 0" stroke="#0f131a" stroke-width="3" stroke-linecap="round"/><path d="M24 38v4" stroke="#0f131a" stroke-width="3" stroke-linecap="round"/></svg>
+            <img class="voice-figma-icon" src="assets/figma/icon-voice.png" alt="" aria-hidden="true">
           </div>
           <textarea id="chatInput" class="composer-input" rows="1" placeholder="发消息或者按住说话..." aria-label="输入对话内容"></textarea>
         </div>
         <div class="composer-right" id="composerRight">
           <div class="composer-icon">
-            <svg viewBox="0 0 48 48" fill="none"><rect x="8" y="12" width="32" height="24" rx="4" stroke="#0f131a" stroke-width="3"/><circle cx="24" cy="24" r="6" stroke="#0f131a" stroke-width="3"/><circle cx="35" cy="17" r="2" fill="#0f131a"/></svg>
+            <img src="assets/figma/icon-camera.png" alt="" aria-hidden="true">
           </div>
           <div class="composer-icon">
-            <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="16" stroke="#0f131a" stroke-width="3"/><path d="M24 16v16M16 24h16" stroke="#0f131a" stroke-width="3" stroke-linecap="round"/></svg>
+            <img src="assets/figma/icon-plus.png" alt="" aria-hidden="true">
           </div>
         </div>
         <button type="submit" id="sendBtn" class="send-btn" disabled>发送</button>
       </form>
       <div class="composer-footer">内容由 AI生成</div>
+    </div>
+    <div class="ios-indicatorbar" aria-label="iOS 底部指示条">
+      <div class="bar" aria-hidden="true"></div>
     </div>
   </main>
 
@@ -763,6 +853,11 @@
     }
     function preloadDemoAssets() {
       var urls = [];
+      // composer icons
+      urls.push(ASSET_BASE + 'deepthink-icon.png');
+      urls.push(ASSET_BASE + 'icon-voice.png');
+      urls.push(ASSET_BASE + 'icon-camera.png');
+      urls.push(ASSET_BASE + 'icon-plus.png');
       // shared
       urls.push(ASSET_BASE + 'flight-arrow.png');
       // plan1
@@ -934,7 +1029,8 @@
       var hasText = !!chatInput.value.trim();
       sendBtn.disabled = !hasText || state.running;
       sendBtn.classList.toggle('visible', hasText);
-      voiceIcon.style.display = hasText ? 'none' : 'flex';
+      // “思考状态”下，输入文本时也不隐藏左侧语音按钮（Figma node 2154:28967）
+      voiceIcon.style.display = 'flex';
       composerRight.style.display = hasText ? 'none' : 'flex';
     }
 
