@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Read(~/skills/**)",
+      "Edit",
+      "Write",
+      "MultiEdit"
+    ]
+  },
+  "project": {
+    "name": "flight-data-collector",
+    "description": "飞猪机票航司机型数据收集 Skill",
+    "type": "claude-skill"
+  }
+}
