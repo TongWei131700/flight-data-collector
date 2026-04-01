@@ -7,3700 +7,962 @@
   <style>
     :root {
       --frame-w: 750px;
-      --frame-h: 1624px;
-      --line: #e8edf5;
-      --text-main: #0f131a;
-      --text-weak: #8c97aa;
-      --brand: #245bff;
-      --assistant: #ffffff;
-      --user: #ebf2ff;
-      --shadow: 0 10px 34px rgba(16, 24, 40, 0.08);
-    }
-    * { box-sizing: border-box; }
-    html {
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: start center;
-      padding: 12px 0;
-      overflow: hidden;
-      background: radial-gradient(circle at 12% 10%, #f9fbff 0%, #eef3fb 44%, #e9eff8 100%);
-      color: var(--text-main);
-      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-    .stage {
-      width: var(--frame-w);
-      height: var(--frame-h);
-      background: #fff;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-    .topbar {
-      height: 88px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 34px;
-      line-height: 44px;
-      font-weight: 500;
-      position: relative;
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(10px);
-      flex-shrink: 0;
-    }
-    .topbar-left,
-    .topbar-right {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #667085;
-      font-size: 30px;
-      text-decoration: none;
-      line-height: 1;
-      user-select: none;
-    }
-    .topbar-left { left: 28px; }
-    .topbar-right { right: 28px; }
-    .dialog-scroll {
-      flex: 1;
-      overflow-y: hidden;
-      padding: 26px 24px 18px;
-      background: linear-gradient(180deg, #f8fbff 0%, #f5f8fd 40%, #f3f6fb 100%);
-    }
-    .empty-state {
-      min-height: 100%;
-      display: grid;
-      align-content: center;
-      justify-items: center;
-      gap: 12px;
-      color: var(--text-weak);
-      text-align: center;
-    }
-    .empty-title {
-      margin: 0;
-      font-size: 32px;
-      line-height: 52px;
-      color: #6c778b;
-    }
-    .empty-sub {
-      margin: 0;
-      font-size: 26px;
-      line-height: 36px;
-    }
-    .empty-state[hidden] { display: none; }
-    .msg {
-      display: flex;
-      margin-bottom: 18px;
-      width: 100%;
-    }
-    .msg.assistant { justify-content: flex-start; }
-    .msg.user { justify-content: flex-end; }
-    .bubble {
-      max-width: 560px;
-      border-radius: 24px;
-      padding: 18px 22px;
-      line-height: 52px;
-      font-size: 32px;
-      border: 1px solid transparent;
-      word-break: break-word;
-      white-space: pre-wrap;
-    }
-    .msg.assistant .bubble {
-      background: var(--assistant);
-      border-color: #e5eaf3;
-      box-shadow: 0 4px 16px rgba(16, 24, 40, 0.04);
-    }
-    .msg.user .bubble {
-      background: var(--user);
-      border-color: #d5e2ff;
-    }
-    .typing {
-      color: #7b8797;
-      font-size: 26px;
-      line-height: 36px;
-      padding: 8px 12px 0;
-    }
-    .card-list {
-      display: grid;
-      gap: 14px;
-      margin: 2px 0 20px;
-    }
-    .flight-card {
-      background: #fff;
-      border: 1px solid #e9edf5;
-      border-radius: 20px;
-      padding: 16px;
-    }
-    .card-title {
-      margin: 0 0 8px;
-      font-size: 32px;
-      line-height: 52px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-    .card-desc {
-      margin: 0;
-      font-size: 32px;
-      line-height: 52px;
-      color: #5b6473;
-    }
-    .immersive-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-top: 10px;
-      border: 1px solid rgba(15, 19, 26, 0.12);
-      border-radius: 24px;
-      background: #fff;
-      padding: 16px 20px;
-      color: var(--text-main);
-      text-decoration: none;
-      font-size: 26px;
-      line-height: 36px;
-    }
-    .immersive-arrow {
-      color: #98a2b3;
-      font-size: 30px;
-      line-height: 1;
-      flex-shrink: 0;
-    }
-    .composer {
-      flex-shrink: 0;
-      border-top: 1px solid var(--line);
-      padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
-      background: #fff;
-    }
-    .composer-inner {
-      display: flex;
-      align-items: flex-end;
-      gap: 12px;
-      border: 1px solid #dce3ef;
-      border-radius: 24px;
-      background: #f8fafc;
-      padding: 10px 12px;
-    }
-    .composer-input {
-      flex: 1;
-      border: 0;
-      outline: none;
-      resize: none;
-      background: transparent;
-      color: var(--text-main);
-      font-size: 26px;
-      line-height: 1.4;
-      min-height: 38px;
-      max-height: 160px;
-      font-family: inherit;
-    }
-    .composer-input::placeholder { color: #98a2b3; }
-    .send-btn {
-      border: 0;
-      border-radius: 18px;
-      min-width: 90px;
-      height: 58px;
-      padding: 0 16px;
-      background: var(--brand);
-      color: #fff;
-      font-size: 24px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .send-btn:disabled {
-      background: #c9d3e8;
-      cursor: not-allowed;
-    }
-  </style>
-</head>
-<body>
-  <main class="stage" aria-label="Qwen 对话页，固定 750x1624">
-    <header class="topbar">
-      <a class="topbar-left" id="backBtn" href="javascript:void(0)" aria-label="回退">‹</a>
-      千问
-      <a class="topbar-right" href="javascript:void(0)" aria-label="更多">⋯</a>
-    </header>
-    <section class="dialog-scroll" id="dialogScroll">
-      <div id="messageMount"></div>
-      <div id="typing" class="typing" hidden>千问正在生成...</div>
-    </section>
-    <footer class="composer">
-      <form class="composer-inner" id="chatForm">
-        <textarea id="chatInput" class="composer-input" rows="1" placeholder="发送问题或继续说..." aria-label="输入对话内容"></textarea>
-        <button type="submit" id="sendBtn" class="send-btn" disabled>发送</button>
-      </form>
-    </footer>
-  </main>
-
-  <script>
-    (function () {
-      var backBtn = document.getElementById("backBtn");
-      var chatForm = document.getElementById("chatForm");
-      var chatInput = document.getElementById("chatInput");
-      var sendBtn = document.getElementById("sendBtn");
-      var messageMount = document.getElementById("messageMount");
-      var dialogScroll = document.getElementById("dialogScroll");
-      var typing = document.getElementById("typing");
-
-      var queueRunning = false;
-      var hasEvaluatedFirstTurn = false;
-      var dialogueState = { lastUserUtterance: "", budgetPenaltyApplied: false };
-      var historyStack = [];
-
-      var scoreKeywords = {
-        comfort: ["舒适", "舒服", "躺平", "不想太累", "宽敞", "睡得好", "休息好"],
-        crowd: ["老人", "父母", "长辈", "带娃", "小孩", "孕妇"],
-        redEye: ["红眼", "夜班", "凌晨", "早班", "长途", "十几个小时", "国际"],
-        business: ["出差", "报销", "见客户", "会议", "商务"],
-        budget: ["最便宜", "低价", "学生", "预算", "省钱", "特价", "穷游"]
-      };
-
-      function computeScores(text) {
-        var norm = (text || "").toLowerCase();
-        var score = { direct: 0, transfer: 0, business: 0 };
-        function hit(group) {
-          for (var i = 0; i < scoreKeywords[group].length; i++) {
-            if (norm.indexOf(scoreKeywords[group][i]) !== -1) return true;
-          }
-          return false;
-        }
-        if (hit("comfort")) { score.business += 3; score.direct += 1; }
-        if (hit("crowd")) { score.business += 2; score.direct += 2; }
-        if (hit("redEye")) { score.business += 2; score.direct += 1; }
-        if (hit("business")) { score.business += 2; }
-        if (hit("budget")) { score.transfer += 3; score.direct += 1; dialogueState.budgetPenaltyApplied = true; }
-        score.direct += 2;
-        score.transfer += 1;
-        return score;
-      }
-
-      function buildCards(score) {
-        var cards = [
-          { key: "direct", title: "方案一：直飞最低价", desc: "07:30 萧山T3 → 09:50 首都T3 · ¥624 起" },
-          { key: "transfer", title: "方案二：高性价比中转", desc: "10:45 出发，青岛中转 · 较直飞省约 ¥114" },
-          { key: "business", title: "方案三：舒适商务舱升级", desc: "A350-1000 商务舱 · +¥1999 换来更好休息" }
-        ];
-        cards.sort(function (a, b) { return score[b.key] - score[a.key]; });
-        return cards;
-      }
-
-      function snapshotState() {
-        return {
-          messageCount: messageMount.children.length,
-          hasEvaluatedFirstTurn: hasEvaluatedFirstTurn,
-          dialogueState: JSON.parse(JSON.stringify(dialogueState))
-        };
-      }
-
-      function restoreState(snapshot) {
-        while (messageMount.children.length > snapshot.messageCount) {
-          messageMount.removeChild(messageMount.lastChild);
-        }
-        hasEvaluatedFirstTurn = snapshot.hasEvaluatedFirstTurn;
-        dialogueState = snapshot.dialogueState;
-        scrollToBottom();
-      }
-
-      function scrollToBottom() {
-        requestAnimationFrame(function () {
-          dialogScroll.scrollTop = dialogScroll.scrollHeight;
-        });
-      }
-
-      function autoGrow() {
-        chatInput.style.height = "0px";
-        chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + "px";
-      }
-
-      function appendMessage(role, text) {
-        var row = document.createElement("div");
-        row.className = "msg " + role;
-        var bubble = document.createElement("div");
-        bubble.className = "bubble";
-        bubble.textContent = text;
-        row.appendChild(bubble);
-        messageMount.appendChild(row);
-        scrollToBottom();
-      }
-
-      function appendCards(cards) {
-        var row = document.createElement("div");
-        row.className = "msg assistant";
-        var bubble = document.createElement("div");
-        bubble.className = "bubble";
-        var wrap = document.createElement("div");
-        wrap.className = "card-list";
-        for (var i = 0; i < cards.length; i++) {
-          var card = document.createElement("article");
-          card.className = "flight-card";
-          var title = document.createElement("h3");
-          title.className = "card-title";
-          title.textContent = cards[i].title;
-          var desc = document.createElement("p");
-          desc.className = "card-desc";
-          desc.textContent = cards[i].desc;
-          card.appendChild(title);
-          card.appendChild(desc);
-          wrap.appendChild(card);
-        }
-        var immersive = document.createElement("a");
-        immersive.className = "immersive-card";
-        immersive.href = "高舱DEMO.html";
-        immersive.setAttribute("aria-label", "提前沉浸式体验本航班，打开高舱DEMO页面");
-        immersive.innerHTML = "<span>提前沉浸式体验本航班</span><span class='immersive-arrow' aria-hidden='true'>›</span>";
-        bubble.appendChild(wrap);
-        bubble.appendChild(immersive);
-        row.appendChild(bubble);
-        messageMount.appendChild(row);
-        scrollToBottom();
-      }
-
-      function delay(ms) {
-        return new Promise(function (resolve) { setTimeout(resolve, ms); });
-      }
-
-      async function playAssistantFlow(userText) {
-        queueRunning = true;
-        updateSendState();
-        typing.hidden = false;
-        scrollToBottom();
-        await delay(400);
-
-        if (!hasEvaluatedFirstTurn) {
-          hasEvaluatedFirstTurn = true;
-          appendMessage("assistant", "已收到，我在根据你的偏好做实时评估。");
-          await delay(520);
-          var score = computeScores(userText);
-          appendCards(buildCards(score));
-          await delay(460);
-          appendMessage("assistant", "如果你愿意，我还能继续按“最省钱 / 最省时 / 最舒适”三种标准细化。");
-        } else {
-          appendMessage("assistant", "收到，我继续按你的输入优化推荐。也可以点上面的沉浸式入口查看高舱演示。");
-        }
-
-        typing.hidden = true;
-        queueRunning = false;
-        updateSendState();
-      }
-
-      function updateSendState() {
-        sendBtn.disabled = !chatInput.value.trim() || queueRunning;
-      }
-
-      backBtn.addEventListener("click", function () {
-        if (queueRunning) return;
-        if (historyStack.length > 0) {
-          var snapshot = historyStack.pop();
-          restoreState(snapshot);
-          return;
-        }
-        if (window.history.length > 1) {
-          window.history.back();
-        }
-      });
-
-      chatInput.addEventListener("input", function () {
-        autoGrow();
-        updateSendState();
-      });
-
-      chatInput.addEventListener("keydown", function (event) {
-        if (event.key === "Enter" && !event.shiftKey) {
-          event.preventDefault();
-          if (!sendBtn.disabled) chatForm.requestSubmit();
-        }
-      });
-
-      chatForm.addEventListener("submit", async function (event) {
-        event.preventDefault();
-        if (queueRunning) return;
-
-        var text = chatInput.value.trim();
-        if (!text) return;
-
-        historyStack.push(snapshotState());
-        appendMessage("user", text);
-        dialogueState.lastUserUtterance = text;
-        chatInput.value = "";
-        autoGrow();
-        updateSendState();
-
-        await playAssistantFlow(text);
-      });
-
-      autoGrow();
-      updateSendState();
-      scrollToBottom();
-    })();
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Qwen 对话流</title>
-  <style>
-    :root {
-      --frame-w: 750px;
-      --frame-h: 1624px;
-      --line: #e8edf5;
-      --text-main: #0f131a;
-      --text-weak: #8c97aa;
-      --brand: #245bff;
-      --assistant: #ffffff;
-      --user: #ebf2ff;
-      --shadow: 0 10px 34px rgba(16, 24, 40, 0.08);
-      --r-xl: 24px;
-      --r-lg: 20px;
-    }
-    * { box-sizing: border-box; }
-    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: start center;
-      padding: 12px 0;
-      overflow: auto;
-      background: radial-gradient(circle at 12% 10%, #f9fbff 0%, #eef3fb 44%, #e9eff8 100%);
-      color: var(--text-main);
-      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-    .stage {
-      width: var(--frame-w);
-      height: var(--frame-h);
-      background: #fff;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-    .topbar {
-      height: 88px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 34px;
-      font-weight: 500;
-      position: relative;
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(10px);
-      flex-shrink: 0;
-    }
-    .topbar-left,
-    .topbar-right {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #667085;
-      font-size: 30px;
-      text-decoration: none;
-      line-height: 1;
-      user-select: none;
-    }
-    .topbar-left { left: 28px; }
-    .topbar-right { right: 28px; }
-    .dialog-scroll {
-      flex: 1;
-      overflow-y: auto;
-      padding: 26px 24px 18px;
-      background: linear-gradient(180deg, #f8fbff 0%, #f5f8fd 40%, #f3f6fb 100%);
-    }
-    .empty-state {
-      min-height: 100%;
-      display: grid;
-      align-content: center;
-      justify-items: center;
-      gap: 12px;
-      color: var(--text-weak);
-      text-align: center;
-    }
-    .empty-title {
-      margin: 0;
-      font-size: 32px;
-      line-height: 52px;
-      color: #6c778b;
-    }
-    .empty-sub {
-      margin: 0;
-      font-size: 26px;
-      line-height: 36px;
-    }
-    .empty-state[hidden] { display: none; }
-    .msg {
-      display: flex;
-      margin-bottom: 18px;
-      width: 100%;
-    }
-    .msg.assistant { justify-content: flex-start; }
-    .msg.user { justify-content: flex-end; }
-    .bubble {
-      max-width: 560px;
-      border-radius: var(--r-xl);
-      padding: 18px 22px;
-      line-height: 52px;
-      font-size: 32px;
-      border: 1px solid transparent;
-      word-break: break-word;
-      white-space: pre-wrap;
-    }
-    .msg.assistant .bubble {
-      background: var(--assistant);
-      border-color: #e5eaf3;
-      box-shadow: 0 4px 16px rgba(16, 24, 40, 0.04);
-    }
-    .msg.user .bubble {
-      background: var(--user);
-      border-color: #d5e2ff;
-    }
-    .typing {
-      color: #7b8797;
-      font-size: 26px;
-      line-height: 36px;
-      padding: 8px 12px 0;
-    }
-    .card-list {
-      display: grid;
-      gap: 14px;
-      margin: 2px 0 20px;
-    }
-    .flight-card {
-      background: #fff;
-      border: 1px solid #e9edf5;
-      border-radius: var(--r-lg);
-      padding: 16px;
-    }
-    .card-title {
-      margin: 0 0 8px;
-      font-size: 32px;
-      line-height: 52px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-    .card-desc {
-      margin: 0;
-      font-size: 32px;
-      line-height: 52px;
-      color: #5b6473;
-    }
-    .immersive-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-top: 10px;
-      border: 1px solid rgba(15, 19, 26, 0.12);
-      border-radius: var(--r-xl);
-      background: #fff;
-      padding: 16px 20px;
-      color: var(--text-main);
-      text-decoration: none;
-      font-size: 26px;
-      line-height: 36px;
-    }
-    .immersive-arrow {
-      color: #98a2b3;
-      font-size: 30px;
-      line-height: 1;
-      flex-shrink: 0;
-    }
-    .composer {
-      flex-shrink: 0;
-      border-top: 1px solid var(--line);
-      padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
-      background: #fff;
-    }
-    .composer-inner {
-      display: flex;
-      align-items: flex-end;
-      gap: 12px;
-      border: 1px solid #dce3ef;
-      border-radius: var(--r-xl);
-      background: #f8fafc;
-      padding: 10px 12px;
-    }
-    .composer-input {
-      flex: 1;
-      border: 0;
-      outline: none;
-      resize: none;
-      background: transparent;
-      color: var(--text-main);
-      font-size: 26px;
-      line-height: 1.4;
-      min-height: 38px;
-      max-height: 160px;
-      font-family: inherit;
-    }
-    .composer-input::placeholder { color: #98a2b3; }
-    .send-btn {
-      border: 0;
-      border-radius: 18px;
-      min-width: 90px;
-      height: 58px;
-      padding: 0 16px;
-      background: var(--brand);
-      color: #fff;
-      font-size: 24px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .send-btn:disabled {
-      background: #c9d3e8;
-      cursor: not-allowed;
-    }
-  </style>
-</head>
-<body>
-  <main class="stage" aria-label="Qwen 对话页，固定 750x1624">
-    <header class="topbar">
-      <a class="topbar-left" href="javascript:void(0)" aria-label="返回">‹</a>
-      千问
-      <a class="topbar-right" href="javascript:void(0)" aria-label="更多">⋯</a>
-    </header>
-    <section class="dialog-scroll" id="dialogScroll">
-      <div id="emptyState" class="empty-state">
-        <p class="empty-title">欢迎来到千问对话流 Demo</p>
-        <p class="empty-sub">发送第一条消息后开始推荐</p>
-      </div>
-      <div id="messageMount"></div>
-      <div id="typing" class="typing" hidden>千问正在生成...</div>
-    </section>
-    <footer class="composer">
-      <form class="composer-inner" id="chatForm">
-        <textarea id="chatInput" class="composer-input" rows="1" placeholder="发送问题或继续说..." aria-label="输入对话内容"></textarea>
-        <button type="submit" id="sendBtn" class="send-btn" disabled>发送</button>
-      </form>
-    </footer>
-  </main>
-  <script>
-    (function () {
-      var chatForm = document.getElementById("chatForm");
-      var chatInput = document.getElementById("chatInput");
-      var sendBtn = document.getElementById("sendBtn");
-      var messageMount = document.getElementById("messageMount");
-      var dialogScroll = document.getElementById("dialogScroll");
-      var typing = document.getElementById("typing");
-      var emptyState = document.getElementById("emptyState");
-      var queueRunning = false;
-      var hasEvaluatedFirstTurn = false;
-      var dialogueState = { lastUserUtterance: "", budgetPenaltyApplied: false };
-      var scoreKeywords = {
-        comfort: ["舒适", "舒服", "躺平", "不想太累", "宽敞", "睡得好", "休息好"],
-        crowd: ["老人", "父母", "长辈", "带娃", "小孩", "孕妇"],
-        redEye: ["红眼", "夜班", "凌晨", "早班", "长途", "十几个小时", "国际"],
-        business: ["出差", "报销", "见客户", "会议", "商务"],
-        budget: ["最便宜", "低价", "学生", "预算", "省钱", "特价", "穷游"]
-      };
-      var firstTurnCards = [
-        { id: "plan-1", title: "方案一：直飞最低价", desc: "07:30 萧山T3 → 09:50 首都T3，经济舱 ¥624 起，适合想快速抵达。" },
-        { id: "plan-2", title: "方案二：高性价比中转", desc: "10:45 出发，经青岛中转，整体更省 ¥114，适合预算优先。" },
-        { id: "plan-3-high-cabin", title: "方案三：舒适商务舱升级", desc: "多花 ¥1999，可换来更稳定的休息体验与更高舒适度。" }
-      ];
-      function scrollToBottom() {
-        requestAnimationFrame(function () { dialogScroll.scrollTop = dialogScroll.scrollHeight; });
-      }
-      function autoGrow() {
-        chatInput.style.height = "0px";
-        chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + "px";
-      }
-      function appendMessage(role, text) {
-        var row = document.createElement("div");
-        row.className = "msg " + role;
-        var bubble = document.createElement("div");
-        bubble.className = "bubble";
-        bubble.textContent = text;
-        row.appendChild(bubble);
-        messageMount.appendChild(row);
-        scrollToBottom();
-      }
-      function appendCards(showThirdCard) {
-        var wrapper = document.createElement("div");
-        wrapper.className = "card-list";
-        for (var i = 0; i < firstTurnCards.length; i++) {
-          if (firstTurnCards[i].id === "plan-3-high-cabin" && !showThirdCard) continue;
-          var card = document.createElement("article");
-          card.className = "flight-card";
-          var title = document.createElement("h3");
-          title.className = "card-title";
-          title.textContent = firstTurnCards[i].title;
-          var desc = document.createElement("p");
-          desc.className = "card-desc";
-          desc.textContent = firstTurnCards[i].desc;
-          card.appendChild(title);
-          card.appendChild(desc);
-          wrapper.appendChild(card);
-        }
-        if (showThirdCard) {
-          var immersive = document.createElement("a");
-          immersive.className = "immersive-card";
-          immersive.href = "高舱DEMO.html";
-          immersive.setAttribute("aria-label", "提前沉浸式体验本航班，打开高舱DEMO页面");
-          immersive.innerHTML = "<span>提前沉浸式体验本航班</span><span class=\"immersive-arrow\" aria-hidden=\"true\">›</span>";
-          wrapper.appendChild(immersive);
-        }
-        messageMount.appendChild(wrapper);
-        scrollToBottom();
-      }
-      function containsAny(text, keywords) {
-        return keywords.some(function (kw) { return text.indexOf(kw) !== -1; });
-      }
-      function clamp(value, min, max) {
-        return Math.max(min, Math.min(max, value));
-      }
-      function computePreferenceScore(currentUtterance, previousUtterance) {
-        var mergedText = [currentUtterance, previousUtterance || ""].join(" ");
-        var score = 0;
-        if (containsAny(mergedText, scoreKeywords.comfort)) score += 25;
-        if (containsAny(mergedText, scoreKeywords.crowd)) score += 25;
-        if (containsAny(mergedText, scoreKeywords.redEye)) score += 20;
-        if (containsAny(mergedText, scoreKeywords.business)) score += 15;
-        if (!dialogueState.budgetPenaltyApplied && containsAny(mergedText, scoreKeywords.budget)) {
-          score -= 35;
-          dialogueState.budgetPenaltyApplied = true;
-        }
-        return clamp(score, -40, 80);
-      }
-      function shouldShowThirdCard(score) {
-        return score >= 20;
-      }
-      function delay(ms) {
-        return new Promise(function (resolve) { setTimeout(resolve, ms); });
-      }
-      async function playFirstTurn(score) {
-        var showThirdCard = shouldShowThirdCard(score);
-        queueRunning = true;
-        typing.hidden = false;
-        scrollToBottom();
-        await delay(520);
-        await delay(420);
-        appendCards(showThirdCard);
-        await delay(280);
-        typing.hidden = true;
-        queueRunning = false;
-      }
-      async function playFollowup(userText) {
-        queueRunning = true;
-        typing.hidden = false;
-        scrollToBottom();
-        await delay(480);
-        appendMessage("assistant", "收到：" + userText + "。我会继续按同一规则更新后续推荐。");
-        typing.hidden = true;
-        queueRunning = false;
-      }
-      function updateSendState() {
-        sendBtn.disabled = !chatInput.value.trim() || queueRunning;
-      }
-      chatInput.addEventListener("input", function () {
-        autoGrow();
-        updateSendState();
-      });
-      chatInput.addEventListener("keydown", function (event) {
-        if (event.key === "Enter" && !event.shiftKey) {
-          event.preventDefault();
-          if (!sendBtn.disabled) chatForm.requestSubmit();
-        }
-      });
-      chatForm.addEventListener("submit", async function (event) {
-        event.preventDefault();
-        if (queueRunning) return;
-        var text = chatInput.value.trim();
-        if (!text) return;
-        emptyState.hidden = true;
-        appendMessage("user", text);
-        var preferenceScore = computePreferenceScore(text, dialogueState.lastUserUtterance);
-        dialogueState.lastUserUtterance = text;
-        chatInput.value = "";
-        autoGrow();
-        updateSendState();
-        if (!hasEvaluatedFirstTurn) {
-          hasEvaluatedFirstTurn = true;
-          await playFirstTurn(preferenceScore);
-        } else {
-          await playFollowup(text);
-        }
-        updateSendState();
-      });
-      autoGrow();
-      updateSendState();
-      scrollToBottom();
-    })();
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head><meta charset="UTF-8"><title>tmp</title></head>
-<body>tmp</body>
-</html>
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Qwen 对话流</title>
-  <style>
-    :root {
-      --frame-w: 750px;
-      --frame-h: 1624px;
-      --line: #e8edf5;
-      --text-main: #0f131a;
-      --text-weak: #8c97aa;
-      --brand: #245bff;
-      --assistant: #ffffff;
-      --user: #ebf2ff;
-      --shadow: 0 10px 34px rgba(16, 24, 40, 0.08);
-      --r-xl: 24px;
-      --r-lg: 20px;
-    }
-    * { box-sizing: border-box; }
-    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: start center;
-      padding: 12px 0;
-      overflow: auto;
-      background: radial-gradient(circle at 12% 10%, #f9fbff 0%, #eef3fb 44%, #e9eff8 100%);
-      color: var(--text-main);
-      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-    .stage {
-      width: var(--frame-w);
-      height: var(--frame-h);
-      background: #fff;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-    .topbar {
-      height: 88px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 34px;
-      font-weight: 500;
-      position: relative;
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(10px);
-      flex-shrink: 0;
-    }
-    .topbar-left,
-    .topbar-right {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #667085;
-      font-size: 30px;
-      text-decoration: none;
-      line-height: 1;
-      user-select: none;
-    }
-    .topbar-left { left: 28px; }
-    .topbar-right { right: 28px; }
-    .dialog-scroll {
-      flex: 1;
-      overflow-y: auto;
-      padding: 26px 24px 18px;
-      background: linear-gradient(180deg, #f8fbff 0%, #f5f8fd 40%, #f3f6fb 100%);
-    }
-    .empty-state {
-      min-height: 100%;
-      display: grid;
-      align-content: center;
-      justify-items: center;
-      gap: 12px;
-      color: var(--text-weak);
-      text-align: center;
-    }
-    .empty-title {
-      margin: 0;
-      font-size: 32px;
-      line-height: 52px;
-      color: #6c778b;
-    }
-    .empty-sub {
-      margin: 0;
-      font-size: 26px;
-      line-height: 36px;
-    }
-    .empty-state[hidden] { display: none; }
-    .msg {
-      display: flex;
-      margin-bottom: 18px;
-      width: 100%;
-    }
-    .msg.assistant { justify-content: flex-start; }
-    .msg.user { justify-content: flex-end; }
-    .bubble {
-      max-width: 560px;
-      border-radius: var(--r-xl);
-      padding: 18px 22px;
-      line-height: 52px;
-      font-size: 32px;
-      border: 1px solid transparent;
-      word-break: break-word;
-      white-space: pre-wrap;
-    }
-    .msg.assistant .bubble {
-      background: var(--assistant);
-      border-color: #e5eaf3;
-      box-shadow: 0 4px 16px rgba(16, 24, 40, 0.04);
-    }
-    .msg.user .bubble {
-      background: var(--user);
-      border-color: #d5e2ff;
-    }
-    .typing {
-      color: #7b8797;
-      font-size: 26px;
-      line-height: 36px;
-      padding: 8px 12px 0;
-    }
-    .card-list {
-      display: grid;
-      gap: 14px;
-      margin: 2px 0 20px;
-    }
-    .flight-card {
-      background: #fff;
-      border: 1px solid #e9edf5;
-      border-radius: var(--r-lg);
-      padding: 16px;
-    }
-    .card-title {
-      margin: 0 0 8px;
-      font-size: 32px;
-      line-height: 52px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-    .card-desc {
-      margin: 0;
-      font-size: 32px;
-      line-height: 52px;
-      color: #5b6473;
-    }
-    .immersive-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-top: 10px;
-      border: 1px solid rgba(15, 19, 26, 0.12);
-      border-radius: var(--r-xl);
-      background: #fff;
-      padding: 16px 20px;
-      color: var(--text-main);
-      text-decoration: none;
-      font-size: 26px;
-      line-height: 36px;
-    }
-    .immersive-arrow {
-      color: #98a2b3;
-      font-size: 30px;
-      line-height: 1;
-      flex-shrink: 0;
-    }
-    .composer {
-      flex-shrink: 0;
-      border-top: 1px solid var(--line);
-      padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
-      background: #fff;
-    }
-    .composer-inner {
-      display: flex;
-      align-items: flex-end;
-      gap: 12px;
-      border: 1px solid #dce3ef;
-      border-radius: var(--r-xl);
-      background: #f8fafc;
-      padding: 10px 12px;
-    }
-    .composer-input {
-      flex: 1;
-      border: 0;
-      outline: none;
-      resize: none;
-      background: transparent;
-      color: var(--text-main);
-      font-size: 26px;
-      line-height: 1.4;
-      min-height: 38px;
-      max-height: 160px;
-      font-family: inherit;
-    }
-    .composer-input::placeholder { color: #98a2b3; }
-    .send-btn {
-      border: 0;
-      border-radius: 18px;
-      min-width: 90px;
-      height: 58px;
-      padding: 0 16px;
-      background: var(--brand);
-      color: #fff;
-      font-size: 24px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .send-btn:disabled {
-      background: #c9d3e8;
-      cursor: not-allowed;
-    }
-  </style>
-</head>
-<body>
-  <main class="stage" aria-label="Qwen 对话页，固定 750x1624">
-    <header class="topbar">
-      <a class="topbar-left" href="javascript:void(0)" aria-label="返回">‹</a>
-      千问
-      <a class="topbar-right" href="javascript:void(0)" aria-label="更多">⋯</a>
-    </header>
-    <section class="dialog-scroll" id="dialogScroll">
-      <div id="emptyState" class="empty-state">
-        <p class="empty-title">欢迎来到千问对话流 Demo</p>
-        <p class="empty-sub">发送第一条消息后开始推荐</p>
-      </div>
-      <div id="messageMount"></div>
-      <div id="typing" class="typing" hidden>千问正在生成...</div>
-    </section>
-    <footer class="composer">
-      <form class="composer-inner" id="chatForm">
-        <textarea id="chatInput" class="composer-input" rows="1" placeholder="发送问题或继续说..." aria-label="输入对话内容"></textarea>
-        <button type="submit" id="sendBtn" class="send-btn" disabled>发送</button>
-      </form>
-    </footer>
-  </main>
-  <script>
-    (function () {
-      var chatForm = document.getElementById("chatForm");
-      var chatInput = document.getElementById("chatInput");
-      var sendBtn = document.getElementById("sendBtn");
-      var messageMount = document.getElementById("messageMount");
-      var dialogScroll = document.getElementById("dialogScroll");
-      var typing = document.getElementById("typing");
-      var emptyState = document.getElementById("emptyState");
-
-      var queueRunning = false;
-      var hasEvaluatedFirstTurn = false;
-      var dialogueState = { lastUserUtterance: "", budgetPenaltyApplied: false };
-
-      var scoreKeywords = {
-        comfort: ["舒适", "舒服", "躺平", "不想太累", "宽敞", "睡得好", "休息好"],
-        crowd: ["老人", "父母", "长辈", "带娃", "小孩", "孕妇"],
-        redEye: ["红眼", "夜班", "凌晨", "早班", "长途", "十几个小时", "国际"],
-        business: ["出差", "报销", "见客户", "会议", "商务"],
-        budget: ["最便宜", "低价", "学生", "预算", "省钱", "特价", "穷游"]
-      };
-
-      var firstTurnCards = [
-        { id: "plan-1", title: "方案一：直飞最低价", desc: "07:30 萧山T3 → 09:50 首都T3，经济舱 ¥624 起，适合想快速抵达。" },
-        { id: "plan-2", title: "方案二：高性价比中转", desc: "10:45 出发，经青岛中转，整体更省 ¥114，适合预算优先。" },
-        { id: "plan-3-high-cabin", title: "方案三：舒适商务舱升级", desc: "多花 ¥1999，可换来更稳定的休息体验与更高舒适度。" }
-      ];
-
-      function scrollToBottom() {
-        requestAnimationFrame(function () {
-          dialogScroll.scrollTop = dialogScroll.scrollHeight;
-        });
-      }
-      function autoGrow() {
-        chatInput.style.height = "0px";
-        chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + "px";
-      }
-      function appendMessage(role, text) {
-        var row = document.createElement("div");
-        row.className = "msg " + role;
-        var bubble = document.createElement("div");
-        bubble.className = "bubble";
-        bubble.textContent = text;
-        row.appendChild(bubble);
-        messageMount.appendChild(row);
-        scrollToBottom();
-      }
-      function appendCards(showThirdCard) {
-        var wrapper = document.createElement("div");
-        wrapper.className = "card-list";
-        for (var i = 0; i < firstTurnCards.length; i++) {
-          if (firstTurnCards[i].id === "plan-3-high-cabin" && !showThirdCard) continue;
-          var card = document.createElement("article");
-          card.className = "flight-card";
-          var title = document.createElement("h3");
-          title.className = "card-title";
-          title.textContent = firstTurnCards[i].title;
-          var desc = document.createElement("p");
-          desc.className = "card-desc";
-          desc.textContent = firstTurnCards[i].desc;
-          card.appendChild(title);
-          card.appendChild(desc);
-          wrapper.appendChild(card);
-        }
-        if (showThirdCard) {
-          var immersive = document.createElement("a");
-          immersive.className = "immersive-card";
-          immersive.href = "高舱DEMO.html";
-          immersive.setAttribute("aria-label", "提前沉浸式体验本航班，打开高舱DEMO页面");
-          immersive.innerHTML = "<span>提前沉浸式体验本航班</span><span class=\"immersive-arrow\" aria-hidden=\"true\">›</span>";
-          wrapper.appendChild(immersive);
-        }
-        messageMount.appendChild(wrapper);
-        scrollToBottom();
-      }
-      function containsAny(text, keywords) {
-        return keywords.some(function (kw) { return text.indexOf(kw) !== -1; });
-      }
-      function clamp(value, min, max) {
-        return Math.max(min, Math.min(max, value));
-      }
-      function computePreferenceScore(currentUtterance, previousUtterance) {
-        var mergedText = [currentUtterance, previousUtterance || ""].join(" ");
-        var score = 0;
-        if (containsAny(mergedText, scoreKeywords.comfort)) score += 25;
-        if (containsAny(mergedText, scoreKeywords.crowd)) score += 25;
-        if (containsAny(mergedText, scoreKeywords.redEye)) score += 20;
-        if (containsAny(mergedText, scoreKeywords.business)) score += 15;
-        if (!dialogueState.budgetPenaltyApplied && containsAny(mergedText, scoreKeywords.budget)) {
-          score -= 35;
-          dialogueState.budgetPenaltyApplied = true;
-        }
-        return clamp(score, -40, 80);
-      }
-      function shouldShowThirdCard(score) {
-        return score >= 20;
-      }
-      function delay(ms) {
-        return new Promise(function (resolve) { setTimeout(resolve, ms); });
-      }
-      async function playFirstTurn(score) {
-        var showThirdCard = shouldShowThirdCard(score);
-        queueRunning = true;
-        typing.hidden = false;
-        scrollToBottom();
-        await delay(520);
-        await delay(420);
-        appendCards(showThirdCard);
-        await delay(280);
-        typing.hidden = true;
-        queueRunning = false;
-      }
-      async function playFollowup(userText) {
-        queueRunning = true;
-        typing.hidden = false;
-        scrollToBottom();
-        await delay(480);
-        appendMessage("assistant", "收到：" + userText + "。我会继续按同一规则更新后续推荐。");
-        typing.hidden = true;
-        queueRunning = false;
-      }
-      function updateSendState() {
-        sendBtn.disabled = !chatInput.value.trim() || queueRunning;
-      }
-      chatInput.addEventListener("input", function () {
-        autoGrow();
-        updateSendState();
-      });
-      chatInput.addEventListener("keydown", function (event) {
-        if (event.key === "Enter" && !event.shiftKey) {
-          event.preventDefault();
-          if (!sendBtn.disabled) chatForm.requestSubmit();
-        }
-      });
-      chatForm.addEventListener("submit", async function (event) {
-        event.preventDefault();
-        if (queueRunning) return;
-        var text = chatInput.value.trim();
-        if (!text) return;
-        emptyState.hidden = true;
-        appendMessage("user", text);
-        var preferenceScore = computePreferenceScore(text, dialogueState.lastUserUtterance);
-        dialogueState.lastUserUtterance = text;
-        chatInput.value = "";
-        autoGrow();
-        updateSendState();
-        if (!hasEvaluatedFirstTurn) {
-          hasEvaluatedFirstTurn = true;
-          await playFirstTurn(preferenceScore);
-        } else {
-          await playFollowup(text);
-        }
-        updateSendState();
-      });
-      autoGrow();
-      updateSendState();
-      scrollToBottom();
-    })();
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Qwen 对话流</title>
-  <style>
-    :root {
-      --frame-w: 750px;
-      --frame-h: 1624px;
-      --bg-0: #f9fbff;
-      --bg-1: #eef3fb;
-      --bg-2: #e9eff8;
-      --panel: #ffffff;
-      --line: #e8edf5;
-      --text-main: #0f131a;
-      --text-sub: #919499;
-      --text-weak: #8c97aa;
-      --brand: #245bff;
-      --assistant: #ffffff;
-      --user: #ebf2ff;
-      --shadow: 0 10px 34px rgba(16, 24, 40, 0.08);
-      --r-xl: 24px;
-      --r-lg: 20px;
-      --r-md: 16px;
-    }
-
-    * { box-sizing: border-box; }
-    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: start center;
-      padding: 12px 0;
-      overflow: auto;
-      background: radial-gradient(circle at 12% 10%, var(--bg-0) 0%, var(--bg-1) 44%, var(--bg-2) 100%);
-      color: var(--text-main);
-      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    .stage {
-      width: var(--frame-w);
-      height: var(--frame-h);
-      background: var(--panel);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    .topbar {
-      height: 88px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 34px;
-      font-weight: 500;
-      position: relative;
-      flex-shrink: 0;
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(10px);
-    }
-    .topbar-left,
-    .topbar-right {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #667085;
-      font-size: 30px;
-      line-height: 1;
-      text-decoration: none;
-      user-select: none;
-    }
-    .topbar-left { left: 28px; }
-    .topbar-right { right: 28px; }
-
-    .dialog-scroll {
-      flex: 1;
-      overflow-y: auto;
-      padding: 26px 24px 18px;
-      background: linear-gradient(180deg, #f8fbff 0%, #f5f8fd 40%, #f3f6fb 100%);
-    }
-
-    .empty-state {
-      min-height: 100%;
-      display: grid;
-      align-content: center;
-      justify-items: center;
-      gap: 12px;
-      color: var(--text-weak);
-      text-align: center;
-    }
-    .empty-title {
-      margin: 0;
-      font-size: 32px;
-      line-height: 52px;
-      color: #6c778b;
-    }
-    .empty-sub {
-      margin: 0;
-      font-size: 26px;
-      line-height: 36px;
-    }
-    .empty-state[hidden] { display: none; }
-
-    .msg {
-      display: flex;
-      margin-bottom: 18px;
-      width: 100%;
-    }
-    .msg.assistant { justify-content: flex-start; }
-    .msg.user { justify-content: flex-end; }
-
-    .bubble {
-      max-width: 560px;
-      border-radius: var(--r-xl);
-      padding: 18px 22px;
-      line-height: 52px;
-      font-size: 32px;
-      border: 1px solid transparent;
-      word-break: break-word;
-      white-space: pre-wrap;
-    }
-    .msg.assistant .bubble {
-      background: var(--assistant);
-      border-color: #e5eaf3;
-      box-shadow: 0 4px 16px rgba(16, 24, 40, 0.04);
-    }
-    .msg.user .bubble {
-      background: var(--user);
-      border-color: #d5e2ff;
-    }
-
-    .typing {
-      color: #7b8797;
-      font-size: 26px;
-      line-height: 36px;
-      padding: 8px 12px 0;
-    }
-
-    .card-list {
-      display: grid;
-      gap: 14px;
-      margin: 2px 0 20px;
-    }
-    .flight-card {
-      background: #fff;
-      border: 1px solid #e9edf5;
-      border-radius: var(--r-lg);
-      padding: 16px;
-    }
-    .card-title {
-      margin: 0 0 8px;
-      font-size: 32px;
-      line-height: 52px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-    .card-desc {
-      margin: 0;
-      font-size: 32px;
-      line-height: 52px;
-      color: #5b6473;
-    }
-
-    .immersive-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-top: 10px;
-      border: 1px solid rgba(15, 19, 26, 0.12);
-      border-radius: var(--r-xl);
-      background: #fff;
-      padding: 16px 20px;
-      text-decoration: none;
-      color: var(--text-main);
-      font-size: 26px;
-      line-height: 36px;
-    }
-    .immersive-arrow {
-      color: #98a2b3;
-      font-size: 30px;
-      line-height: 1;
-      flex-shrink: 0;
-    }
-
-    .composer {
-      flex-shrink: 0;
-      border-top: 1px solid var(--line);
-      padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
-      background: #fff;
-    }
-    .composer-inner {
-      display: flex;
-      align-items: flex-end;
-      gap: 12px;
-      border: 1px solid #dce3ef;
-      border-radius: var(--r-xl);
-      background: #f8fafc;
-      padding: 10px 12px;
-    }
-    .composer-input {
-      flex: 1;
-      border: 0;
-      outline: none;
-      resize: none;
-      background: transparent;
-      color: var(--text-main);
-      font-size: 26px;
-      line-height: 1.4;
-      min-height: 38px;
-      max-height: 160px;
-      font-family: inherit;
-    }
-    .composer-input::placeholder { color: #98a2b3; }
-    .send-btn {
-      border: 0;
-      border-radius: 18px;
-      min-width: 90px;
-      height: 58px;
-      padding: 0 16px;
-      background: var(--brand);
-      color: #fff;
-      font-size: 24px;
-      font-weight: 600;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .send-btn:disabled {
-      background: #c9d3e8;
-      cursor: not-allowed;
-    }
-  </style>
-</head>
-<body>
-  <main class="stage" aria-label="Qwen 对话页，固定 750x1624">
-    <header class="topbar">
-      <a class="topbar-left" href="javascript:void(0)" aria-label="返回">‹</a>
-      千问
-      <a class="topbar-right" href="javascript:void(0)" aria-label="更多">⋯</a>
-    </header>
-    <section class="dialog-scroll" id="dialogScroll">
-      <div id="emptyState" class="empty-state">
-        <p class="empty-title">欢迎来到千问对话流 Demo</p>
-        <p class="empty-sub">发送第一条消息后开始推荐</p>
-      </div>
-      <div id="messageMount"></div>
-      <div id="typing" class="typing" hidden>千问正在生成...</div>
-    </section>
-    <footer class="composer">
-      <form class="composer-inner" id="chatForm">
-        <textarea id="chatInput" class="composer-input" rows="1" placeholder="发送问题或继续说..." aria-label="输入对话内容"></textarea>
-        <button type="submit" id="sendBtn" class="send-btn" disabled>发送</button>
-      </form>
-    </footer>
-  </main>
-
-  <script>
-    (function () {
-      var chatForm = document.getElementById("chatForm");
-      var chatInput = document.getElementById("chatInput");
-      var sendBtn = document.getElementById("sendBtn");
-      var messageMount = document.getElementById("messageMount");
-      var dialogScroll = document.getElementById("dialogScroll");
-      var typing = document.getElementById("typing");
-      var emptyState = document.getElementById("emptyState");
-
-      var queueRunning = false;
-      var hasEvaluatedFirstTurn = false;
-      var dialogueState = {
-        lastUserUtterance: "",
-        budgetPenaltyApplied: false
-      };
-
-      var scoreKeywords = {
-        comfort: ["舒适", "舒服", "躺平", "不想太累", "宽敞", "睡得好", "休息好"],
-        crowd: ["老人", "父母", "长辈", "带娃", "小孩", "孕妇"],
-        redEye: ["红眼", "夜班", "凌晨", "早班", "长途", "十几个小时", "国际"],
-        business: ["出差", "报销", "见客户", "会议", "商务"],
-        budget: ["最便宜", "低价", "学生", "预算", "省钱", "特价", "穷游"]
-      };
-
-      var firstTurnCards = [
-        {
-          id: "plan-1",
-          title: "方案一：直飞最低价",
-          desc: "07:30 萧山T3 → 09:50 首都T3，经济舱 ¥624 起，适合想快速抵达。"
-        },
-        {
-          id: "plan-2",
-          title: "方案二：高性价比中转",
-          desc: "10:45 出发，经青岛中转，整体更省 ¥114，适合预算优先。"
-        },
-        {
-          id: "plan-3-high-cabin",
-          title: "方案三：舒适商务舱升级",
-          desc: "多花 ¥1999，可换来更稳定的休息体验与更高舒适度。"
-        }
-      ];
-
-      function scrollToBottom() {
-        requestAnimationFrame(function () {
-          dialogScroll.scrollTop = dialogScroll.scrollHeight;
-        });
-      }
-
-      function autoGrow() {
-        chatInput.style.height = "0px";
-        chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + "px";
-      }
-
-      function appendMessage(role, text) {
-        var row = document.createElement("div");
-        row.className = "msg " + role;
-        var bubble = document.createElement("div");
-        bubble.className = "bubble";
-        bubble.textContent = text;
-        row.appendChild(bubble);
-        messageMount.appendChild(row);
-        scrollToBottom();
-      }
-
-      function appendCards(showThirdCard) {
-        var wrapper = document.createElement("div");
-        wrapper.className = "card-list";
-
-        for (var i = 0; i < firstTurnCards.length; i++) {
-          if (firstTurnCards[i].id === "plan-3-high-cabin" && !showThirdCard) {
-            continue;
-          }
-          var card = document.createElement("article");
-          card.className = "flight-card";
-          var title = document.createElement("h3");
-          title.className = "card-title";
-          title.textContent = firstTurnCards[i].title;
-          var desc = document.createElement("p");
-          desc.className = "card-desc";
-          desc.textContent = firstTurnCards[i].desc;
-          card.appendChild(title);
-          card.appendChild(desc);
-          wrapper.appendChild(card);
-        }
-
-        if (showThirdCard) {
-          var immersive = document.createElement("a");
-          immersive.className = "immersive-card";
-          immersive.href = "高舱DEMO.html";
-          immersive.setAttribute("aria-label", "提前沉浸式体验本航班，打开高舱DEMO页面");
-          immersive.innerHTML = "<span>提前沉浸式体验本航班</span><span class=\"immersive-arrow\" aria-hidden=\"true\">›</span>";
-          wrapper.appendChild(immersive);
-        }
-
-        messageMount.appendChild(wrapper);
-        scrollToBottom();
-      }
-
-      function containsAny(text, keywords) {
-        return keywords.some(function (kw) { return text.indexOf(kw) !== -1; });
-      }
-
-      function clamp(value, min, max) {
-        return Math.max(min, Math.min(max, value));
-      }
-
-      function computePreferenceScore(currentUtterance, previousUtterance) {
-        var mergedText = [currentUtterance, previousUtterance || ""].join(" ");
-        var score = 0;
-        if (containsAny(mergedText, scoreKeywords.comfort)) score += 25;
-        if (containsAny(mergedText, scoreKeywords.crowd)) score += 25;
-        if (containsAny(mergedText, scoreKeywords.redEye)) score += 20;
-        if (containsAny(mergedText, scoreKeywords.business)) score += 15;
-        if (!dialogueState.budgetPenaltyApplied && containsAny(mergedText, scoreKeywords.budget)) {
-          score -= 35;
-          dialogueState.budgetPenaltyApplied = true;
-        }
-        return clamp(score, -40, 80);
-      }
-
-      function shouldShowThirdCard(score) {
-        return score >= 20;
-      }
-
-      function delay(ms) {
-        return new Promise(function (resolve) {
-          setTimeout(resolve, ms);
-        });
-      }
-
-      async function playFirstTurn(score) {
-        var showThirdCard = shouldShowThirdCard(score);
-        queueRunning = true;
-        typing.hidden = false;
-        scrollToBottom();
-
-        await delay(520);
-        await delay(420);
-        appendCards(showThirdCard);
-        await delay(280);
-
-        typing.hidden = true;
-        queueRunning = false;
-      }
-
-      async function playFollowup(userText) {
-        queueRunning = true;
-        typing.hidden = false;
-        scrollToBottom();
-        await delay(480);
-        appendMessage("assistant", "收到：" + userText + "。我会继续按同一规则更新后续推荐。");
-        typing.hidden = true;
-        queueRunning = false;
-      }
-
-      function updateSendState() {
-        sendBtn.disabled = !chatInput.value.trim() || queueRunning;
-      }
-
-      chatInput.addEventListener("input", function () {
-        autoGrow();
-        updateSendState();
-      });
-
-      chatInput.addEventListener("keydown", function (event) {
-        if (event.key === "Enter" && !event.shiftKey) {
-          event.preventDefault();
-          if (!sendBtn.disabled) chatForm.requestSubmit();
-        }
-      });
-
-      chatForm.addEventListener("submit", async function (event) {
-        event.preventDefault();
-        if (queueRunning) return;
-        var text = chatInput.value.trim();
-        if (!text) return;
-
-        emptyState.hidden = true;
-        appendMessage("user", text);
-
-        var preferenceScore = computePreferenceScore(text, dialogueState.lastUserUtterance);
-        dialogueState.lastUserUtterance = text;
-
-        chatInput.value = "";
-        autoGrow();
-        updateSendState();
-
-        if (!hasEvaluatedFirstTurn) {
-          hasEvaluatedFirstTurn = true;
-          await playFirstTurn(preferenceScore);
-        } else {
-          await playFollowup(text);
-        }
-        updateSendState();
-      });
-
-      autoGrow();
-      updateSendState();
-      scrollToBottom();
-    })();
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Qwen 对话流</title>
-  <style>
-    :root {
-      --frame-w: 750px;
-      --frame-h: 1624px;
-      --line: #e8edf5;
-      --text-main: #111827;
-      --brand: #245bff;
-      --assistant: #ffffff;
-      --user: #ebf2ff;
-      --shadow: 0 10px 34px rgba(16, 24, 40, 0.08);
-    }
-    * { box-sizing: border-box; }
-    html {
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: radial-gradient(circle at 12% 10%, #f9fbff 0%, #eef3fb 44%, #e9eff8 100%);
-      color: var(--text-main);
-      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
-      -webkit-font-smoothing: antialiased;
-      overflow: auto;
-      display: grid;
-      place-items: start center;
-      padding: 12px 0;
-    }
-    .stage {
-      width: var(--frame-w);
-      height: var(--frame-h);
-      background: #fff;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-    .topbar {
-      height: 88px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 34px;
-      font-weight: 600;
-      position: relative;
-      flex-shrink: 0;
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(10px);
-    }
-    .topbar-left,
-    .topbar-right {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #667085;
-      font-size: 30px;
-      line-height: 1;
-      text-decoration: none;
-    }
-    .topbar-left { left: 28px; }
-    .topbar-right { right: 28px; }
-    .dialog-scroll {
-      flex: 1;
-      overflow-y: auto;
-      padding: 26px 24px 18px;
-      background: linear-gradient(180deg, #f8fbff 0%, #f5f8fd 40%, #f3f6fb 100%);
-    }
-    .hint {
-      margin: 0 0 22px;
-      color: #8c97aa;
-      font-size: 22px;
-      text-align: center;
-    }
-    .msg {
-      display: flex;
-      margin-bottom: 18px;
-      width: 100%;
-    }
-    .msg.assistant { justify-content: flex-start; }
-    .msg.user { justify-content: flex-end; }
-    .bubble {
-      max-width: 560px;
-      border-radius: 24px;
-      padding: 18px 22px;
-      line-height: 42px;
-      font-size: 27px;
-      border: 1px solid transparent;
-      word-break: break-word;
-      white-space: pre-wrap;
-    }
-    .msg.assistant .bubble {
-      background: var(--assistant);
-      border-color: #e5eaf3;
-      box-shadow: 0 4px 16px rgba(16, 24, 40, 0.04);
-    }
-    .msg.user .bubble {
-      background: var(--user);
-      border-color: #d5e2ff;
-    }
-    .typing {
-      color: #7b8797;
-      font-size: 24px;
-      line-height: 36px;
-      padding: 8px 12px 0;
-    }
-    .immersive-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin: 10px 0 22px;
-      padding: 18px 22px;
-      border-radius: 20px;
-      border: 1px solid rgba(20, 31, 56, 0.12);
-      background: #fff;
-      color: #111827;
-      font-size: 26px;
-      line-height: 34px;
-      font-weight: 500;
-      text-decoration: none;
-      box-shadow: 0 4px 14px rgba(16, 24, 40, 0.05);
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      transition: transform .12s ease, box-shadow .18s ease;
-    }
-    .immersive-card:active {
-      transform: translateY(1px);
-      box-shadow: 0 3px 9px rgba(16, 24, 40, 0.08);
-    }
-    .immersive-arrow {
-      font-size: 34px;
-      color: #98a2b3;
-      line-height: 1;
-      flex-shrink: 0;
-    }
-    .composer {
-      flex-shrink: 0;
-      border-top: 1px solid var(--line);
-      padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
-      background: #fff;
-    }
-    .composer-inner {
-      display: flex;
-      align-items: flex-end;
-      gap: 12px;
-      border: 1px solid #dce3ef;
-      border-radius: 24px;
-      background: #f8fafc;
-      padding: 10px 12px;
-    }
-    .composer-input {
-      flex: 1;
-      border: 0;
-      outline: none;
-      resize: none;
-      background: transparent;
-      color: var(--text-main);
-      font-size: 26px;
-      line-height: 36px;
-      min-height: 38px;
-      max-height: 160px;
-      font-family: inherit;
-    }
-    .composer-input::placeholder { color: #98a2b3; }
-    .send-btn {
-      border: 0;
-      border-radius: 18px;
-      min-width: 90px;
-      height: 58px;
-      padding: 0 16px;
-      background: var(--brand);
-      color: #fff;
-      font-size: 24px;
-      font-weight: 600;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .send-btn:disabled {
-      background: #c9d3e8;
-      cursor: not-allowed;
-    }
-  </style>
-</head>
-<body>
-  <main class="stage" aria-label="Qwen 对话页，固定 750x1624">
-    <header class="topbar">
-      <a class="topbar-left" href="javascript:void(0)" aria-label="返回">‹</a>
-      千问
-      <a class="topbar-right" href="javascript:void(0)" aria-label="更多">⋯</a>
-    </header>
-    <section class="dialog-scroll" id="dialogScroll">
-      <p class="hint">对话演示（支持输入）</p>
-      <div class="msg user"><div class="bubble">清明杭州到北京的机票推荐</div></div>
-      <div class="msg assistant"><div class="bubble">已结合你的历史偏好，为你筛出 3 个方案：直飞最低价、性价比中转、商务舱升级。</div></div>
-      <a id="immersiveCard" class="immersive-card" href="高舱DEMO.html" aria-label="提前沉浸式体验本航班，打开高舱DEMO页面" hidden>
-        <span>提前沉浸式体验本航班</span>
-        <span class="immersive-arrow" aria-hidden="true">›</span>
-      </a>
-      <div id="messageMount"></div>
-      <div id="typing" class="typing" hidden>千问正在生成...</div>
-    </section>
-    <footer class="composer">
-      <form class="composer-inner" id="chatForm">
-        <textarea id="chatInput" class="composer-input" rows="1" placeholder="发送问题或继续说..." aria-label="输入对话内容"></textarea>
-        <button type="submit" id="sendBtn" class="send-btn" disabled>发送</button>
-      </form>
-    </footer>
-  </main>
-  <script>
-    (function () {
-      var chatForm = document.getElementById("chatForm");
-      var chatInput = document.getElementById("chatInput");
-      var sendBtn = document.getElementById("sendBtn");
-      var messageMount = document.getElementById("messageMount");
-      var dialogScroll = document.getElementById("dialogScroll");
-      var typing = document.getElementById("typing");
-      var immersiveCard = document.getElementById("immersiveCard");
-      var hasPlayedFullScript = false;
-      var queueRunning = false;
-      var dialogueState = {
-        lastUserUtterance: "",
-        budgetPenaltyApplied: false
-      };
-      var scriptSequence = [
-        { kind: "plan-1", text: "方案一：07:30 萧山T3 → 09:50 首都T3，直飞最低价 ¥624 起。" },
-        { kind: "plan-2", text: "方案二：10:45 出发，青岛中转，整体更省 ¥114，适合预算优先。" },
-        { kind: "plan-3-high-cabin", text: "方案三：商务舱升级多花 ¥1999，可换来更稳定的长途休息体验。" },
-        { kind: "followup", text: "你可以告诉我：更在意价格、时间，还是机上舒适度？我会继续细化。" }
-      ];
-      var scoreKeywords = {
-        comfort: ["舒适", "舒服", "躺平", "全平躺", "腿部空间", "空间大", "休息", "睡眠", "睡得好"],
-        crowd: ["老人", "父母", "带娃", "孩子", "婴儿", "亲子"],
-        redEye: ["红眼", "夜航", "长途", "国际", "跨夜"],
-        business: ["出差", "报销", "商务", "见客户", "会议"],
-        budget: ["最便宜", "低价", "学生", "预算", "省钱", "特价", "穷游"]
-      };
-      function scrollToBottom() {
-        requestAnimationFrame(function () {
-          dialogScroll.scrollTop = dialogScroll.scrollHeight;
-        });
-      }
-      function autoGrow() {
-        chatInput.style.height = "0px";
-        chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + "px";
-      }
-      function appendMessage(role, text, kind) {
-        var row = document.createElement("div");
-        row.className = "msg " + role;
-        if (kind) row.dataset.messageKind = kind;
-        if (kind === "plan-3-high-cabin") row.id = "assistantPlanThree";
-        var bubble = document.createElement("div");
-        bubble.className = "bubble";
-        bubble.textContent = text;
-        row.appendChild(bubble);
-        messageMount.appendChild(row);
-        scrollToBottom();
-      }
-      function containsAny(text, keywords) {
-        return keywords.some(function (kw) { return text.indexOf(kw) !== -1; });
-      }
-      function clamp(value, min, max) {
-        return Math.max(min, Math.min(max, value));
-      }
-      function computePreferenceScore(currentUtterance, previousUtterance) {
-        var mergedText = [currentUtterance, previousUtterance || ""].join(" ");
-        var score = 0;
-        if (containsAny(mergedText, scoreKeywords.comfort)) score += 25;
-        if (containsAny(mergedText, scoreKeywords.crowd)) score += 25;
-        if (containsAny(mergedText, scoreKeywords.redEye)) score += 20;
-        if (containsAny(mergedText, scoreKeywords.business)) score += 15;
-        if (!dialogueState.budgetPenaltyApplied && containsAny(mergedText, scoreKeywords.budget)) {
-          score -= 35;
-          dialogueState.budgetPenaltyApplied = true;
-        }
-        return clamp(score, -40, 80);
-      }
-      function shouldShowHighCabinCard(score) {
-        return score > -20;
-      }
-      function applyHighCabinVisibility(showHighCabin) {
-        immersiveCard.hidden = !showHighCabin;
-      }
-      function delay(ms) {
-        return new Promise(function (resolve) {
-          setTimeout(resolve, ms);
-        });
-      }
-      async function playAssistantScript(entries, showHighCabin) {
-        queueRunning = true;
-        typing.hidden = false;
-        scrollToBottom();
-        for (var i = 0; i < entries.length; i++) {
-          var entry = entries[i];
-          if (entry.kind === "plan-3-high-cabin" && !showHighCabin) continue;
-          await delay(i === 0 ? 560 : 820);
-          typing.hidden = false;
-          await delay(360);
-          appendMessage("assistant", entry.text, entry.kind);
-        }
-        typing.hidden = true;
-        queueRunning = false;
-      }
-      function updateSendState() {
-        sendBtn.disabled = !chatInput.value.trim() || queueRunning;
-      }
-      chatInput.addEventListener("input", function () {
-        autoGrow();
-        updateSendState();
-      });
-      chatInput.addEventListener("keydown", function (event) {
-        if (event.key === "Enter" && !event.shiftKey) {
-          event.preventDefault();
-          if (!sendBtn.disabled) chatForm.requestSubmit();
-        }
-      });
-      chatForm.addEventListener("submit", async function (event) {
-        event.preventDefault();
-        if (queueRunning) return;
-        var text = chatInput.value.trim();
-        if (!text) return;
-        appendMessage("user", text);
-        var preferenceScore = computePreferenceScore(text, dialogueState.lastUserUtterance);
-        var showHighCabin = shouldShowHighCabinCard(preferenceScore);
-        applyHighCabinVisibility(showHighCabin);
-        dialogueState.lastUserUtterance = text;
-        chatInput.value = "";
-        autoGrow();
-        updateSendState();
-        if (!hasPlayedFullScript) {
-          hasPlayedFullScript = true;
-          await playAssistantScript(scriptSequence, showHighCabin);
-        } else {
-          await playAssistantScript([
-            {
-              kind: "followup",
-              text: showHighCabin
-                ? "收到，我继续按你的输入更新推荐与行程说明。你也可以直接点上方“沉浸式体验”查看高舱演示。"
-                : "收到，我会优先给你保留经济舱方向的推荐。若你后续更关注舒适度，我再补充高舱方案。"
-            }
-          ], showHighCabin);
-        }
-        updateSendState();
-      });
-      autoGrow();
-      updateSendState();
-      scrollToBottom();
-    })();
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Qwen 对话流</title>
-  <style>
-    :root {
-      --stage-w: 750px;
-      --stage-h: 1624px;
-      --line: #e8edf5;
-      --text-main: #111827;
-      --brand: #245bff;
-      --assistant: #ffffff;
-      --user: #ebf2ff;
-      --shadow: 0 10px 34px rgba(16, 24, 40, 0.08);
-    }
-    * { box-sizing: border-box; }
-    html {
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: radial-gradient(circle at 12% 10%, #f9fbff 0%, #eef3fb 44%, #e9eff8 100%);
-      color: var(--text-main);
-      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-    .stage {
-      width: min(var(--stage-w), 100vw);
-      min-height: min(var(--stage-h), 100vh);
-      height: min(var(--stage-h), 100vh);
-      background: #fff;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-    .topbar {
-      height: 88px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 34px;
-      font-weight: 600;
-      position: relative;
-      flex-shrink: 0;
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(10px);
-    }
-    .topbar-left,
-    .topbar-right {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #667085;
-      font-size: 30px;
-      line-height: 1;
-      text-decoration: none;
-    }
-    .topbar-left { left: 28px; }
-    .topbar-right { right: 28px; }
-    .dialog-scroll {
-      flex: 1;
-      overflow-y: auto;
-      padding: 26px 24px 18px;
-      background: linear-gradient(180deg, #f8fbff 0%, #f5f8fd 40%, #f3f6fb 100%);
-    }
-    .hint {
-      margin: 0 0 22px;
-      color: #8c97aa;
-      font-size: 22px;
-      text-align: center;
-    }
-    .msg {
-      display: flex;
-      margin-bottom: 18px;
-      width: 100%;
-    }
-    .msg.assistant { justify-content: flex-start; }
-    .msg.user { justify-content: flex-end; }
-    .bubble {
-      max-width: 560px;
-      border-radius: 24px;
-      padding: 18px 22px;
-      line-height: 1.55;
-      font-size: 27px;
-      border: 1px solid transparent;
-      word-break: break-word;
-      white-space: pre-wrap;
-    }
-    .msg.assistant .bubble {
-      background: var(--assistant);
-      border-color: #e5eaf3;
-      box-shadow: 0 4px 16px rgba(16, 24, 40, 0.04);
-    }
-    .msg.user .bubble {
-      background: var(--user);
-      border-color: #d5e2ff;
-    }
-    .typing {
-      color: #7b8797;
-      font-size: 24px;
-      padding: 8px 12px 0;
-    }
-    .immersive-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin: 10px 0 22px;
-      padding: 18px 22px;
-      border-radius: 20px;
-      border: 1px solid rgba(20, 31, 56, 0.12);
-      background: #fff;
-      color: #111827;
-      font-size: 26px;
-      font-weight: 500;
-      line-height: 1.3;
-      text-decoration: none;
-      box-shadow: 0 4px 14px rgba(16, 24, 40, 0.05);
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      transition: transform .12s ease, box-shadow .18s ease;
-    }
-    .immersive-card:active {
-      transform: translateY(1px);
-      box-shadow: 0 3px 9px rgba(16, 24, 40, 0.08);
-    }
-    .immersive-arrow {
-      font-size: 34px;
-      color: #98a2b3;
-      line-height: 1;
-      flex-shrink: 0;
-    }
-    .composer {
-      flex-shrink: 0;
-      border-top: 1px solid var(--line);
-      padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
-      background: #fff;
-    }
-    .composer-inner {
-      display: flex;
-      align-items: flex-end;
-      gap: 12px;
-      border: 1px solid #dce3ef;
-      border-radius: 24px;
-      background: #f8fafc;
-      padding: 10px 12px;
-    }
-    .composer-input {
-      flex: 1;
-      border: 0;
-      outline: none;
-      resize: none;
-      background: transparent;
-      color: var(--text-main);
-      font-size: 26px;
-      line-height: 1.4;
-      min-height: 38px;
-      max-height: 160px;
-      font-family: inherit;
-    }
-    .composer-input::placeholder { color: #98a2b3; }
-    .send-btn {
-      border: 0;
-      border-radius: 18px;
-      min-width: 90px;
-      height: 58px;
-      padding: 0 16px;
-      background: var(--brand);
-      color: #fff;
-      font-size: 24px;
-      font-weight: 600;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .send-btn:disabled {
-      background: #c9d3e8;
-      cursor: not-allowed;
-    }
-    @media (max-width: 750px) {
-      .topbar { font-size: 26px; height: 64px; }
-      .topbar-left, .topbar-right { font-size: 22px; }
-      .hint { font-size: 15px; }
-      .bubble { font-size: 18px; border-radius: 16px; padding: 12px 14px; max-width: 85%; }
-      .immersive-card { font-size: 17px; padding: 14px; border-radius: 14px; }
-      .immersive-arrow { font-size: 24px; }
-      .composer-input { font-size: 17px; min-height: 30px; }
-      .send-btn { height: 44px; font-size: 15px; min-width: 72px; border-radius: 12px; }
-    }
-  </style>
-</head>
-<body>
-  <main class="stage" aria-label="Qwen 对话页，750x1624 设计还原">
-    <header class="topbar">
-      <a class="topbar-left" href="javascript:void(0)" aria-label="返回">‹</a>
-      千问
-      <a class="topbar-right" href="javascript:void(0)" aria-label="更多">⋯</a>
-    </header>
-    <section class="dialog-scroll" id="dialogScroll">
-      <p class="hint">对话演示（支持输入）</p>
-      <div class="msg user"><div class="bubble">清明杭州到北京的机票推荐</div></div>
-      <div class="msg assistant"><div class="bubble">已结合你的历史偏好，为你筛出 3 个方案：直飞最低价、性价比中转、商务舱升级。</div></div>
-      <a class="immersive-card" href="高舱DEMO.html" aria-label="提前沉浸式体验本航班，打开高舱DEMO页面">
-        <span>提前沉浸式体验本航班</span>
-        <span class="immersive-arrow" aria-hidden="true">›</span>
-      </a>
-      <div id="messageMount"></div>
-      <div id="typing" class="typing" hidden>千问正在生成...</div>
-    </section>
-    <footer class="composer">
-      <form class="composer-inner" id="chatForm">
-        <textarea id="chatInput" class="composer-input" rows="1" placeholder="发送问题或继续说..." aria-label="输入对话内容"></textarea>
-        <button type="submit" id="sendBtn" class="send-btn" disabled>发送</button>
-      </form>
-    </footer>
-  </main>
-  <script>
-    (function () {
-      var chatForm = document.getElementById("chatForm");
-      var chatInput = document.getElementById("chatInput");
-      var sendBtn = document.getElementById("sendBtn");
-      var messageMount = document.getElementById("messageMount");
-      var dialogScroll = document.getElementById("dialogScroll");
-      var typing = document.getElementById("typing");
-      var hasPlayedFullScript = false;
-      var queueRunning = false;
-      var scriptSequence = [
-        "方案一：07:30 萧山T3 → 09:50 首都T3，直飞最低价 ¥624 起。",
-        "方案二：10:45 出发，青岛中转，整体更省 ¥114，适合预算优先。",
-        "方案三：商务舱升级多花 ¥1999，可换来更稳定的长途休息体验。",
-        "你可以告诉我：更在意价格、时间，还是机上舒适度？我会继续细化。"
-      ];
-      function scrollToBottom() {
-        requestAnimationFrame(function () {
-          dialogScroll.scrollTop = dialogScroll.scrollHeight;
-        });
-      }
-      function autoGrow() {
-        chatInput.style.height = "0px";
-        chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + "px";
-      }
-      function appendMessage(role, text) {
-        var row = document.createElement("div");
-        row.className = "msg " + role;
-        var bubble = document.createElement("div");
-        bubble.className = "bubble";
-        bubble.textContent = text;
-        row.appendChild(bubble);
-        messageMount.appendChild(row);
-        scrollToBottom();
-      }
-      function delay(ms) {
-        return new Promise(function (resolve) {
-          setTimeout(resolve, ms);
-        });
-      }
-      async function playAssistantScript(texts) {
-        queueRunning = true;
-        typing.hidden = false;
-        scrollToBottom();
-        for (var i = 0; i < texts.length; i++) {
-          await delay(i === 0 ? 560 : 820);
-          typing.hidden = false;
-          await delay(360);
-          appendMessage("assistant", texts[i]);
-        }
-        typing.hidden = true;
-        queueRunning = false;
-      }
-      function updateSendState() {
-        sendBtn.disabled = !chatInput.value.trim() || queueRunning;
-      }
-      chatInput.addEventListener("input", function () {
-        autoGrow();
-        updateSendState();
-      });
-      chatInput.addEventListener("keydown", function (event) {
-        if (event.key === "Enter" && !event.shiftKey) {
-          event.preventDefault();
-          if (!sendBtn.disabled) chatForm.requestSubmit();
-        }
-      });
-      chatForm.addEventListener("submit", async function (event) {
-        event.preventDefault();
-        if (queueRunning) return;
-        var text = chatInput.value.trim();
-        if (!text) return;
-        appendMessage("user", text);
-        chatInput.value = "";
-        autoGrow();
-        updateSendState();
-        if (!hasPlayedFullScript) {
-          hasPlayedFullScript = true;
-          await playAssistantScript(scriptSequence);
-        } else {
-          await playAssistantScript([
-            "收到，我继续按你的输入更新推荐与行程说明。你也可以直接点上方“沉浸式体验”查看高舱演示。"
-          ]);
-        }
-        updateSendState();
-      });
-      autoGrow();
-      updateSendState();
-      scrollToBottom();
-    })();
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Qwen 对话流</title>
-  <style>
-    :root {
-      --stage-w: 750px;
-      --stage-h: 1624px;
-      --bg: #f3f6fb;
-      --panel: #ffffff;
-      --line: #e8edf5;
-      --text-main: #111827;
-      --brand: #245bff;
-      --assistant: #ffffff;
-      --user: #ebf2ff;
-      --shadow: 0 10px 34px rgba(16, 24, 40, 0.08);
-    }
-    * { box-sizing: border-box; }
-    html {
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: radial-gradient(circle at 12% 10%, #f9fbff 0%, #eef3fb 44%, #e9eff8 100%);
-      color: var(--text-main);
-      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-    .stage {
-      width: min(var(--stage-w), 100vw);
-      min-height: min(var(--stage-h), 100vh);
-      height: min(var(--stage-h), 100vh);
-      background: var(--panel);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-    .topbar {
-      height: 88px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 34px;
-      font-weight: 600;
-      position: relative;
-      flex-shrink: 0;
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(10px);
-    }
-    .topbar-left,
-    .topbar-right {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #667085;
-      font-size: 30px;
-      line-height: 1;
-      text-decoration: none;
-    }
-    .topbar-left { left: 28px; }
-    .topbar-right { right: 28px; }
-    .dialog-scroll {
-      flex: 1;
-      overflow-y: auto;
-      padding: 26px 24px 18px;
-      background: linear-gradient(180deg, #f8fbff 0%, #f5f8fd 40%, #f3f6fb 100%);
-    }
-    .hint {
-      margin: 0 0 22px;
-      color: #8c97aa;
-      font-size: 22px;
-      text-align: center;
-    }
-    .msg {
-      display: flex;
-      margin-bottom: 18px;
-      width: 100%;
-    }
-    .msg.assistant { justify-content: flex-start; }
-    .msg.user { justify-content: flex-end; }
-    .bubble {
-      max-width: 560px;
-      border-radius: 24px;
-      padding: 18px 22px;
-      line-height: 1.55;
-      font-size: 27px;
-      border: 1px solid transparent;
-      word-break: break-word;
-      white-space: pre-wrap;
-    }
-    .msg.assistant .bubble {
-      background: var(--assistant);
-      border-color: #e5eaf3;
-      box-shadow: 0 4px 16px rgba(16, 24, 40, 0.04);
-    }
-    .msg.user .bubble {
-      background: var(--user);
-      border-color: #d5e2ff;
-    }
-    .typing {
-      color: #7b8797;
-      font-size: 24px;
-      padding: 8px 12px 0;
-    }
-    .immersive-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin: 10px 0 22px;
-      padding: 18px 22px;
-      border-radius: 20px;
-      border: 1px solid rgba(20, 31, 56, 0.12);
-      background: #fff;
-      color: #111827;
-      font-size: 26px;
-      font-weight: 500;
-      line-height: 1.3;
-      text-decoration: none;
-      box-shadow: 0 4px 14px rgba(16, 24, 40, 0.05);
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      transition: transform .12s ease, box-shadow .18s ease;
-    }
-    .immersive-card:active {
-      transform: translateY(1px);
-      box-shadow: 0 3px 9px rgba(16, 24, 40, 0.08);
-    }
-    .immersive-arrow {
-      font-size: 34px;
-      color: #98a2b3;
-      line-height: 1;
-      flex-shrink: 0;
-    }
-    .composer {
-      flex-shrink: 0;
-      border-top: 1px solid var(--line);
-      padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
-      background: #fff;
-    }
-    .composer-inner {
-      display: flex;
-      align-items: flex-end;
-      gap: 12px;
-      border: 1px solid #dce3ef;
-      border-radius: 24px;
-      background: #f8fafc;
-      padding: 10px 12px;
-    }
-    .composer-input {
-      flex: 1;
-      border: 0;
-      outline: none;
-      resize: none;
-      background: transparent;
-      color: var(--text-main);
-      font-size: 26px;
-      line-height: 1.4;
-      min-height: 38px;
-      max-height: 160px;
-      font-family: inherit;
-    }
-    .composer-input::placeholder { color: #98a2b3; }
-    .send-btn {
-      border: 0;
-      border-radius: 18px;
-      min-width: 90px;
-      height: 58px;
-      padding: 0 16px;
-      background: var(--brand);
-      color: #fff;
-      font-size: 24px;
-      font-weight: 600;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .send-btn:disabled {
-      background: #c9d3e8;
-      cursor: not-allowed;
-    }
-    @media (max-width: 750px) {
-      .topbar { font-size: 26px; height: 64px; }
-      .topbar-left, .topbar-right { font-size: 22px; }
-      .hint { font-size: 15px; }
-      .bubble { font-size: 18px; border-radius: 16px; padding: 12px 14px; max-width: 85%; }
-      .immersive-card { font-size: 17px; padding: 14px; border-radius: 14px; }
-      .immersive-arrow { font-size: 24px; }
-      .composer-input { font-size: 17px; min-height: 30px; }
-      .send-btn { height: 44px; font-size: 15px; min-width: 72px; border-radius: 12px; }
-    }
-  </style>
-</head>
-<body>
-  <main class="stage" aria-label="Qwen 对话页，750x1624 设计还原">
-    <header class="topbar">
-      <a class="topbar-left" href="javascript:void(0)" aria-label="返回">‹</a>
-      千问
-      <a class="topbar-right" href="javascript:void(0)" aria-label="更多">⋯</a>
-    </header>
-    <section class="dialog-scroll" id="dialogScroll">
-      <p class="hint">对话演示（支持输入）</p>
-      <div class="msg user">
-        <div class="bubble">清明杭州到北京的机票推荐</div>
-      </div>
-      <div class="msg assistant">
-        <div class="bubble">已结合你的历史偏好，为你筛出 3 个方案：直飞最低价、性价比中转、商务舱升级。</div>
-      </div>
-      <a class="immersive-card" href="高舱DEMO.html" aria-label="提前沉浸式体验本航班，打开高舱DEMO页面">
-        <span>提前沉浸式体验本航班</span>
-        <span class="immersive-arrow" aria-hidden="true">›</span>
-      </a>
-      <div id="messageMount"></div>
-      <div id="typing" class="typing" hidden>千问正在生成...</div>
-    </section>
-    <footer class="composer">
-      <form class="composer-inner" id="chatForm">
-        <textarea id="chatInput" class="composer-input" rows="1" placeholder="发送问题或继续说..." aria-label="输入对话内容"></textarea>
-        <button type="submit" id="sendBtn" class="send-btn" disabled>发送</button>
-      </form>
-    </footer>
-  </main>
-  <script>
-    (function () {
-      var chatForm = document.getElementById("chatForm");
-      var chatInput = document.getElementById("chatInput");
-      var sendBtn = document.getElementById("sendBtn");
-      var messageMount = document.getElementById("messageMount");
-      var dialogScroll = document.getElementById("dialogScroll");
-      var typing = document.getElementById("typing");
-      var hasPlayedFullScript = false;
-      var queueRunning = false;
-      var scriptSequence = [
-        "方案一：07:30 萧山T3 → 09:50 首都T3，直飞最低价 ¥624 起。",
-        "方案二：10:45 出发，青岛中转，整体更省 ¥114，适合预算优先。",
-        "方案三：商务舱升级多花 ¥1999，可换来更稳定的长途休息体验。",
-        "你可以告诉我：更在意价格、时间，还是机上舒适度？我会继续细化。"
-      ];
-      function scrollToBottom() {
-        requestAnimationFrame(function () {
-          dialogScroll.scrollTop = dialogScroll.scrollHeight;
-        });
-      }
-      function autoGrow() {
-        chatInput.style.height = "0px";
-        chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + "px";
-      }
-      function appendMessage(role, text) {
-        var row = document.createElement("div");
-        row.className = "msg " + role;
-        var bubble = document.createElement("div");
-        bubble.className = "bubble";
-        bubble.textContent = text;
-        row.appendChild(bubble);
-        messageMount.appendChild(row);
-        scrollToBottom();
-      }
-      function delay(ms) {
-        return new Promise(function (resolve) {
-          setTimeout(resolve, ms);
-        });
-      }
-      async function playAssistantScript(texts) {
-        queueRunning = true;
-        typing.hidden = false;
-        scrollToBottom();
-        for (var i = 0; i < texts.length; i++) {
-          await delay(i === 0 ? 560 : 820);
-          typing.hidden = false;
-          await delay(360);
-          appendMessage("assistant", texts[i]);
-        }
-        typing.hidden = true;
-        queueRunning = false;
-      }
-      function updateSendState() {
-        sendBtn.disabled = !chatInput.value.trim() || queueRunning;
-      }
-      chatInput.addEventListener("input", function () {
-        autoGrow();
-        updateSendState();
-      });
-      chatInput.addEventListener("keydown", function (event) {
-        if (event.key === "Enter" && !event.shiftKey) {
-          event.preventDefault();
-          if (!sendBtn.disabled) chatForm.requestSubmit();
-        }
-      });
-      chatForm.addEventListener("submit", async function (event) {
-        event.preventDefault();
-        if (queueRunning) return;
-        var text = chatInput.value.trim();
-        if (!text) return;
-        appendMessage("user", text);
-        chatInput.value = "";
-        autoGrow();
-        updateSendState();
-        if (!hasPlayedFullScript) {
-          hasPlayedFullScript = true;
-          await playAssistantScript(scriptSequence);
-        } else {
-          await playAssistantScript([
-            "收到，我继续按你的输入更新推荐与行程说明。你也可以直接点上方“沉浸式体验”查看高舱演示。"
-          ]);
-        }
-        updateSendState();
-      });
-      autoGrow();
-      updateSendState();
-      scrollToBottom();
-    })();
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Qwen 对话流</title>
-  <style>
-    :root {
-      --stage-w: 750px;
-      --stage-h: 1624px;
-      --bg: #f3f6fb;
-      --panel: #ffffff;
-      --line: #e8edf5;
-      --text-main: #111827;
-      --text-sub: #5b6473;
-      --brand: #245bff;
-      --assistant: #ffffff;
-      --user: #ebf2ff;
-      --shadow: 0 10px 34px rgba(16, 24, 40, 0.08);
-    }
-
-    * { box-sizing: border-box; }
-    html {
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background:
-        radial-gradient(circle at 12% 10%, #f9fbff 0%, #eef3fb 44%, #e9eff8 100%);
-      color: var(--text-main);
-      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    .stage {
-      width: min(var(--stage-w), 100vw);
-      min-height: min(var(--stage-h), 100vh);
-      height: min(var(--stage-h), 100vh);
-      background: var(--panel);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    .topbar {
-      height: 88px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 34px;
-      font-weight: 600;
-      letter-spacing: 0.2px;
-      position: relative;
-      flex-shrink: 0;
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(10px);
-    }
-    .topbar-left,
-    .topbar-right {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #667085;
-      font-size: 30px;
-      line-height: 1;
-      text-decoration: none;
-    }
-    .topbar-left { left: 28px; }
-    .topbar-right { right: 28px; }
-
-    .dialog-scroll {
-      flex: 1;
-      overflow-y: auto;
-      padding: 26px 24px 18px;
-      background: linear-gradient(180deg, #f8fbff 0%, #f5f8fd 40%, #f3f6fb 100%);
-    }
-
-    .hint {
-      margin: 0 0 22px;
-      color: #8c97aa;
-      font-size: 22px;
-      text-align: center;
-      letter-spacing: 0.2px;
-    }
-
-    .msg {
-      display: flex;
-      margin-bottom: 18px;
-      width: 100%;
-    }
-    .msg.assistant { justify-content: flex-start; }
-    .msg.user { justify-content: flex-end; }
-
-    .bubble {
-      max-width: 560px;
-      border-radius: 24px;
-      padding: 18px 22px;
-      line-height: 1.55;
-      font-size: 27px;
-      color: var(--text-main);
-      border: 1px solid transparent;
-      word-break: break-word;
-      white-space: pre-wrap;
-    }
-    .msg.assistant .bubble {
-      background: var(--assistant);
-      border-color: #e5eaf3;
-      box-shadow: 0 4px 16px rgba(16, 24, 40, 0.04);
-    }
-    .msg.user .bubble {
-      background: var(--user);
-      border-color: #d5e2ff;
-    }
-
-    .typing {
-      color: #7b8797;
-      font-size: 24px;
-      padding: 8px 12px 0;
-    }
-
-    .immersive-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin: 10px 0 22px;
-      padding: 18px 22px;
-      border-radius: 20px;
-      border: 1px solid rgba(20, 31, 56, 0.12);
-      background: #fff;
-      color: #111827;
-      font-size: 26px;
-      font-weight: 500;
-      line-height: 1.3;
-      text-decoration: none;
-      box-shadow: 0 4px 14px rgba(16, 24, 40, 0.05);
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      transition: transform .12s ease, box-shadow .18s ease;
-    }
-    .immersive-card:active {
-      transform: translateY(1px);
-      box-shadow: 0 3px 9px rgba(16, 24, 40, 0.08);
-    }
-    .immersive-arrow {
-      font-size: 34px;
-      color: #98a2b3;
-      line-height: 1;
-      flex-shrink: 0;
-    }
-
-    .composer {
-      flex-shrink: 0;
-      border-top: 1px solid var(--line);
-      padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
-      background: #fff;
-    }
-    .composer-inner {
-      display: flex;
-      align-items: flex-end;
-      gap: 12px;
-      border: 1px solid #dce3ef;
-      border-radius: 24px;
-      background: #f8fafc;
-      padding: 10px 12px;
-    }
-    .composer-input {
-      flex: 1;
-      border: 0;
-      outline: none;
-      resize: none;
-      background: transparent;
-      color: var(--text-main);
-      font-size: 26px;
-      line-height: 1.4;
-      min-height: 38px;
-      max-height: 160px;
-      font-family: inherit;
-    }
-    .composer-input::placeholder { color: #98a2b3; }
-    .send-btn {
-      border: 0;
-      border-radius: 18px;
-      min-width: 90px;
-      height: 58px;
-      padding: 0 16px;
-      background: var(--brand);
-      color: #fff;
-      font-size: 24px;
-      font-weight: 600;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .send-btn:disabled {
-      background: #c9d3e8;
-      cursor: not-allowed;
-    }
-
-    @media (max-width: 750px) {
-      .topbar { font-size: 26px; height: 64px; }
-      .topbar-left, .topbar-right { font-size: 22px; }
-      .hint { font-size: 15px; }
-      .bubble { font-size: 18px; border-radius: 16px; padding: 12px 14px; max-width: 85%; }
-      .immersive-card { font-size: 17px; padding: 14px; border-radius: 14px; }
-      .immersive-arrow { font-size: 24px; }
-      .composer-input { font-size: 17px; min-height: 30px; }
-      .send-btn { height: 44px; font-size: 15px; min-width: 72px; border-radius: 12px; }
-    }
-  </style>
-</head>
-<body>
-  <main class="stage" aria-label="Qwen 对话页，750x1624 设计还原">
-    <header class="topbar">
-      <a class="topbar-left" href="javascript:void(0)" aria-label="返回">‹</a>
-      千问
-      <a class="topbar-right" href="javascript:void(0)" aria-label="更多">⋯</a>
-    </header>
-
-    <section class="dialog-scroll" id="dialogScroll">
-      <p class="hint">对话演示（支持输入）</p>
-      <div class="msg user">
-        <div class="bubble">清明杭州到北京的机票推荐</div>
-      </div>
-      <div class="msg assistant">
-        <div class="bubble">已结合你的历史偏好，为你筛出 3 个方案：直飞最低价、性价比中转、商务舱升级。</div>
-      </div>
-      <a class="immersive-card" href="高舱DEMO.html" aria-label="提前沉浸式体验本航班，打开高舱DEMO页面">
-        <span>提前沉浸式体验本航班</span>
-        <span class="immersive-arrow" aria-hidden="true">›</span>
-      </a>
-      <div id="messageMount"></div>
-      <div id="typing" class="typing" hidden>千问正在生成...</div>
-    </section>
-
-    <footer class="composer">
-      <form class="composer-inner" id="chatForm">
-        <textarea
-          id="chatInput"
-          class="composer-input"
-          rows="1"
-          placeholder="发送问题或继续说..."
-          aria-label="输入对话内容"
-        ></textarea>
-        <button type="submit" id="sendBtn" class="send-btn" disabled>发送</button>
-      </form>
-    </footer>
-  </main>
-
-  <script>
-    (function () {
-      var chatForm = document.getElementById("chatForm");
-      var chatInput = document.getElementById("chatInput");
-      var sendBtn = document.getElementById("sendBtn");
-      var messageMount = document.getElementById("messageMount");
-      var dialogScroll = document.getElementById("dialogScroll");
-      var typing = document.getElementById("typing");
-      var hasPlayedFullScript = false;
-      var queueRunning = false;
-
-      var scriptSequence = [
-        "方案一：07:30 萧山T3 → 09:50 首都T3，直飞最低价 ¥624 起。",
-        "方案二：10:45 出发，青岛中转，整体更省 ¥114，适合预算优先。",
-        "方案三：商务舱升级多花 ¥1999，可换来更稳定的长途休息体验。",
-        "你可以告诉我：更在意价格、时间，还是机上舒适度？我会继续细化。"
-      ];
-
-      function scrollToBottom() {
-        requestAnimationFrame(function () {
-          dialogScroll.scrollTop = dialogScroll.scrollHeight;
-        });
-      }
-
-      function autoGrow() {
-        chatInput.style.height = "0px";
-        chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + "px";
-      }
-
-      function appendMessage(role, text) {
-        var row = document.createElement("div");
-        row.className = "msg " + role;
-
-        var bubble = document.createElement("div");
-        bubble.className = "bubble";
-        bubble.textContent = text;
-
-        row.appendChild(bubble);
-        messageMount.appendChild(row);
-        scrollToBottom();
-      }
-
-      function delay(ms) {
-        return new Promise(function (resolve) {
-          setTimeout(resolve, ms);
-        });
-      }
-
-      async function playAssistantScript(texts) {
-        queueRunning = true;
-        typing.hidden = false;
-        scrollToBottom();
-
-        for (var i = 0; i < texts.length; i++) {
-          await delay(i === 0 ? 560 : 820);
-          typing.hidden = false;
-          await delay(360);
-          appendMessage("assistant", texts[i]);
-        }
-
-        typing.hidden = true;
-        queueRunning = false;
-      }
-
-      function updateSendState() {
-        sendBtn.disabled = !chatInput.value.trim() || queueRunning;
-      }
-
-      chatInput.addEventListener("input", function () {
-        autoGrow();
-        updateSendState();
-      });
-
-      chatInput.addEventListener("keydown", function (event) {
-        if (event.key === "Enter" && !event.shiftKey) {
-          event.preventDefault();
-          if (!sendBtn.disabled) chatForm.requestSubmit();
-        }
-      });
-
-      chatForm.addEventListener("submit", async function (event) {
-        event.preventDefault();
-        if (queueRunning) return;
-
-        var text = chatInput.value.trim();
-        if (!text) return;
-
-        appendMessage("user", text);
-        chatInput.value = "";
-        autoGrow();
-        updateSendState();
-
-        if (!hasPlayedFullScript) {
-          hasPlayedFullScript = true;
-          await playAssistantScript(scriptSequence);
-        } else {
-          await playAssistantScript([
-            "收到，我继续按你的输入更新推荐与行程说明。你也可以直接点上方“沉浸式体验”查看高舱演示。"
-          ]);
-        }
-
-        updateSendState();
-      });
-
-      autoGrow();
-      updateSendState();
-      scrollToBottom();
-    })();
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>高舱 DEMO - 展开收起版</title>
-  <style>
-    :root {
-      --bg: #f4f5f7;
-      --text-main: #222;
-      --text-sub: #666;
-      --text-muted: #919499;
+      --black100: #222;
+      --grey50: #999;
+      --grey60: #666;
       --brand: #01f;
-      --card: #fff;
-      --line: #eceef2;
-      --orange: #ff6b3f;
-      --space-page-x: 20px;
-      --space-section-top: 16px;
-      --space-block-gap: 18px;
-      --radius-card: 12px;
-      --radius-soft: 10px;
-      --radius-chip: 8px;
-      --fs-topbar: 14px;
-      --fs-body: 16px;
-      --lh-body: 26px;
-      --fs-title: 16px;
-      --lh-title: 26px;
-      --fs-title-strong: 17px;
-      --fs-time: 23px;
-      --lh-time: 24px;
-      --fs-airport: 13px;
-      --lh-airport: 14px;
-      --fs-meta: 11px;
-      --lh-meta: 16px;
-      --fs-caption: 11px;
-      --fs-follow-main: 13px;
-      --lh-follow-main: 18px;
-      --fs-follow-sub: 11px;
-      --lh-follow-sub: 16px;
-      --fs-btn: 12px;
-      --lh-btn: 18px;
-      --fs-price-symbol: 14px;
-      --lh-price-symbol: 20px;
-      --fs-price-num: 18px;
-      --lh-price-num: 28px;
-      --fs-price-suffix: 12px;
-      --lh-price-suffix: 16px;
+      --brand-light: rgba(0,68,255,0.1);
+      --orange100: #ff6b3f;
+      --orange10: rgba(255,107,63,0.1);
+      --user-bubble: #ebf5ff;
+      --card-border: #eee;
+      --card-border-alpha: rgba(238,238,238,0.93);
+      --panel-bg: #f8f8f8;
+      --light-gray-text: #919499;
+      --dark-text: #0f131a;
+      --zinc400: #a1a1aa;
+      --zinc500: #71717a;
+      --zinc900: #18181b;
+      --radius-l: 24px;
+      --radius-s: 12px;
+      --radius-btn: 8px;
+      --page-px: 40px;
+      --section-gap: 36px;
+      --card-pad: 28px;
+      --shadow: 0 10px 34px rgba(16,24,40,0.08);
     }
-    * { box-sizing: border-box; }
-    html {
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
     body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text-main);
+      min-height: 100vh;
+      display: grid;
+      place-items: start center;
+      padding: 12px 0;
+      overflow: auto;
+      background: radial-gradient(circle at 12% 10%, #f9fbff 0%, #eef3fb 44%, #e9eff8 100%);
+      color: var(--black100);
       font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
       -webkit-font-smoothing: antialiased;
     }
-    .page {
-      max-width: 750px;
-      margin: 0 auto;
-      min-height: 100vh;
+    .stage {
+      width: var(--frame-w);
+      height: 1624px;
       background: #fff;
-      padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      position: relative;
     }
+
+    /* ========== Top bar ========== */
     .topbar {
-      height: 44px;
+      height: 88px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: var(--fs-topbar);
-      color: #222;
-      position: sticky;
-      top: 0;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(8px);
-      z-index: 2;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    }
-    .hero {
-      padding: var(--space-section-top) var(--space-page-x) 0;
-    }
-    .bubble {
-      margin-left: auto;
-      max-width: 78%;
-      background: #ebf5ff;
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: var(--fs-body);
-      line-height: 22px;
-    }
-    .content {
-      padding: var(--space-block-gap) var(--space-page-x) 0;
-      font-size: var(--fs-body);
-      line-height: var(--lh-body);
-    }
-    .section {
-      padding: var(--space-block-gap) var(--space-page-x) 0;
-    }
-    .title {
-      font-size: var(--fs-title);
-      line-height: var(--lh-title);
-      font-weight: 600;
-      margin: 0;
-    }
-    .title-strong {
-      font-size: var(--fs-title-strong);
-    }
-    .reason {
-      margin-top: 8px;
-      color: #333;
-      font-size: var(--fs-body);
-      line-height: var(--lh-body);
-    }
-    .card {
-      margin-top: 12px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-card);
-      padding: 14px;
-      box-shadow: 0 1px 0 rgba(0,0,0,0.02);
-    }
-    .flight-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-    .time {
-      font-size: var(--fs-time);
-      font-weight: 600;
-      line-height: var(--lh-time);
-    }
-    .airport {
-      margin-top: 2px;
-      color: #333;
-      font-size: var(--fs-airport);
-      line-height: var(--lh-airport);
-    }
-    .middle {
-      text-align: center;
-      color: #8f94a3;
-      font-size: var(--fs-meta);
-      min-width: 110px;
-    }
-    .line {
-      margin: 6px 0;
-      height: 2px;
-      background: linear-gradient(90deg, #d9dce2, #cfd3dc);
-      border-radius: 99px;
+      font-size: 34px;
+      font-weight: 500;
       position: relative;
+      z-index: 10;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(10px);
+      flex-shrink: 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
     }
-    .line::after {
-      content: "";
-      position: absolute;
-      right: -1px;
-      top: -3px;
-      border-left: 8px solid #cfd3dc;
-      border-top: 4px solid transparent;
-      border-bottom: 4px solid transparent;
+    .topbar-left, .topbar-right {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      color: #667085; font-size: 30px; text-decoration: none; line-height: 1; user-select: none;
     }
-    .meta {
-      margin-top: 10px;
+    .topbar-left { left: 28px; }
+    .topbar-right { right: 28px; }
+
+    /* ========== Scrollable content ========== */
+    .dialog-scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 0 0 20px;
+    }
+
+    /* ========== Content area ========== */
+    .content-area {
+      padding: 16px var(--page-px) 32px;
       display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      color: #8f94a3;
-      font-size: var(--fs-meta);
-      line-height: var(--lh-meta);
+      flex-direction: column;
+      gap: var(--section-gap);
+      min-height: 100%;
     }
-    .meta span + span::before {
-      content: "|";
-      margin-right: 6px;
-      color: #c6cad3;
+
+    /* ========== User bubble ========== */
+    .user-bubble-wrap { display: flex; flex-direction: column; align-items: flex-end; }
+    .user-bubble {
+      background: var(--user-bubble); border-radius: var(--radius-l);
+      padding: 20px 28px; font-size: 32px; line-height: 44px;
+      color: var(--black100); max-width: 568px; min-height: 92px;
+      display: flex; align-items: center;
     }
-    .price-row {
-      margin-top: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 12px;
+
+    /* ========== AI text ========== */
+    .ai-text { font-size: 32px; line-height: 52px; color: var(--black100); }
+
+    /* ========== Plan section ========== */
+    .plan-section { display: flex; flex-direction: column; gap: 32px; align-items: center; }
+    .plan-header { width: 100%; display: flex; flex-direction: column; gap: 32px; }
+    .plan-title { font-size: 32px; font-weight: 600; line-height: 52px; color: var(--black100); }
+    .plan-title.strong { font-size: 34px; line-height: normal; color: var(--zinc900); }
+    .plan-reason { font-size: 32px; line-height: 52px; color: var(--black100); }
+    .plan-reason .highlight { color: var(--brand); }
+
+    /* ========== Flight card ========== */
+    .flight-card {
+      width: 670px; background: #fff; border: 2px solid var(--card-border);
+      border-radius: var(--radius-l); padding: var(--card-pad);
+      overflow: hidden; display: flex; flex-direction: column; position: relative;
     }
-    .price {
-      color: var(--orange);
+    .flight-card-header { display: flex; gap: 12px; align-items: center; width: 100%; }
+    .flight-date { font-size: 24px; font-weight: 500; line-height: 1.7; color: var(--grey60); }
+    .flight-body { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
+    .flight-info-col { display: flex; flex-direction: column; gap: 16px; width: 420px; }
+
+    /* ========== Route row ========== */
+    .route-row { display: flex; align-items: center; justify-content: space-between; height: 116px; padding-top: 24px; width: 100%; }
+    .route-side { display: flex; flex-direction: column; gap: 16px; width: 123px; height: 100%; }
+    .route-side.right { align-items: flex-end; text-align: right; }
+    .route-time { font-size: 46px; font-weight: 600; line-height: 48px; color: var(--black100); }
+    .route-time-sub { position: relative; }
+    .route-time-sub .local-tag { position: absolute; right: 0; top: -30px; font-size: 24px; font-weight: 400; line-height: 28px; color: var(--black100); }
+    .route-airport { font-size: 26px; font-weight: 400; line-height: 28px; color: var(--black100); }
+    .route-middle { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0 8px; height: 100%; }
+    .route-duration { font-size: 22px; line-height: 24px; color: var(--grey50); text-align: center; width: 166px; }
+    .route-line-wrap { display: flex; align-items: flex-end; height: 24px; padding-bottom: 10px; max-width: 240px; width: 100%; }
+    .route-line { flex: 1; height: 4px; min-width: 1px; }
+    .route-line img { width: 100%; height: 100%; display: block; }
+    .route-arrow { width: 10px; height: 8px; flex-shrink: 0; }
+    .route-arrow img { width: 100%; height: 100%; display: block; }
+
+    /* ========== Airline / ticket info ========== */
+    .airline-row { display: flex; gap: 6px; align-items: center; }
+    .airline-logo { width: 25px; height: 25px; border-radius: 50%; object-fit: cover; }
+    .airline-name { font-size: 22px; line-height: 32px; color: var(--grey50); }
+    .ticket-info-row { display: flex; gap: 6px; align-items: center; }
+    .ticket-info-text { font-size: 22px; line-height: 32px; color: var(--black100); }
+    .ticket-sep { width: 1px; height: 18px; background: #eee; flex-shrink: 0; }
+
+    /* ========== Price ========== */
+    .price-col { display: flex; flex-direction: column; gap: 16px; align-items: flex-end; justify-content: center; padding-top: 24px; }
+    .price-group { display: flex; flex-direction: column; gap: 16px; align-items: flex-end; }
+    .price-wrap { display: flex; gap: 4px; align-items: baseline; height: 48px; color: var(--orange100); text-align: center; white-space: nowrap; }
+    .price-symbol { font-size: 28px; font-weight: 400; line-height: 40px; }
+    .price-num { font-size: 36px; font-weight: 600; line-height: 56px; }
+    .price-suffix { font-size: 24px; font-weight: 400; line-height: 32px; color: var(--orange100); width: 24px; display: flex; align-items: center; justify-content: center; padding: 8px 0 4px; }
+    .discount-tag { display: flex; gap: 8px; align-items: center; padding: 4px 6px; border-radius: 0 8px 8px 0; background: linear-gradient(90deg, rgba(255,107,63,0) 0%, var(--orange10) 100%); }
+    .discount-tag span { font-size: 20px; line-height: 24px; color: var(--orange100); text-align: center; white-space: nowrap; }
+    .book-btn { width: 120px; height: 52px; background: var(--panel-bg); border-radius: var(--radius-btn); border: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; color: var(--brand); cursor: pointer; }
+
+    /* ========== Transfer card ========== */
+    .transfer-card { width: 670px; background: #fff; border: 2px solid var(--card-border-alpha); border-radius: var(--radius-l); padding: var(--card-pad); overflow: hidden; display: flex; flex-direction: column; gap: 28px; }
+    .transfer-segment { display: flex; flex-direction: column; width: 100%; }
+    .segment-header { display: flex; gap: 12px; align-items: center; width: 100%; }
+    .segment-badge {
       display: inline-flex;
-      align-items: baseline;
-      gap: 2px;
-      font-weight: 600;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 4px 14px;
+      min-height: 52px;
+      border-radius: 999px;
+      background: var(--brand-light);
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .segment-badge span {
+      font-size: clamp(24px, 3.2vw, 34px);
+      font-weight: 500;
       line-height: 1;
-    }
-    .price-symbol {
-      font-size: var(--fs-price-symbol);
-      line-height: var(--lh-price-symbol);
-      font-weight: 400;
-    }
-    .price-num {
-      font-size: var(--fs-price-num);
-      line-height: var(--lh-price-num);
-    }
-    .price-suffix {
-      font-size: var(--fs-price-suffix);
-      line-height: var(--lh-price-suffix);
-      font-weight: 400;
-    }
-    .price-tip {
-      margin-top: 4px;
-      color: #b5b8c0;
-      font-size: 10px;
-      line-height: 12px;
-    }
-    .btn {
-      border: 0;
-      background: #f4f6fb;
       color: var(--brand);
-      border-radius: var(--radius-chip);
-      min-width: 60px;
-      height: 26px;
-      font-size: var(--fs-btn);
-      line-height: var(--lh-btn);
-      font-weight: 600;
     }
-    .more-btn {
-      margin-top: 14px;
-      width: 100%;
-      border: 0;
-      border-radius: var(--radius-soft);
-      height: 40px;
-      background: #f4f4f5;
-      color: #222;
-      font-size: 13px;
-      line-height: 20px;
-      font-weight: 600;
-    }
-    .biz-wrap {
-      margin-top: 14px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-card);
-      overflow: hidden;
+    .segment-date { font-size: 24px; font-weight: 500; line-height: 1.7; color: var(--grey60); }
+    .transfer-stop { background: rgba(34,34,34,0.03); border-radius: var(--radius-s); height: 60px; display: flex; align-items: center; padding: 12px 18px; width: 100%; }
+    .transfer-stop span { font-size: 22px; font-weight: 500; line-height: 28px; color: var(--black100); }
+    .transfer-divider { width: 100%; height: 0; position: relative; }
+    .transfer-divider img { position: absolute; inset: -0.5px 0; width: 100%; }
+    .transfer-ticket-info { display: flex; flex-direction: column; gap: 8px; }
+    .transfer-price-row { display: flex; gap: 20px; align-items: flex-end; justify-content: space-between; width: 100%; }
+    .transfer-price-left { display: flex; flex-direction: column; gap: 6px; }
+    .transfer-price-wrap { display: flex; gap: 4px; align-items: center; width: 434px; }
+    .transfer-price-tag { display: flex; gap: 8px; align-items: center; padding: 4px 6px; border-radius: 8px 0 0 8px; background: linear-gradient(90deg, var(--orange10) 0%, rgba(255,107,63,0) 100%); }
+    .transfer-price-tag span { font-size: 22px; line-height: 24px; color: var(--orange100); white-space: nowrap; }
+    .transfer-subtotal { font-size: 22px; line-height: 26px; color: #ccc; }
+    .transfer-book-btn { width: 160px; height: 72px; background: var(--panel-bg); border-radius: var(--radius-btn); border: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; color: var(--brand); cursor: pointer; }
+
+    /* ========== More button ========== */
+    .more-btn-wrap { width: 100%; padding-bottom: 30px; }
+    .more-btn { width: 670px; height: 80px; background: rgba(34,34,34,0.03); border-radius: 20px; border: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 26px; font-weight: 600; line-height: 32px; color: var(--black100); cursor: pointer; }
+
+    /* ========== Plan 3 intro ========== */
+    .plan3-intro { display: flex; flex-direction: column; gap: 32px; width: 670px; overflow: hidden; }
+
+    /* ========== A350 expandable ========== */
+    .a350-inner { background: #fff; display: flex; flex-direction: column; gap: 12px; padding: 28px 0; overflow: hidden; }
+    .a350-header { display: flex; align-items: center; justify-content: space-between; width: 670px; gap: 10px; }
+    .a350-title { flex: 1; font-size: 34px; font-weight: 600; line-height: normal; color: var(--zinc900); }
+    .a350-toggle { display: flex; gap: 12px; align-items: center; background: none; border: 0; padding: 0; cursor: pointer; }
+    .a350-toggle-text { font-size: 24px; font-weight: 500; line-height: 26px; color: var(--light-gray-text); }
+    .a350-toggle-arrow { width: 12px; height: 12px; transition: transform 0.3s ease; }
+    .a350-toggle-arrow.expanded { transform: rotate(180deg); }
+    .a350-body { display: flex; flex-direction: column; gap: 12px; width: 670px; }
+    .a350-text { font-size: 32px; line-height: 52px; color: var(--black100); }
+    .a350-text.muted { color: var(--zinc500); }
+    .a350-seat-img { width: 100%; height: 547px; object-fit: cover; border-radius: var(--radius-s); }
+    .a350-seatmap-img { width: 100%; display: block; }
+    .a350-separator { width: 100%; padding: 12px 0; position: relative; }
+    .a350-separator::after { content: ""; display: block; width: 100%; height: 0; border-top: 1px solid #eee; }
+    .a350-note { font-size: 20px; line-height: 1.4; color: var(--zinc400); padding-top: 30px; }
+    .a350-content-area { max-height: 228px; overflow: hidden; position: relative; transition: max-height 0.4s ease; }
+    .a350-content-area.expanded { max-height: 3000px; }
+    .a350-mask { position: absolute; bottom: 0; left: 0; width: 670px; height: 112px; background: linear-gradient(180deg, rgba(255,255,255,0) 14.286%, #fff 77.232%); pointer-events: none; transition: opacity 0.3s ease; }
+    .a350-content-area.expanded .a350-mask { opacity: 0; }
+
+    /* ========== Follow link ========== */
+    .follow-link { display: flex; gap: 12px; align-items: center; padding: 24px 30px 24px 24px; border: 1px solid rgba(15,19,26,0.12); border-radius: var(--radius-l); background: #fff; backdrop-filter: blur(2px); text-decoration: none; color: var(--dark-text); transition: transform 0.12s ease, box-shadow 0.2s ease; cursor: pointer; }
+    .follow-link:hover { box-shadow: 0 2px 10px rgba(15,19,26,0.06); }
+    .follow-link:active { transform: translateY(0.5px); }
+    .follow-text { font-size: 26px; line-height: 1.4; color: var(--dark-text); white-space: nowrap; flex-shrink: 0; }
+    .follow-avatars { display: flex; align-items: center; padding-right: 11px; flex-shrink: 0; }
+    .follow-avatar { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; margin-right: -11px; position: relative; }
+    .follow-avatar:nth-child(1) { z-index: 3; }
+    .follow-avatar:nth-child(2) { z-index: 2; }
+    .follow-avatar:nth-child(3) { z-index: 1; }
+    .follow-avatar img { width: 105.56%; height: 105.56%; margin: -2.78%; display: block; }
+    .follow-source { font-size: 22px; line-height: 1.4; color: var(--light-gray-text); white-space: nowrap; flex-shrink: 0; }
+    .hero-img { width: 100%; aspect-ratio: 750 / 190; object-fit: cover; display: block; }
+
+    /* ========== NEW: Composer (Figma node 2123:28903) ========== */
+    .composer-area {
+      flex-shrink: 0;
       background: #fff;
+      padding: 0 30px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      z-index: 10;
     }
-    .biz-head {
-      padding: 14px 14px 8px;
-    }
-    .biz-title {
-      font-size: var(--fs-title-strong);
-      line-height: 24px;
-      font-weight: 600;
-    }
-    .biz-toggle {
-      border: 0;
-      background: transparent;
-      color: var(--text-muted);
-      font-size: 12px;
-      line-height: 16px;
-      display: inline-flex;
+    .composer-tools {
+      display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 0;
-      float: right;
+      gap: 10px;
+      overflow: hidden;
     }
-    .arrow {
-      width: 8px;
-      height: 8px;
-      border-right: 1.8px solid currentColor;
-      border-bottom: 1.8px solid currentColor;
-      transform: rotate(45deg);
-      transition: transform .2s ease;
-      margin-top: -3px;
+    .tool-btn {
+      display: flex; align-items: center; gap: 10px;
+      height: 64px; padding: 12px 24px; border-radius: 18px;
+      border: 2px solid rgba(15,19,26,0.12); background: #fff;
+      font-size: 24px; line-height: 1.4; color: var(--dark-text);
+      cursor: pointer; flex-shrink: 0; white-space: nowrap;
     }
-    .biz-wrap.is-expanded .arrow {
-      transform: rotate(-135deg);
-      margin-top: 2px;
+    .tool-btn-icon {
+      width: 30px; height: 30px; border-radius: 100px; overflow: hidden;
+      background: linear-gradient(135deg, #e8eef7, #d8e4f6);
+      display: flex; align-items: center; justify-content: center;
     }
-    .biz-content {
-      position: relative;
-      padding: 0 14px 14px;
+    .tool-btn-icon svg { width: 18px; height: 18px; }
+    .composer-input-row {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 102px; padding: 12px 24px; border-radius: 36px;
+      border: 2px solid #d2d4d9; background: #fff;
+      box-shadow: 0 10px 56px rgba(211,211,211,0.4);
+      overflow: hidden;
     }
-    .biz-summary {
-      font-size: var(--fs-body);
-      line-height: var(--lh-body);
-      color: #222;
-      margin: 8px 0 0;
+    .composer-left { display: flex; gap: 18px; align-items: center; flex: 1; min-width: 0; }
+    .composer-icon {
+      width: 48px; height: 48px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
     }
-    .biz-summary .em {
-      color: var(--brand);
+    .composer-icon svg { width: 28px; height: 28px; }
+    .composer-input {
+      flex: 1; border: 0; outline: none; resize: none; background: transparent;
+      color: var(--dark-text); font-size: 30px; line-height: 1.4; font-family: inherit;
+      min-height: 42px; max-height: 78px;
     }
-    .biz-extra {
-      max-height: 0;
+    .composer-input::placeholder { color: var(--light-gray-text); }
+    .composer-right { display: flex; gap: 24px; align-items: center; flex-shrink: 0; }
+    .composer-right .composer-icon { opacity: 0.7; }
+    .send-btn {
+      border: 0; border-radius: 999px; min-width: 100px; height: 60px;
+      padding: 0 24px; background: var(--brand); color: #fff;
+      font-size: 26px; font-weight: 600; cursor: pointer; flex-shrink: 0;
+      display: none;
+    }
+    .send-btn.visible { display: block; }
+    .send-btn:disabled { background: #c9d3e8; cursor: not-allowed; }
+    .composer-footer {
+      font-size: 18px; line-height: 1.4; color: #c6c6c6; text-align: center;
+    }
+
+    /* ========== Streaming / animation ========== */
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      animation: fadeSlideIn 0.45s ease forwards;
+    }
+    .stream-block {
       opacity: 0;
-      overflow: hidden;
-      transition: max-height .35s ease, opacity .25s ease;
+      transform: translateY(20px);
     }
-    .biz-wrap.is-expanded .biz-extra {
-      max-height: 1800px;
-      opacity: 1;
-      margin-top: 8px;
+    .stream-block.visible {
+      animation: fadeSlideIn 0.45s ease forwards;
     }
-    .ph {
-      margin-top: 10px;
-      width: 100%;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #dfe7f7, #f0f5ff 65%, #e8eef7);
-      border: 1px solid #e3e9f6;
-      position: relative;
-      overflow: hidden;
+    .typing-dot {
+      display: inline-flex; gap: 8px; align-items: center; height: 52px;
+      padding: 0 var(--page-px); font-size: 32px; color: #7b8797;
     }
-    .ph::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
-      transform: translateX(-100%);
-      animation: sweep 3s ease-in-out infinite;
+    .typing-dot::after {
+      content: ""; display: inline-block; width: 8px; height: 8px;
+      background: #7b8797; border-radius: 50%;
+      animation: blink 1s ease-in-out infinite;
     }
-    @keyframes sweep {
-      0% { transform: translateX(-100%); }
-      55% { transform: translateX(100%); }
-      100% { transform: translateX(100%); }
-    }
-    .ph.big { height: 220px; }
-    .ph.mid { height: 160px; }
-    .biz-note {
-      margin-top: 12px;
-      font-size: var(--fs-caption);
-      line-height: 1.45;
-      color: #a1a1aa;
-    }
-    .collapsed-mask {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 76px;
-      background: linear-gradient(180deg, rgba(255,255,255,0), #fff 68%);
-      pointer-events: none;
-      opacity: 1;
-      transition: opacity .2s ease;
-    }
-    .biz-wrap.is-expanded .collapsed-mask { opacity: 0; }
-    .follow {
-      margin-top: 18px;
-      border: 1px solid rgba(15,19,26,0.12);
-      border-radius: 12px;
-      min-height: 42px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 6px;
-      padding: 8px 10px;
-      color: #0f131a;
-      background: #fff;
-      font-size: var(--fs-follow-main);
-      font-weight: 400;
-      line-height: var(--lh-follow-main);
-      text-decoration: none;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      cursor: pointer;
-      transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease;
-      box-shadow: none;
-    }
-    .follow:hover {
-      border-color: rgba(15,19,26,0.2);
-      box-shadow: 0 2px 10px rgba(15,19,26,0.06);
-    }
-    .follow:active {
-      transform: translateY(0.5px);
-      box-shadow: 0 1px 4px rgba(15,19,26,0.06);
-    }
-    .follow:focus-visible {
-      outline: 2px solid rgba(1, 0, 255, 0.35);
-      outline-offset: 2px;
-    }
-    .follow-main {
-      white-space: nowrap;
-      color: #0f131a;
-    }
-    .follow-avatars {
-      display: inline-flex;
-      align-items: center;
-      padding-right: 4px;
-    }
-    .follow-avatar {
-      width: 18px;
-      height: 18px;
-      border-radius: 999px;
-      border: 1px solid #fff;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      line-height: 1;
-      margin-left: -4px;
-      overflow: hidden;
-    }
-    .follow-avatar:first-child {
-      margin-left: 0;
-    }
-    .follow-sub {
-      color: #919499;
-      font-size: var(--fs-follow-sub);
-      line-height: var(--lh-follow-sub);
-      white-space: nowrap;
-    }
-    .transfer-tip {
-      margin-top: 8px;
-      padding: 6px 10px;
-      background: #f5f6f8;
-      border-radius: var(--radius-chip);
-      font-size: 11px;
-      color: #333;
-      line-height: 16px;
-    }
-    .reason-em { color: #01f; }
-    .bottom-nav {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 0;
-      width: min(750px, 100%);
-      background: #fff;
-      border-top: 1px solid #eceff5;
-      padding: 8px 18px calc(8px + env(safe-area-inset-bottom, 0px));
-      z-index: 3;
-    }
-    .bottom-bar {
-      height: 40px;
-      border-radius: 999px;
-      border: 1px solid #ebedf2;
-      background: #f8f9fb;
-      color: #a0a4ad;
-      display: flex;
-      align-items: center;
-      padding: 0 12px;
-      font-size: 13px;
+    @keyframes blink { 0%,100% { opacity: 0.2; } 50% { opacity: 1; } }
+
+    /* ========== Debug overlay (dev only) ========== */
+    .debug-score {
+      position: fixed; top: 20px; right: 20px; z-index: 999;
+      background: rgba(0,0,0,0.75); color: #0f0; font-size: 24px; padding: 12px 20px;
+      border-radius: 12px; font-family: monospace; pointer-events: none;
     }
   </style>
 </head>
 <body>
-  <div class="page">
-    <div class="topbar">千问</div>
-
-    <div class="hero">
-      <div class="bubble">清明杭州到北京的机票推荐</div>
-    </div>
-
-    <div class="content">
-      根据你过往行程和搜索条件（亲子出行，2大1小，经济舱）推荐2个最佳航班。
-    </div>
-
-    <section class="section">
-      <h2 class="title">方案一：直飞最低价</h2>
-      <p class="reason">推荐理由：直飞抵达北京，整体行程更从容，落地后可直接入住酒店休息，适合亲子出行；无需中转，减少等待与换乘负担，同时保留完整游玩时间。</p>
-      <article class="card">
-        <div class="flight-row">
-          <div>
-            <div class="time">07:30</div>
-            <div class="airport">萧山T3</div>
-          </div>
-          <div class="middle">
-            总2h20m
-            <div class="line"></div>
-          </div>
-          <div style="text-align:right">
-            <div class="time">09:50</div>
-            <div class="airport">首都T3</div>
-          </div>
-        </div>
-        <div class="meta">
-          <span>中国国航 CA857</span>
-          <span>经济舱5.2折</span>
-          <span>托运行李25公斤</span>
-          <span>退改¥80起</span>
-        </div>
-        <div class="price-row">
-          <div>
-            <div class="price"><span class="price-symbol">¥</span><span class="price-num">624</span><span class="price-suffix">起</span></div>
-            <div class="price-tip">千问优惠¥80</div>
-          </div>
-          <button class="btn">订票</button>
-        </div>
-      </article>
-    </section>
-
-    <section class="section">
-      <h2 class="title">方案二：高性价比中转</h2>
-      <p class="reason">推荐理由：上午出发，衔接顺畅的短时中转方案，总体飞行时间控制合理；相比直飞可节省约 ¥114，在舒适度与价格之间取得平衡。</p>
-      <article class="card">
-        <div class="flight-row">
-          <div>
-            <div class="time">10:45</div>
-            <div class="airport">萧山T3</div>
-          </div>
-          <div class="middle">
-            总1h55m
-            <div class="line"></div>
-          </div>
-          <div style="text-align:right">
-            <div class="time">12:40</div>
-            <div class="airport">胶东</div>
-          </div>
-        </div>
-        <div class="meta">
-          <span>中国国航 CA857</span>
-        </div>
-        <div class="transfer-tip">中转青岛 1h35m</div>
-        <div class="flight-row" style="margin-top:10px;">
-          <div>
-            <div class="time">14:00</div>
-            <div class="airport">胶东</div>
-          </div>
-          <div class="middle">
-            总1h40m
-            <div class="line"></div>
-          </div>
-          <div style="text-align:right">
-            <div class="time">15:40</div>
-            <div class="airport">首都T3</div>
-          </div>
-        </div>
-        <div class="meta">
-          <span>中国国航 CA857</span>
-          <span>经济舱5.2折</span>
-          <span>托运行李25公斤</span>
-          <span>退改¥80起</span>
-        </div>
-        <div class="price-row">
-          <div>
-            <div class="price"><span class="price-symbol">¥</span><span class="price-num">510</span><span class="price-suffix">起</span></div>
-            <div class="price-tip">千问优惠¥80</div>
-          </div>
-          <button class="btn">订票</button>
-        </div>
-      </article>
-      <button class="more-btn">查看更多经济舱航班</button>
-    </section>
-
-    <section class="section">
-      <h2 class="title title-strong">方案三：舒适商务舱升级</h2>
-      <p class="reason">如果你更在意落地状态，这班商务舱值得考虑。<span class="reason-em">多花 ¥1999，可以换来全平躺座椅、更大的腿部空间</span>，以及更从容的长途体验。</p>
-
-      <article class="card">
-        <div class="flight-row">
-          <div>
-            <div class="time">09:55</div>
-            <div class="airport">首都T3</div>
-          </div>
-          <div class="middle">
-            总2h20m
-            <div class="line"></div>
-          </div>
-          <div style="text-align:right">
-            <div class="time">16:25</div>
-            <div class="airport">樟宜T1</div>
-          </div>
-        </div>
-        <div class="meta">
-          <span>国泰航空 CX857</span>
-          <span>商务舱</span>
-          <span>托运行李40公斤</span>
-          <span>免费退改</span>
-        </div>
-        <div class="price-row">
-          <div>
-            <div class="price"><span class="price-symbol">¥</span><span class="price-num">3624</span><span class="price-suffix">起</span></div>
-            <div class="price-tip">千问优惠¥80</div>
-          </div>
-          <button class="btn">订票</button>
-        </div>
-      </article>
-
-      <div class="biz-wrap" id="bizWrap">
-        <div class="biz-head">
-          <strong class="biz-title">A350-1000 宽体机</strong>
-          <button class="biz-toggle" id="bizToggle" type="button" aria-expanded="false">
-            <span id="toggleText">展开</span><i class="arrow"></i>
-          </button>
-        </div>
-        <div class="biz-content">
-          <p class="biz-summary">机舱座椅：180° 全平躺像一张可真正休息的床，45cm" 腿距让你能自然伸展。</p>
-          <div class="biz-extra" id="bizExtra">
-            <div class="ph big" aria-label="商务舱座椅示意图"></div>
-            <p class="biz-summary">舱内布局：1-2-1 布局在长途里更安静、更从容。</p>
-            <div class="ph mid" aria-label="座位图示意"></div>
-            <p class="biz-summary">餐食体验：升舱后不只是“吃饱”，更接近正餐服务。</p>
-            <p class="biz-summary" style="color:#71717a;">服务形式：优先上餐；菜单质量：多餐型可选；饮品：酒精/无酒精选择更完整。</p>
-            <p class="biz-summary">航司口碑：4.62/5（294条），93% 正面评价。</p>
-            <p class="biz-note">说明：图片与数据均来自 FlightData；实际航班配置以实际为准。</p>
-          </div>
-          <div class="collapsed-mask"></div>
-        </div>
-      </div>
-
-      <a class="follow" href="高舱DEMO.html" aria-label="提前沉浸式体验本航班，打开高舱DEMO">
-        <span class="follow-main">提前沉浸式体验本航班</span>
-        <span class="follow-avatars" aria-hidden="true">
-          <span class="follow-avatar" style="background:#2ca7a3;color:#fff;">80</span>
-          <span class="follow-avatar" style="background:#2d89ff;color:#fff;">✈</span>
-          <span class="follow-avatar" style="background:#2b2d34;color:#fff;">✈</span>
-        </span>
-        <span class="follow-sub">来源</span>
+  <main class="stage">
+    <header class="topbar">
+      <a class="topbar-left" href="javascript:void(0)" aria-label="返回">
+        <svg width="20" height="36" viewBox="0 0 20 36" fill="none"><path d="M18 2L2 18l16 16" stroke="#667085" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
-    </section>
-  </div>
+      千问
+      <a class="topbar-right" href="javascript:void(0)" aria-label="更多">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="8" cy="18" r="3" fill="#667085"/><circle cx="18" cy="18" r="3" fill="#667085"/><circle cx="28" cy="18" r="3" fill="#667085"/></svg>
+      </a>
+    </header>
 
-  <div class="bottom-nav" aria-hidden="true">
-    <div class="bottom-bar">发送问题或继续说...</div>
-  </div>
+    <div class="dialog-scroll" id="dialogScroll">
+      <div class="content-area" id="contentArea"></div>
+    </div>
+
+    <div class="composer-area" id="composerArea">
+      <div class="composer-tools">
+        <button class="tool-btn" type="button">
+          <span class="tool-btn-icon">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 3C7.03 3 3 7.03 3 12s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7z" fill="#667"/><circle cx="9" cy="11" r="1.2" fill="#667"/><circle cx="15" cy="11" r="1.2" fill="#667"/><path d="M12 17c-2 0-3.5-1.5-3.5-3h7c0 1.5-1.5 3-3.5 3z" fill="#667"/></svg>
+          </span>
+          深度思考
+        </button>
+      </div>
+      <form class="composer-input-row" id="chatForm">
+        <div class="composer-left">
+          <div class="composer-icon" id="voiceIcon">
+            <svg viewBox="0 0 48 48" fill="none"><path d="M24 6a6 6 0 00-6 6v12a6 6 0 0012 0V12a6 6 0 00-6-6z" stroke="#0f131a" stroke-width="3" stroke-linecap="round"/><path d="M12 22a12 12 0 0024 0" stroke="#0f131a" stroke-width="3" stroke-linecap="round"/><path d="M24 38v4" stroke="#0f131a" stroke-width="3" stroke-linecap="round"/></svg>
+          </div>
+          <textarea id="chatInput" class="composer-input" rows="1" placeholder="发消息或者按住说话..." aria-label="输入对话内容"></textarea>
+        </div>
+        <div class="composer-right" id="composerRight">
+          <div class="composer-icon">
+            <svg viewBox="0 0 48 48" fill="none"><rect x="8" y="12" width="32" height="24" rx="4" stroke="#0f131a" stroke-width="3"/><circle cx="24" cy="24" r="6" stroke="#0f131a" stroke-width="3"/><circle cx="35" cy="17" r="2" fill="#0f131a"/></svg>
+          </div>
+          <div class="composer-icon">
+            <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="16" stroke="#0f131a" stroke-width="3"/><path d="M24 16v16M16 24h16" stroke="#0f131a" stroke-width="3" stroke-linecap="round"/></svg>
+          </div>
+        </div>
+        <button type="submit" id="sendBtn" class="send-btn" disabled>发送</button>
+      </form>
+      <div class="composer-footer">内容由 AI生成</div>
+    </div>
+  </main>
+
+  <div class="debug-score" id="debugScore" style="display:none;"></div>
 
   <script>
-    (function () {
-      var wrap = document.getElementById("bizWrap");
-      var btn = document.getElementById("bizToggle");
-      var text = document.getElementById("toggleText");
-      var expanded = false;
+  (function () {
+    /* ===== DOM refs ===== */
+    var chatForm    = document.getElementById('chatForm');
+    var chatInput   = document.getElementById('chatInput');
+    var sendBtn     = document.getElementById('sendBtn');
+    var voiceIcon   = document.getElementById('voiceIcon');
+    var composerRight = document.getElementById('composerRight');
+    var dialogScroll = document.getElementById('dialogScroll');
+    var contentArea = document.getElementById('contentArea');
+    var debugScore  = document.getElementById('debugScore');
 
-      function sync() {
-        wrap.classList.toggle("is-expanded", expanded);
-        btn.setAttribute("aria-expanded", expanded ? "true" : "false");
-        text.textContent = expanded ? "收起" : "展开";
+    /* ===== State ===== */
+    var state = {
+      running: false,
+      prevUtterance: '',
+      budgetPenaltyApplied: false,
+      plan3Shown: false,
+      turnCount: 0
+    };
+
+    /* ===== B-Score Engine (PRD §6.2) ===== */
+    var KEYWORDS = {
+      comfort:  ['舒适','舒服','躺平','不想太累','宽敞','睡得好','休息好'],
+      crowd:    ['老人','父母','长辈','带娃','小孩','孕妇'],
+      redEye:   ['红眼','夜班','凌晨','早班','长途','十几个小时','国际'],
+      business: ['出差','报销','见客户','会议','商务'],
+      budget:   ['最便宜','低价','学生','预算','省钱','特价','穷游']
+    };
+    var SCORES = { comfort: 25, crowd: 25, redEye: 20, business: 15, budget: -35 };
+
+    /* ===== Local demo data (offline) ===== */
+    var ASSET_BASE = 'assets/figma/';
+    var DEMO_DATA = {
+      ai: {
+        introPrefix: '根据你过往行程和搜索条件（亲子出行，2大1小，经济舱）推荐',
+        introSuffix: '个最佳航班。'
+      },
+      plan1: {
+        title: '方案一：直飞最低价',
+        reason: '推荐理由：直飞抵达北京，整体行程更从容，落地后可直接入住酒店休息，适合亲子出行；无需中转，减少等待与换乘负担，同时保留完整游玩时间。',
+        flight: {
+          dateText: '4月4日 周六 杭州-北京',
+          depTime: '07:30',
+          depAirport: '萧山T3',
+          duration: '总2h20m',
+          arrTime: '09:50',
+          arrAirport: '首都T3',
+          lineImg: 'flight-line-blue.png',
+          hasLocal: false,
+          airlineLogo: 'airline-ca.png',
+          airlineName: '中国国航 CA857',
+          ticketInfo: ['经济舱5.2折', '托运行李25公斤', '退改¥80起'],
+          price: '624',
+          discount: '千问优惠¥80'
+        }
+      },
+      plan2: {
+        title: '方案二：高性价比中转',
+        reason: '推荐理由：上午出发，衔接顺畅的短时中转方案，总体飞行时间控制合理；相比直飞可节省约 ¥114，在舒适度与价格之间取得平衡。',
+        stopText: '中转青岛 1h35m',
+        segments: [
+          {
+            badge: '1程',
+            dateText: '4月4日 周五 杭州-青岛',
+            depTime: '10:45',
+            depAirport: '萧山T3',
+            duration: '总1h55m',
+            arrTime: '12:40',
+            arrAirport: '胶东',
+            lineImg: 'flight-line.png',
+            hasLocal: false,
+            airlineLogo: 'airline-ca.png',
+            airlineName: '中国国航 CA857'
+          },
+          {
+            badge: '2程',
+            dateText: '4月5日 周六 青岛-北京',
+            depTime: '14:00',
+            depAirport: '胶东',
+            duration: '总1h40m',
+            arrTime: '15:40',
+            arrAirport: '首都T3',
+            lineImg: 'flight-line.png',
+            hasLocal: false,
+            airlineLogo: 'airline-ca.png',
+            airlineName: '中国国航 CA857'
+          }
+        ],
+        dividerImg: 'divider-line.png',
+        ticketInfo: ['经济舱5.2折', '托运行李25公斤', '退改¥80起'],
+        price: '510',
+        discount: '千问优惠￥80',
+        subtotalText: '单人总计',
+        moreText: '查看更多经济舱航班'
+      },
+      plan3: {
+        title: '方案三：舒适商务舱升级',
+        reasonHTML: '如果你更在意落地状态，这班商务舱值得考虑。<span class="highlight">多花 ¥1999，可以换来全平躺座椅、更大的腿部空间</span>，以及更从容的长途体验。',
+        flight: {
+          dateText: '4月4日 周六 杭州-北京 · 商务舱',
+          depTime: '09:55',
+          depAirport: '首都T3',
+          duration: '总2h20m',
+          arrTime: '16:25',
+          arrAirport: '樟宜T1',
+          lineImg: 'flight-line-blue.png',
+          hasLocal: true,
+          airlineLogo: 'airline-cx.png',
+          airlineName: '国泰航空 CX857',
+          ticketInfo: ['商务舱', '托运行李40公斤', '免费退改'],
+          price: '3624',
+          discount: '千问优惠¥80'
+        },
+        a350: {
+          title: 'A350-1000 宽体机',
+          toggleCollapsedText: '展开',
+          toggleExpandedText: '收起',
+          toggleArrowImg: 'arrow-icon.png',
+          seatPhotoImg: 'seat-photo.png',
+          seatmapImg: 'seatmap-layout.png'
+        },
+        follow: {
+          href: '高舱DEMO.html',
+          text: '提前沉浸式体验本航班',
+          avatars: ['avatar-1.png', 'avatar-2.png', 'avatar-3.png'],
+          sourceText: '来源'
+        }
+      }
+    };
+
+    function computeB(currentText, prevText) {
+      var merged = (currentText + ' ' + (prevText || '')).toLowerCase();
+      var B = 0;
+      function hitAny(group) {
+        var kws = KEYWORDS[group];
+        for (var i = 0; i < kws.length; i++) { if (merged.indexOf(kws[i]) !== -1) return true; }
+        return false;
+      }
+      if (hitAny('comfort'))  B += SCORES.comfort;
+      if (hitAny('crowd'))    B += SCORES.crowd;
+      if (hitAny('redEye'))   B += SCORES.redEye;
+      if (hitAny('business')) B += SCORES.business;
+      if (!state.budgetPenaltyApplied && hitAny('budget')) {
+        B += SCORES.budget;
+        state.budgetPenaltyApplied = true;
+      }
+      return Math.max(-40, Math.min(80, B));
+    }
+
+    /* ===== Helpers ===== */
+    function scrollToBottom() {
+      requestAnimationFrame(function () { dialogScroll.scrollTop = dialogScroll.scrollHeight; });
+    }
+    function delay(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+    function createElement(tag, cls, html) {
+      var el = document.createElement(tag);
+      if (cls) el.className = cls;
+      if (html) el.innerHTML = html;
+      return el;
+    }
+
+    /* ===== Streaming text ===== */
+    function streamText(container, text, speed) {
+      speed = speed || 35;
+      return new Promise(function (resolve) {
+        var i = 0;
+        function tick() {
+          if (i < text.length) {
+            container.textContent += text[i];
+            i++;
+            scrollToBottom();
+            setTimeout(tick, speed);
+          } else {
+            resolve();
+          }
+        }
+        tick();
+      });
+    }
+
+    function streamHTML(container, html, speed) {
+      speed = speed || 25;
+      var temp = document.createElement('div');
+      temp.innerHTML = html;
+      var plainText = temp.textContent || '';
+      container.innerHTML = '';
+      return new Promise(function (resolve) {
+        var i = 0;
+        function tick() {
+          if (i < plainText.length) {
+            container.textContent += plainText[i];
+            i++;
+            scrollToBottom();
+            setTimeout(tick, speed);
+          } else {
+            container.innerHTML = html;
+            resolve();
+          }
+        }
+        tick();
+      });
+    }
+
+    function fadeIn(el) {
+      el.classList.add('stream-block');
+      contentArea.appendChild(el);
+      requestAnimationFrame(function () {
+        el.classList.add('visible');
+        scrollToBottom();
+      });
+      return delay(480);
+    }
+
+    /* ===== Plan HTML Builders ===== */
+    function routeHTML(dep, depApt, dur, arr, arrApt, lineImg, hasLocal) {
+      var rightInner = hasLocal
+        ? '<div class="route-time-sub"><span class="local-tag">当地</span><span class="route-time">' + arr + '</span></div>'
+        : '<span class="route-time">' + arr + '</span>';
+      return '<div class="route-row">'
+        + '<div class="route-side"><span class="route-time">' + dep + '</span><span class="route-airport">' + depApt + '</span></div>'
+        + '<div class="route-middle"><span class="route-duration">' + dur + '</span>'
+        + '<div class="route-line-wrap"><div class="route-line"><img src="assets/figma/' + lineImg + '" alt=""></div><div class="route-arrow"><img src="assets/figma/flight-arrow.png" alt=""></div></div></div>'
+        + '<div class="route-side right">' + rightInner + '<span class="route-airport">' + arrApt + '</span></div></div>';
+    }
+    function airlineHTML(logo, name) {
+      return '<div class="airline-row"><img class="airline-logo" src="assets/figma/' + logo + '" alt=""><span class="airline-name">' + name + '</span></div>';
+    }
+    function ticketInfoHTML(items) {
+      return '<div class="ticket-info-row">' + items.map(function (t, i) {
+        return (i > 0 ? '<span class="ticket-sep"></span>' : '') + '<span class="ticket-info-text">' + t + '</span>';
+      }).join('') + '</div>';
+    }
+    function priceHTML(price, suffix) {
+      suffix = suffix || '起';
+      return '<div class="price-wrap"><span class="price-symbol">￥</span><span class="price-num">' + price + '</span><span class="price-suffix">' + suffix + '</span></div>';
+    }
+    function discountHTML(text) {
+      return '<div class="discount-tag"><span>' + text + '</span></div>';
+    }
+
+    function buildPlan1() {
+      var p = DEMO_DATA.plan1;
+      var f = p.flight;
+      return '<div class="plan-section stream-block">'
+        + '<div class="plan-header"><h2 class="plan-title">' + p.title + '</h2>'
+        + '<p class="plan-reason">' + p.reason + '</p></div>'
+        + '<div class="flight-card">'
+        + '<div class="flight-card-header"><span class="flight-date">' + f.dateText + '</span></div>'
+        + '<div class="flight-body"><div class="flight-info-col">'
+        + routeHTML(f.depTime, f.depAirport, f.duration, f.arrTime, f.arrAirport, f.lineImg, f.hasLocal)
+        + '<div style="display:flex;flex-direction:column;gap:10px;">'
+        + airlineHTML(f.airlineLogo, f.airlineName)
+        + ticketInfoHTML(f.ticketInfo)
+        + '</div></div>'
+        + '<div class="price-col"><div class="price-group">' + priceHTML(f.price) + discountHTML(f.discount) + '</div>'
+        + '<button class="book-btn">订票</button></div></div></div></div>';
+    }
+
+    function buildPlan2() {
+      var p = DEMO_DATA.plan2;
+      var s1 = p.segments[0];
+      var s2 = p.segments[1];
+      return '<div class="plan-section stream-block">'
+        + '<div class="plan-header"><h2 class="plan-title">' + p.title + '</h2>'
+        + '<p class="plan-reason">' + p.reason + '</p></div>'
+        + '<div class="transfer-card">'
+        /* Segment 1 */
+        + '<div class="transfer-segment"><div class="segment-header"><div class="segment-badge"><span>' + s1.badge + '</span></div><span class="segment-date">' + s1.dateText + '</span></div>'
+        + '<div style="display:flex;flex-direction:column;gap:16px;width:100%;">'
+        + routeHTML(s1.depTime, s1.depAirport, s1.duration, s1.arrTime, s1.arrAirport, s1.lineImg, s1.hasLocal)
+        + airlineHTML(s1.airlineLogo, s1.airlineName) + '</div></div>'
+        /* Transfer stop */
+        + '<div class="transfer-stop"><span>' + p.stopText + '</span></div>'
+        /* Segment 2 */
+        + '<div class="transfer-segment"><div class="segment-header"><div class="segment-badge"><span>' + s2.badge + '</span></div><span class="segment-date">' + s2.dateText + '</span></div>'
+        + '<div style="display:flex;flex-direction:column;gap:16px;width:100%;">'
+        + routeHTML(s2.depTime, s2.depAirport, s2.duration, s2.arrTime, s2.arrAirport, s2.lineImg, s2.hasLocal)
+        + airlineHTML(s2.airlineLogo, s2.airlineName) + '</div></div>'
+        /* Divider */
+        + '<div class="transfer-divider"><img src="' + ASSET_BASE + p.dividerImg + '" alt=""></div>'
+        /* Ticket info + price */
+        + '<div class="transfer-ticket-info">' + ticketInfoHTML(p.ticketInfo) + '</div>'
+        + '<div class="transfer-price-row"><div class="transfer-price-left">'
+        + '<div class="transfer-price-wrap">' + priceHTML(p.price)
+        + '<div class="transfer-price-tag"><span>' + p.discount + '</span></div></div>'
+        + '<span class="transfer-subtotal">' + p.subtotalText + '</span></div>'
+        + '<button class="transfer-book-btn">订票</button></div>'
+        + '</div>'
+        /* More button */
+        + '<div class="more-btn-wrap"><button class="more-btn">' + p.moreText + '</button></div>'
+        + '</div>';
+    }
+
+    function buildPlan3() {
+      var p = DEMO_DATA.plan3;
+      var f = p.flight;
+      return '<div class="plan-section stream-block" style="gap:24px;">'
+        + '<div class="plan3-intro"><p class="plan-title strong">' + p.title + '</p>'
+        + '<p class="plan-reason">' + p.reasonHTML + '</p></div>'
+        /* Business flight card */
+        + '<div class="flight-card">'
+        + '<div class="flight-card-header"><span class="flight-date">' + f.dateText + '</span></div>'
+        + '<div class="flight-body"><div class="flight-info-col">'
+        + routeHTML(f.depTime, f.depAirport, f.duration, f.arrTime, f.arrAirport, f.lineImg, f.hasLocal)
+        + '<div style="display:flex;flex-direction:column;gap:10px;">'
+        + airlineHTML(f.airlineLogo, f.airlineName)
+        + ticketInfoHTML(f.ticketInfo)
+        + '</div></div>'
+        + '<div class="price-col"><div class="price-group">' + priceHTML(f.price) + discountHTML(f.discount) + '</div>'
+        + '<button class="book-btn">订票</button></div></div></div>'
+        /* A350 expandable */
+        + '<div class="a350-content-area" id="a350ContentArea">'
+        + '<div class="a350-inner"><div class="a350-header"><h3 class="a350-title">' + p.a350.title + '</h3>'
+        + '<button class="a350-toggle" id="a350Toggle" type="button" aria-expanded="false">'
+        + '<span class="a350-toggle-text" id="a350ToggleText">' + p.a350.toggleCollapsedText + '</span>'
+        + '<img class="a350-toggle-arrow" id="a350Arrow" src="' + ASSET_BASE + p.a350.toggleArrowImg + '" alt=""></button></div>'
+        + '<div class="a350-body">'
+        + '<p class="a350-text">机舱座椅：全平躺像一张可真正休息的床，腿距让你能自然伸展：</p>'
+        + '<p class="a350-text muted">座椅角度：180° 、腿部空间：113cm、座椅宽度：78cm</p>'
+        + '<img class="a350-seat-img" src="' + ASSET_BASE + p.a350.seatPhotoImg + '" alt="商务舱座椅示意图">'
+        + '<div class="a350-separator"></div>'
+        + '<p class="a350-text">舱内布局：1-2-1 布局在长途里更安静、更从容。</p>'
+        + '<img class="a350-seatmap-img" src="' + ASSET_BASE + p.a350.seatmapImg + '" alt="座位图示意">'
+        + '<div class="a350-separator"></div>'
+        + '<p class="a350-text">餐食体验：升舱后不只是"吃饱"，更接近正餐服务</p>'
+        + '<p class="a350-text muted">服务形式：优先上餐；菜单质量：多餐型可选；饮品：酒精/无酒精选择更完整。</p>'
+        + '<div class="a350-separator"></div>'
+        + '<p class="a350-text">航司口碑：4.62/5星（294条），93%的评价都是正面评价</p>'
+        + '<p class="a350-note">说明：图片与数据均来自 FlightData；实际航班配置以实际为准。</p>'
+        + '</div></div><div class="a350-mask"></div></div>'
+        /* Follow link */
+        + '<div style="padding-top:24px;width:100%;">'
+        + '<a class="follow-link" href="' + p.follow.href + '" aria-label="提前沉浸式体验本航班">'
+        + '<span class="follow-text">' + p.follow.text + '</span>'
+        + '<div class="follow-avatars">'
+        + '<div class="follow-avatar"><img src="' + ASSET_BASE + p.follow.avatars[0] + '" alt=""></div>'
+        + '<div class="follow-avatar"><img src="' + ASSET_BASE + p.follow.avatars[1] + '" alt=""></div>'
+        + '<div class="follow-avatar"><img src="' + ASSET_BASE + p.follow.avatars[2] + '" alt=""></div></div>'
+        + '<span class="follow-source">' + p.follow.sourceText + '</span></a></div>'
+        + '</div>';
+    }
+
+    /* ===== Bind A350 toggle (delegated) ===== */
+    contentArea.addEventListener('click', function (e) {
+      var toggle = e.target.closest('#a350Toggle');
+      if (!toggle) return;
+      var area = document.getElementById('a350ContentArea');
+      var arrow = document.getElementById('a350Arrow');
+      var text = document.getElementById('a350ToggleText');
+      if (!area) return;
+      var expanded = area.classList.toggle('expanded');
+      if (arrow) arrow.classList.toggle('expanded', expanded);
+      if (text) text.textContent = expanded ? DEMO_DATA.plan3.a350.toggleExpandedText : DEMO_DATA.plan3.a350.toggleCollapsedText;
+      toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    });
+
+    /* ===== Offline performance: preload assets ===== */
+    function uniq(arr) {
+      var seen = {};
+      var out = [];
+      for (var i = 0; i < arr.length; i++) {
+        var v = arr[i];
+        if (!v || seen[v]) continue;
+        seen[v] = true;
+        out.push(v);
+      }
+      return out;
+    }
+    function preloadImages(urls) {
+      for (var i = 0; i < urls.length; i++) {
+        var img = new Image();
+        img.decoding = 'async';
+        img.loading = 'eager';
+        img.src = urls[i];
+      }
+    }
+    function preloadDemoAssets() {
+      var urls = [];
+      // shared
+      urls.push(ASSET_BASE + 'flight-arrow.png');
+      // plan1
+      urls.push(ASSET_BASE + DEMO_DATA.plan1.flight.lineImg);
+      urls.push(ASSET_BASE + DEMO_DATA.plan1.flight.airlineLogo);
+      // plan2
+      urls.push(ASSET_BASE + DEMO_DATA.plan2.segments[0].lineImg);
+      urls.push(ASSET_BASE + DEMO_DATA.plan2.segments[0].airlineLogo);
+      urls.push(ASSET_BASE + DEMO_DATA.plan2.segments[1].lineImg);
+      urls.push(ASSET_BASE + DEMO_DATA.plan2.segments[1].airlineLogo);
+      urls.push(ASSET_BASE + DEMO_DATA.plan2.dividerImg);
+      // plan3
+      urls.push(ASSET_BASE + DEMO_DATA.plan3.flight.lineImg);
+      urls.push(ASSET_BASE + DEMO_DATA.plan3.flight.airlineLogo);
+      urls.push(ASSET_BASE + DEMO_DATA.plan3.a350.toggleArrowImg);
+      urls.push(ASSET_BASE + DEMO_DATA.plan3.a350.seatPhotoImg);
+      urls.push(ASSET_BASE + DEMO_DATA.plan3.a350.seatmapImg);
+      urls.push(ASSET_BASE + DEMO_DATA.plan3.follow.avatars[0]);
+      urls.push(ASSET_BASE + DEMO_DATA.plan3.follow.avatars[1]);
+      urls.push(ASSET_BASE + DEMO_DATA.plan3.follow.avatars[2]);
+      preloadImages(uniq(urls));
+    }
+
+    /* ===== Main response flow ===== */
+    async function playResponse(userText) {
+      state.running = true;
+      updateSendState();
+      state.turnCount++;
+
+      var B = computeB(userText, state.prevUtterance);
+      state.prevUtterance = userText;
+
+      debugScore.style.display = 'block';
+      debugScore.textContent = 'B=' + B + ' | turn=' + state.turnCount;
+
+      var showPlan3 = B >= 10;
+
+      /* User bubble */
+      var bubbleWrap = createElement('div', 'user-bubble-wrap fade-in');
+      var bubble = createElement('div', 'user-bubble');
+      bubble.textContent = userText;
+      bubbleWrap.appendChild(bubble);
+      contentArea.appendChild(bubbleWrap);
+      scrollToBottom();
+      await delay(300);
+
+      /* Typing indicator */
+      var typingEl = createElement('div', 'typing-dot');
+      typingEl.textContent = '千问正在生成';
+      contentArea.appendChild(typingEl);
+      scrollToBottom();
+      await delay(600);
+
+      /* Remove typing, show AI text */
+      contentArea.removeChild(typingEl);
+
+      var numPlans = showPlan3 ? 3 : 2;
+      var aiTextEl = createElement('p', 'ai-text');
+      contentArea.appendChild(aiTextEl);
+      await streamText(aiTextEl, DEMO_DATA.ai.introPrefix + numPlans + DEMO_DATA.ai.introSuffix, 30);
+      await delay(300);
+
+      /* Plan 1 */
+      var p1 = createElement('div', '');
+      p1.innerHTML = buildPlan1();
+      var p1Child = p1.firstChild;
+      contentArea.appendChild(p1Child);
+      requestAnimationFrame(function () { p1Child.classList.add('visible'); scrollToBottom(); });
+      await delay(500);
+
+      /* Plan 2 */
+      var p2 = createElement('div', '');
+      p2.innerHTML = buildPlan2();
+      var p2Child = p2.firstChild;
+      contentArea.appendChild(p2Child);
+      requestAnimationFrame(function () { p2Child.classList.add('visible'); scrollToBottom(); });
+      await delay(500);
+
+      /* Plan 3 (conditional) */
+      if (showPlan3 && !state.plan3Shown) {
+        var p3 = createElement('div', '');
+        p3.innerHTML = buildPlan3();
+        var p3Child = p3.firstChild;
+        contentArea.appendChild(p3Child);
+        requestAnimationFrame(function () { p3Child.classList.add('visible'); scrollToBottom(); });
+        state.plan3Shown = true;
+        await delay(300);
+      } else if (showPlan3 && state.plan3Shown) {
+        /* Already shown — add a note */
+        var note = createElement('p', 'ai-text fade-in');
+        note.textContent = '方案三的商务舱升级推荐仍然适合你，可以回看上方的详情。';
+        contentArea.appendChild(note);
+        scrollToBottom();
+      } else if (!showPlan3 && !state.plan3Shown) {
+        var tipEl = createElement('p', 'ai-text fade-in');
+        tipEl.style.color = 'var(--grey50)';
+        tipEl.style.fontSize = '26px';
+        tipEl.textContent = '如果你愿意，我还能继续按"最省钱 / 最省时 / 最舒适"三种标准细化。';
+        contentArea.appendChild(tipEl);
+        scrollToBottom();
       }
 
-      btn.addEventListener("click", function () {
-        expanded = !expanded;
-        sync();
-      });
+      state.running = false;
+      updateSendState();
+    }
 
-      sync();
-    })();
+    /* ===== Multi-turn:追加方案三 ===== */
+    async function playFollowup(userText) {
+      state.running = true;
+      updateSendState();
+      state.turnCount++;
+
+      var B = computeB(userText, state.prevUtterance);
+      state.prevUtterance = userText;
+
+      debugScore.textContent = 'B=' + B + ' | turn=' + state.turnCount;
+
+      var showPlan3 = B >= 10;
+
+      /* User bubble */
+      var bubbleWrap = createElement('div', 'user-bubble-wrap fade-in');
+      var bubble = createElement('div', 'user-bubble');
+      bubble.textContent = userText;
+      bubbleWrap.appendChild(bubble);
+      contentArea.appendChild(bubbleWrap);
+      scrollToBottom();
+      await delay(300);
+
+      /* Typing */
+      var typingEl = createElement('div', 'typing-dot');
+      typingEl.textContent = '千问正在生成';
+      contentArea.appendChild(typingEl);
+      scrollToBottom();
+      await delay(600);
+      contentArea.removeChild(typingEl);
+
+      if (showPlan3 && !state.plan3Shown) {
+        var aiEl = createElement('p', 'ai-text');
+        contentArea.appendChild(aiEl);
+        await streamText(aiEl, '根据你的偏好，我为你追加了一个商务舱升级方案：', 30);
+        await delay(300);
+
+        var p3 = createElement('div', '');
+        p3.innerHTML = buildPlan3();
+        var p3Child = p3.firstChild;
+        contentArea.appendChild(p3Child);
+        requestAnimationFrame(function () { p3Child.classList.add('visible'); scrollToBottom(); });
+        state.plan3Shown = true;
+      } else {
+        var replyEl = createElement('p', 'ai-text');
+        contentArea.appendChild(replyEl);
+        var replyText = showPlan3
+          ? '收到，商务舱方案仍然推荐给你。可以点击上方的沉浸式入口查看高舱演示。'
+          : '收到：' + userText + '。我继续按同一规则为你优化推荐。';
+        await streamText(replyEl, replyText, 30);
+      }
+
+      scrollToBottom();
+      state.running = false;
+      updateSendState();
+    }
+
+    /* ===== Composer logic ===== */
+    function autoGrow() {
+      chatInput.style.height = '0px';
+      chatInput.style.height = Math.min(chatInput.scrollHeight, 78) + 'px';
+    }
+    function updateSendState() {
+      var hasText = !!chatInput.value.trim();
+      sendBtn.disabled = !hasText || state.running;
+      sendBtn.classList.toggle('visible', hasText);
+      voiceIcon.style.display = hasText ? 'none' : 'flex';
+      composerRight.style.display = hasText ? 'none' : 'flex';
+    }
+
+    chatInput.addEventListener('input', function () { autoGrow(); updateSendState(); });
+    chatInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!sendBtn.disabled) chatForm.requestSubmit(); }
+    });
+
+    chatForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (state.running) return;
+      var text = chatInput.value.trim();
+      if (!text) return;
+      chatInput.value = '';
+      autoGrow();
+      updateSendState();
+
+      if (state.turnCount === 0) {
+        await playResponse(text);
+      } else {
+        await playFollowup(text);
+      }
+    });
+
+    autoGrow();
+    updateSendState();
+    preloadDemoAssets();
+  })();
   </script>
 </body>
 </html>

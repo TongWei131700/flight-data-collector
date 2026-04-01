@@ -14,45 +14,6 @@
 
 区别于普通大模型输出的泛化内容，本系统所有展示信息均来自**经过校验的航司级数据**，禁止 LLM 编造舱位参数与媒体链接。
 
-## 项目结构
-
-```
-Qwen/
-├── 1 Prd/                      # 产品需求文档
-│   ├── *.plan.md               # PRD 正文（商务舱推荐编排策略、倾向分模型、流式协议）
-│   └── *.pdf / *.xlsx          # PDF 打印版与业务数据源
-│
-├── 2 H5效果/                    # H5 交互原型与 Demo
-│   ├── Qwen-对话流.html         # 主对话流 Demo（千问对话 + 商务舱推荐卡片）
-│   ├── 高舱DEMO.html            # 高舱沉浸式体验页（国泰 A350 等）
-│   ├── 子效果-*.html            # 子模块效果页（升舱编辑、Jesko 窗景等）
-│   └── assets/                  # 图片、视频、图标等静态资源
-│
-├── 3 其他文件/                   # 工程辅助
-│   ├── chat-flight-recommendation/  # 对话推荐编排层原型
-│   │   ├── orchestrator/        # 编排服务（并行查价、槽位策略、B 分计算）
-│   │   ├── cabin-kb/            # 机型/座椅知识库服务
-│   │   ├── schemas/             # FlightCard / CabinUpsell JSON Schema
-│   │   └── client/              # 前端渲染 Demo
-│   ├── specs/                   # Figma 模块映射与设计规范
-│   └── scripts/                 # Figma MCP 自动化脚本
-│
-├── 4 自我迭代/                   # 设计系统与学习笔记
-│   ├── 设计计划.md               # Design System（Token、组件规范、AI 执行协议）
-│   └── 学习文件.MD               # Figma 设计稿分析笔记
-│
-├── 5 项目PPT/                   # 项目演示
-│   └── Qwen-项目讲解-PPT.html   # 项目介绍 PPT（HTML 版）
-│
-└── 6 航司数据库/                 # 结构化航司数据
-    └── 国泰航空 CX/             # 国泰航空全机型数据
-        ├── A350-1000/           # 各机型详情、座椅图、餐食、评分
-        ├── B777-300ER/
-        ├── A350-900/
-        ├── A330-300/            # 含 6 种配置版本
-        ├── A321neo/
-        └── B777-300/
-```
 
 ## 核心能力
 
@@ -115,33 +76,9 @@ Qwen/
 
 **对平台**：形成可商业化的高舱展示能力，支撑航司营销合作与高客单价转化
 
-## 快速开始
+## 查看效果
 
-### 查看 H5 Demo
 
-直接在浏览器中打开以下文件：
-
-```bash
-# 主对话流 Demo
-open "2 H5效果/Qwen-对话流.html"
-
-# 高舱沉浸式体验页
-open "2 H5效果/高舱DEMO.html"
-```
-
-### 运行编排层原型
-
-```bash
-cd "3 其他文件/chat-flight-recommendation"
-npm install
-node orchestrator/server.js
-```
-
-### 查看项目演示 PPT
-
-```bash
-open "5 项目PPT/Qwen-项目讲解-PPT.html"
-```
 
 ## 未来方向
 
