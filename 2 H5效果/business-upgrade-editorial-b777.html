@@ -1,0 +1,1649 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5, user-scalable=yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="color-scheme" content="dark" />
+  <title>国泰航空 CX857 · 商务舱体验</title>
+  <!-- 弱网：poster 与 video 同一底边裁切；preload 与 video.poster 同 URL 便于缓存命中 -->
+  <!-- 视频和图片底部对齐预加载：保持 poster 与 video 资源底部内容一致且同位布局 -->
+  <link rel="preload" href="assets/%E8%83%8C%E6%99%AF%EF%BC%8C%E5%BA%A7%E6%A4%85%E8%83%8C%E6%99%AF.jpg" as="image" type="image/jpeg" fetchpriority="high" />
+  <link rel="preload" href="assets/光线的演绎（裁切）.mp4" as="video" type="video/mp4" />
+  <style>
+    :root {
+      /* 设计基准 750×1624，布局在网页端随视口缩放、最大 750px 居中 */
+      --layout-max: 750px;
+      --pad-x: 7.466667%; /* 56px / 750px，随列宽比例缩放 */
+      --gold: #c9a74e;
+      --gold-light: #e8d5a0;
+      --gold-soft: rgba(201,167,78,0.10);
+      --text: #f0f1f5;
+      --text-2: rgba(240,241,245,0.72);
+      --text-3: rgba(240,241,245,0.38);
+      --bg: #06070b;
+      --bg-2: #0a0c12;
+      --line: rgba(255,255,255,0.06);
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      /* 顶栏显隐：标准缓入缓出（对称 ease-in-out） */
+      --ease-io: cubic-bezier(0.42, 0, 0.58, 1);
+      --card-r: 20px;
+      --card-bg: rgba(255,255,255,0.025);
+      --card-bd: 1px solid rgba(255,255,255,0.06);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 10px; }
+    body {
+      width: 100%;
+      max-width: var(--layout-max);
+      margin: 0 auto;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      line-height: 1.5;
+      /* 底部悬浮 CTA（距底 66px + 安全区；划到底部会隐藏），避免正文被挡 */
+      padding-bottom: calc(192px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* ── SECTION ────────────────────────────── */
+    .sec {
+      position: relative;
+      width: 100%;
+      max-width: var(--layout-max);
+      /* visible：避免挡住 hero 内 position:sticky；横向由 body overflow-x 约束 */
+      overflow: visible;
+    }
+    .sec-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+    .sec-bg img,
+    .sec-bg video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .sec-bg .ov { position: absolute; inset: 0; }
+    .sec-inner {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      padding: clamp(72px, 16vw, 120px) var(--pad-x);
+    }
+
+    /* ── PROGRESS ───────────────────────────── */
+    .progress {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      width: min(100%, var(--layout-max)); height: 3px; z-index: 100;
+      background: rgba(255,255,255,0.03);
+    }
+    .progress-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--gold), rgba(201,167,78,0.15));
+      transition: width 0.1s linear;
+    }
+
+    /* ── NAV DOTS ───────────────────────────── */
+    .nav-dots {
+      position: fixed;
+      /* 宽屏时与内容列右缘对齐；窄屏贴视口右侧 */
+      right: calc(12px + max(0px, (100vw - var(--layout-max)) / 2));
+      top: 50%; transform: translateY(-50%);
+      z-index: 90; display: flex; flex-direction: column; gap: 14px;
+    }
+    .nav-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255,255,255,0.10);
+      border: 1.5px solid transparent;
+      cursor: pointer; transition: all 0.4s var(--ease);
+    }
+    .nav-dot.active {
+      background: var(--gold);
+      border-color: rgba(201,167,78,0.2);
+      box-shadow: 0 0 0 4px rgba(201,167,78,0.06);
+      transform: scale(1.3);
+    }
+
+    /* ── REVEAL ─────────────────────────────── */
+    .rv { opacity: 0; transform: translateY(12px); transition: opacity 0.9s var(--ease), transform 0.9s var(--ease); }
+    .rv.vis { opacity: 1; transform: translateY(0); }
+    .rv[data-d="1"] { transition-delay: 0.1s; }
+    .rv[data-d="2"] { transition-delay: 0.22s; }
+    .rv[data-d="3"] { transition-delay: 0.34s; }
+    .rv[data-d="4"] { transition-delay: 0.46s; }
+    .rv[data-d="5"] { transition-delay: 0.58s; }
+    .rv[data-d="6"] { transition-delay: 0.70s; }
+    .rv[data-d="7"] { transition-delay: 0.82s; }
+    .rv-scale { opacity: 0; transform: scale(0.94); transition: opacity 1.1s var(--ease), transform 1.3s var(--ease); }
+    .rv-scale.vis { opacity: 1; transform: scale(1); }
+    .rv-line { transform: scaleX(0); transform-origin: center; transition: transform 1.2s var(--ease); }
+    .rv-line.vis { transform: scaleX(1); }
+
+    /* Part2（s-value）：Jesko 弹性上浮 — 80px 位移 / 1.4s / 阶梯 180ms */
+    .s-value .rv {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+      transition:
+        opacity 1.4s var(--ease),
+        transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .s-value .rv.vis {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+    .s-value .rv[data-d="1"] { transition-delay: 0.08s; }
+    .s-value .rv[data-d="2"] { transition-delay: 0.26s; }
+    .s-value .rv[data-d="3"] { transition-delay: 0.44s; }
+    .s-value .rv[data-d="4"] { transition-delay: 0.62s; }
+    .s-value .rv[data-d="5"] { transition-delay: 0.80s; }
+    .s-value .rv-line {
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .s-value .rv-line.vis {
+      transform: scaleX(1);
+      transition-delay: 0.06s;
+    }
+
+    html.figma-capture .rv,
+    html.figma-capture .rv-scale,
+    html.figma-capture .rv-line { opacity: 1 !important; transform: none !important; transition: none !important; }
+    html.figma-capture .s-hero .sec-bg .hero-bg-video { animation: none !important; }
+
+    /* ── SHARED TOKENS ──────────────────────── */
+    .kicker { color: var(--gold); font-size: 22px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 500; }
+    .t-sec { font-size: clamp(40px, 7.5vw, 56px); line-height: 1.1; letter-spacing: -0.03em; font-weight: 600; max-width: min(600px, 100%); }
+    .gold { color: var(--gold); }
+
+    /* ═══════════════════════════════════════════
+       S1 · HERO — 对齐 Figma 896:7048（顶栏 + 左下文案 + 叠层 + 引用）
+       ═══════════════════════════════════════════ */
+    .s-hero {
+      background: #05060d;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    .s-hero .sec-bg .hero-poster {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: auto;
+      z-index: 0;
+    }
+    .s-hero .sec-bg .hero-bg-video {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: auto;
+      transform-origin: center top;
+      filter: saturate(1.05) contrast(1.06) brightness(0.9);
+      animation: heroZoom 28s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: 1;
+    }
+    @keyframes heroZoom { from { transform: scale(1); } to { transform: scale(1.06); } }
+    .s-hero .ov {
+      background:
+        linear-gradient(180deg,
+          rgba(5, 6, 13, 0.1) 0%,
+          rgba(5, 6, 13, 0.25) 13.909%,
+          rgba(5, 6, 13, 0.7) 36.162%,
+          rgba(5, 6, 13, 0.95) 55.634%,
+          rgba(5, 6, 13, 0.97) 100%),
+        linear-gradient(90deg,
+          rgba(5, 6, 13, 0.5) 0%,
+          rgba(0, 0, 0, 0) 50%,
+          rgba(5, 6, 13, 0.3) 100%);
+    }
+
+    .s-hero .sec-inner.s-hero-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      text-align: left;
+      /* fixed 顶栏不占流，预留与 .hero-top-group 同高：安全区 + Tab bar(88/750×宽) + 导航行 66px */
+      padding-top: calc(env(safe-area-inset-top, 0px) + (100% * 88 / 750) + 66px);
+      padding-left: 0;
+      padding-right: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      position: relative;
+      padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+    }
+    html.ios-standalone .s-hero .sec-inner.s-hero-inner {
+      padding-top: calc(env(safe-area-inset-top, 0px) + 66px);
+    }
+
+    /*
+      状态栏：浏览器内使用 assets/Tab bar.svg（750×88 设计稿导出）；
+      全屏 Web App（添加到主屏幕）时隐藏模拟条，使用系统原生状态栏。
+    */
+    /* 挂 body 下，与 .progress 同宽居中：整页滚动始终贴视口顶 */
+    .hero-top-group {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(100%, var(--layout-max));
+      max-width: var(--layout-max);
+      /* 高于 .progress(100)、.nav-dots(90)、正文 stacking，保证顶栏始终压在最上 */
+      z-index: 130;
+      box-sizing: border-box;
+      background: transparent;
+      padding-top: env(safe-area-inset-top, 0px);
+      opacity: 1;
+      pointer-events: auto;
+      transition: opacity 0.32s var(--ease),
+        background-color 0.35s var(--ease), box-shadow 0.35s var(--ease),
+        -webkit-backdrop-filter 0.35s var(--ease), backdrop-filter 0.35s var(--ease);
+    }
+    /* 纵向滑动过程中渐隐，避免与内容抢视觉；滚动停止后由脚本移除类，恢复不透明 */
+    .hero-top-group.hero-top-group--scroll-dim {
+      opacity: 0;
+      pointer-events: none;
+    }
+    /* 页面滚动后下方内容掠过顶栏：#FFFFFF 5% + 毛玻璃 */
+    .hero-top-group.hero-top-group--stuck {
+      background-color: rgba(255, 255, 255, 0.05);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+    .hero-status {
+      box-sizing: border-box;
+      width: 100%;
+      height: auto;
+      min-height: 0;
+      padding: 0;
+      margin: 0;
+      background: transparent;
+      overflow: hidden;
+    }
+    .hero-status__svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 750 / 88;
+      object-fit: contain;
+      object-position: top center;
+      pointer-events: none;
+    }
+    html.ios-standalone .hero-status--simulated {
+      display: none;
+      height: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .hero-nav-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      position: relative;
+      min-height: 60px;
+      /* Figma 938:6351 导航行左右 36px */
+      padding: 0 clamp(20px, 4.8vw, 36px) 6px;
+      box-sizing: border-box;
+    }
+    .hero-back {
+      flex-shrink: 0;
+      width: 60px;
+      height: 60px;
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hero-back:active { opacity: 0.65; }
+    .hero-back .hero-back-icon {
+      width: 36px;
+      height: 36px;
+      display: block;
+    }
+    /* 与设计稿箭头一致：细线、略小的 iOS 风格返回 */
+    .hero-back-icon path {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.65;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .hero-share {
+      flex-shrink: 0;
+      width: 60px;
+      height: 60px;
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hero-share:active { opacity: 0.65; }
+    /* Figma fenxiang/yes 画板 48px */
+    .hero-share-icon {
+      width: 48px;
+      height: 48px;
+      display: block;
+      object-fit: contain;
+      pointer-events: none;
+    }
+    .hero-nav-title {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+      width: max-content;
+      max-width: calc(100% - 220px);
+      font-size: clamp(30px, 4.8vw, 36px);
+      font-weight: 400;
+      line-height: normal;
+      letter-spacing: 2.64px;
+      color: rgba(255, 255, 255, 0.8);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      pointer-events: none;
+      text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
+    }
+
+    .hero-bottom-stack {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding-top: clamp(64px, 16vw, 120px);
+      padding-left: 60px;
+      padding-right: 60px;
+      min-height: 0;
+    }
+
+    .hero-content {
+      width: 100%;
+      max-width: 654px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: clamp(24px, 5.5vw, 41px);
+      padding-bottom: clamp(72px, 18vw, 140px);
+    }
+
+    .hero-title {
+      margin: 0;
+      font-size: clamp(40px, 9.6vw, 72px);
+      line-height: 1.06;
+      letter-spacing: -2.16px;
+      font-weight: 600;
+      color: #d6dfea;
+      text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+    }
+    .hero-title-line {
+      display: block;
+    }
+    .hero-title-line + .hero-title-line { margin-top: 12px; }
+    .hero-title .hero-price {
+      color: #e5d6a6;
+      font-weight: 600;
+    }
+
+    .hero-support {
+      margin: 0;
+      max-width: 100%;
+      font-size: clamp(22px, 4vw, 30px);
+      line-height: clamp(40px, 6.8vw, 51px);
+      color: rgba(214, 223, 234, 0.8);
+      font-weight: 400;
+    }
+    .hero-support .hero-em {
+      font-weight: 600;
+      color: #e8e6e3;
+    }
+
+    .hero-quote {
+      margin: 0;
+      padding: 0 0 0 31px;
+      border-left: 3px solid rgba(255, 255, 255, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .hero-quote p {
+      margin: 0;
+      font-size: clamp(22px, 3.73vw, 28px);
+      line-height: clamp(34px, 6.16vw, 46.2px);
+      color: #d6dfea;
+      font-style: normal;
+      font-weight: 400;
+    }
+    .hero-quote cite {
+      font-size: clamp(18px, 2.93vw, 22px);
+      font-style: normal;
+      color: rgba(214, 223, 234, 0.5);
+      font-weight: 400;
+    }
+
+    .scroll-cue {
+      position: absolute;
+      left: 0;
+      right: 0;
+      /* 抬高以免与底部悬浮「预订行程」条重叠 */
+      bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+      z-index: 6;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      opacity: 0.55;
+      color: rgba(214, 223, 234, 0.5);
+      font-size: 22px;
+      letter-spacing: 1.32px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .scroll-cue-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(214, 223, 234, 0.45);
+      animation: heroBounce 2.4s ease-in-out infinite;
+    }
+    .scroll-cue-arrow svg {
+      width: 30px;
+      height: 30px;
+      display: block;
+    }
+    @keyframes heroBounce {
+      0%, 100% { transform: translateY(0); opacity: 0.65; }
+      50% { transform: translateY(6px); opacity: 1; }
+    }
+
+    /* ═══════════════════════════════════════════
+       S2 · CORE VALUE
+       ═══════════════════════════════════════════ */
+    .s-value { background: linear-gradient(180deg, var(--bg) 0%, #090b13 50%, var(--bg) 100%); scroll-margin-top: 24px; }
+    .s-value .sec-inner { align-items: center; text-align: center; gap: 48px; }
+    .brand-line { width: 56px; height: 1px; background: var(--gold); }
+    .brand-text {
+      font-size: 28px; line-height: 1.85; color: var(--text-2);
+      max-width: 580px; font-weight: 300;
+    }
+    .brand-text strong { color: #fff; font-weight: 600; }
+    .brand-text .gn { color: var(--gold); font-weight: 600; }
+    .pillars-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+      max-width: 640px; width: 100%; text-align: left;
+    }
+    .pillar {
+      padding: 32px 24px; border-radius: var(--card-r);
+      background: var(--card-bg); border: var(--card-bd);
+      transition: border-color 0.4s, background 0.4s;
+    }
+    .pillar-num { font-size: 48px; font-weight: 700; color: var(--gold); line-height: 1; margin-bottom: 16px; }
+    .pillar-name { font-size: 26px; font-weight: 600; margin-bottom: 8px; }
+    .pillar-desc { font-size: 22px; color: var(--text-2); line-height: 1.6; }
+
+    /* ═══════════════════════════════════════════
+       S3 · CABIN & SPECS
+       ═══════════════════════════════════════════ */
+    .s-cabin { background: var(--bg); }
+    .s-cabin .sec-inner { justify-content: center; gap: 32px; }
+    .cabin-label { font-size: 22px; letter-spacing: 0.2em; color: var(--gold); font-weight: 500; }
+    .cabin-model { display: flex; align-items: baseline; gap: 16px; }
+    .model-brand { font-size: 22px; color: var(--text-3); }
+    .model-type { font-size: 44px; font-weight: 700; color: var(--gold); }
+    .cabin-copy { font-size: 26px; line-height: 1.8; color: var(--text-2); max-width: 560px; }
+    .cabin-gallery {
+      display: flex; gap: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+      padding-bottom: 6px; scrollbar-width: none;
+    }
+    .cabin-gallery::-webkit-scrollbar { display: none; }
+    .cabin-gallery img {
+      width: 240px; aspect-ratio: 4/3; object-fit: cover;
+      border-radius: var(--card-r); border: var(--card-bd); flex-shrink: 0;
+      background: var(--bg-2);
+    }
+    .spec-grid { max-width: 620px; }
+    .spec-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 22px 0; border-bottom: 1px solid var(--line);
+    }
+    .spec-row:last-child { border-bottom: none; }
+    .spec-label { font-size: 22px; color: var(--text-3); }
+    .spec-val { font-size: 26px; color: #fff; font-weight: 600; text-align: right; }
+    .blueprint-wrap {
+      max-width: 620px; border-radius: var(--card-r); overflow: hidden; border: var(--card-bd);
+    }
+    .blueprint-wrap img { width: 100%; display: block; filter: brightness(0.75) contrast(1.1); background: var(--bg-2); }
+
+    /* ═══════════════════════════════════════════
+       S4 · DINING & EXPERIENCE
+       ═══════════════════════════════════════════ */
+    .s-service { background: linear-gradient(180deg, var(--bg) 0%, #0b0d14 50%, var(--bg) 100%); }
+    .s-service .sec-inner { gap: 48px; }
+
+    .dining-hero-img {
+      width: 100%; aspect-ratio: 21/9; border-radius: var(--card-r);
+      overflow: hidden; position: relative; background: var(--bg-2);
+    }
+    .dining-hero-img img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.7) saturate(1.1); }
+    .dining-hero-img .ov-gradient {
+      position: absolute; inset: 0;
+      background: linear-gradient(0deg, var(--bg) 0%, transparent 50%, rgba(6,7,11,0.3) 100%);
+    }
+    .dining-tagline { font-size: 28px; line-height: 1.8; color: var(--text-2); max-width: 580px; font-weight: 300; }
+    .dining-tagline strong { color: #fff; font-weight: 600; }
+
+    .menu-cards { display: grid; gap: 20px; max-width: 640px; }
+    .menu-card {
+      display: grid; grid-template-columns: 180px 1fr; gap: 0;
+      border-radius: var(--card-r); overflow: hidden;
+      background: var(--card-bg); border: var(--card-bd);
+      transition: border-color 0.4s, transform 0.3s var(--ease);
+    }
+    .menu-card:active { border-color: rgba(201,167,78,0.2); transform: translateY(-2px); }
+    .menu-card-img { width: 180px; height: 180px; overflow: hidden; background: var(--bg-2); }
+    .menu-card-img img { width: 100%; height: 100%; object-fit: cover; }
+    .menu-card-body { padding: 24px; display: flex; flex-direction: column; justify-content: center; }
+    .menu-card-tag { font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-weight: 500; margin-bottom: 8px; }
+    .menu-card-body h3 { font-size: 26px; font-weight: 600; margin-bottom: 8px; line-height: 1.3; }
+    .menu-card-body p { font-size: 22px; line-height: 1.6; color: var(--text-2); }
+
+    .dining-gallery-strip {
+      display: flex; gap: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+      scrollbar-width: none; padding-bottom: 8px;
+      margin-left: calc(-1 * var(--pad-x));
+      margin-right: calc(-1 * var(--pad-x));
+      padding-left: var(--pad-x);
+      padding-right: var(--pad-x);
+    }
+    .dining-gallery-strip::-webkit-scrollbar { display: none; }
+    .dg-item { flex-shrink: 0; width: 220px; text-align: center; }
+    .dg-item img {
+      width: 220px; height: 165px; object-fit: cover;
+      border-radius: var(--card-r); border: var(--card-bd);
+      margin-bottom: 12px; background: var(--bg-2);
+    }
+    .dg-item span { font-size: 22px; color: var(--text-3); display: block; }
+
+    .section-divider { width: 100%; max-width: 640px; height: 1px; background: linear-gradient(90deg, transparent, rgba(201,167,78,0.2), transparent); }
+
+    .facility-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 640px; }
+    .fac-card {
+      border-radius: var(--card-r); overflow: hidden;
+      background: var(--card-bg); border: var(--card-bd);
+      transition: border-color 0.4s, transform 0.3s var(--ease);
+    }
+    .fac-card:active { border-color: rgba(201,167,78,0.2); transform: translateY(-2px); }
+    .fac-card.wide { grid-column: 1 / -1; }
+    .fac-card-img { width: 100%; aspect-ratio: 16/9; overflow: hidden; background: var(--bg-2); }
+    .fac-card.wide .fac-card-img { aspect-ratio: 21/9; }
+    .fac-card-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    .fac-card-body { padding: 24px; }
+    .fac-card-body h4 { font-size: 24px; font-weight: 600; margin-bottom: 6px; }
+    .fac-card-body p { font-size: 22px; line-height: 1.55; color: var(--text-2); }
+
+    /* ═══════════════════════════════════════════
+       S5 · JOURNEY + CTA
+       ═══════════════════════════════════════════ */
+    .s-route { background: linear-gradient(180deg, var(--bg) 0%, #080a10 50%, var(--bg) 100%); }
+    .s-route .sec-inner { gap: 32px; }
+
+    .flight-card {
+      border-radius: 32px; padding: 36px;
+      background: rgba(10,12,20,0.85); border: 1px solid rgba(255,255,255,0.07);
+      backdrop-filter: blur(24px); box-shadow: 0 20px 56px rgba(0,0,0,0.25);
+      max-width: 640px;
+    }
+    .fc-head { display: flex; justify-content: space-between; color: var(--text-3); font-size: 22px; margin-bottom: 28px; }
+    .fc-times { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; }
+    .fc-time { font-size: clamp(36px, 12vw, 56px); font-weight: 600; letter-spacing: -0.04em; line-height: 1; }
+    .fc-ap { margin-top: 10px; font-size: 22px; color: var(--text-2); }
+    .fc-right { text-align: right; }
+    .fc-mid { text-align: center; color: var(--text-3); font-size: 22px; }
+    .fc-bar {
+      margin-top: 10px; height: 2px; border-radius: 1px; position: relative;
+      background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.3), rgba(255,255,255,0.08));
+    }
+    .fc-bar::after {
+      content: ''; position: absolute; right: -2px; top: 50%;
+      width: 8px; height: 8px;
+      border-top: 1.5px solid rgba(255,255,255,0.28);
+      border-right: 1.5px solid rgba(255,255,255,0.28);
+      transform: translateY(-50%) rotate(45deg);
+    }
+    .fc-footer {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-top: 28px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .fc-meta { font-size: 22px; color: var(--text-3); line-height: 1.85; }
+    .fc-price-block { text-align: right; flex-shrink: 0; }
+    .fc-price-label { font-size: 18px; color: var(--text-3); margin-bottom: 4px; }
+    .fc-price-val { font-size: 44px; font-weight: 700; color: #fff; }
+    .fc-price-val .yen { font-size: 26px; font-weight: 500; }
+
+    .proof-block {
+      max-width: 640px; padding: 40px 36px; border-radius: var(--card-r);
+      background: var(--card-bg); border: var(--card-bd);
+    }
+    .proof-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: clamp(12px, 2.67vw, 20px);
+      margin-bottom: 24px;
+    }
+    .proof-score {
+      font-size: clamp(48px, 9.6vw, 72px);
+      font-weight: 700;
+      line-height: 1;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #fff 30%, var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .proof-meta {
+      font-size: clamp(17px, 2.933vw, 22px);
+      color: var(--text-3);
+      line-height: 1.45;
+      min-width: 0;
+      flex: 1 1 10em;
+      max-width: 100%;
+    }
+    .proof-quotes { padding-top: 24px; border-top: 1px solid var(--line); }
+    .pq { padding: 18px 0; font-size: 26px; line-height: 1.65; color: var(--text-2); font-style: italic; }
+    .pq + .pq { border-top: 1px solid var(--line); }
+    .pq cite { display: block; margin-top: 8px; font-style: normal; font-size: 22px; color: var(--text-3); }
+
+    .cta-btn {
+      display: inline-flex; align-items: center; gap: 14px;
+      padding: 24px 44px; border-radius: 999px;
+      background: linear-gradient(135deg, rgba(201,167,78,0.28), rgba(201,167,78,0.10));
+      border: 1px solid rgba(201,167,78,0.3);
+      color: #fff; font-size: 26px; font-weight: 600;
+      cursor: pointer; text-decoration: none; transition: all 0.3s var(--ease);
+    }
+    .cta-btn:active {
+      background: linear-gradient(135deg, rgba(201,167,78,0.42), rgba(201,167,78,0.18));
+      transform: translateY(-2px); box-shadow: 0 12px 32px rgba(201,167,78,0.12);
+    }
+    .cta-btn .arrow { transition: transform 0.3s var(--ease); }
+
+    /* Figma 1264:7169 布局 + 与 proof-block / menu-card 同 token：--card-bg、--card-bd */
+    .cta-btn.cta-btn--ghost {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      width: 100%;
+      max-width: 640px;
+      box-sizing: border-box;
+      min-height: 140px;
+      padding: 24px 30px;
+      border-radius: var(--card-r);
+      border: var(--card-bd);
+      background: var(--card-bg);
+      color: rgba(214, 174, 99, 0.9);
+      font-size: 24px;
+      font-weight: 400;
+      line-height: 1.7;
+      box-shadow: none;
+      text-align: left;
+    }
+    .cta-btn.cta-btn--ghost:hover {
+      border-color: rgba(255, 255, 255, 0.09);
+      background: rgba(255, 255, 255, 0.034);
+    }
+    .cta-btn.cta-btn--ghost:active {
+      border-color: rgba(201, 167, 78, 0.2);
+      background: rgba(255, 255, 255, 0.04);
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+    .cta-btn--ghost .ghost-row-text {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .pe-hint.cta-btn--ghost {
+      cursor: default;
+      color: rgba(214, 223, 234, 0.7);
+    }
+    .pe-hint.cta-btn--ghost .ghost-accent {
+      color: rgba(214, 174, 99, 0.9);
+    }
+    .cta-btn--ghost .arrow {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 42px;
+      height: 42px;
+      margin: 0;
+      padding: 0;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.11);
+      color: rgba(214, 223, 234, 0.75);
+      opacity: 1;
+      font-size: 0;
+      line-height: 0;
+      transition: background 0.25s var(--ease), transform 0.25s var(--ease);
+    }
+    .cta-btn--ghost:hover .arrow {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .cta-btn--ghost .arrow svg {
+      width: 10px;
+      height: 16px;
+      display: block;
+    }
+    .cta-btn--ghost:hover .arrow svg {
+      transform: translateX(2px);
+      transition: transform 0.25s var(--ease);
+    }
+    @media (max-width: 480px) {
+      .cta-btn.cta-btn--ghost {
+        min-height: 0;
+        padding: 20px 22px;
+        gap: 18px;
+        font-size: clamp(19px, 4.2vw, 24px);
+      }
+      .cta-btn--ghost .arrow {
+        width: 40px;
+        height: 40px;
+      }
+    }
+
+    /* Figma 1294:7375 · 底部悬浮预订：左右页边 190px（750 稿）；整体偏短、fit-content；到底部见正文「立即预订」时隐藏 */
+    .sticky-book-bar {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: calc(66px + env(safe-area-inset-bottom, 0px));
+      width: min(100%, var(--layout-max));
+      z-index: 120;
+      box-sizing: border-box;
+      pointer-events: none;
+      display: flex;
+      justify-content: center;
+      /* 750 宽时两侧各 190px；窄屏按最短条宽兜底，避免溢出 */
+      padding-inline: min(190px, max(16px, calc((100% - min(100%, 280px)) / 2)));
+      opacity: 1;
+      visibility: visible;
+      transition:
+        opacity 0.38s var(--ease),
+        transform 0.38s var(--ease),
+        visibility 0.38s;
+    }
+    .sticky-book-bar.is-hidden {
+      opacity: 0;
+      transform: translateX(-50%) translateY(18px);
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .sticky-book-shell {
+      --book-inner-h: calc(108px - 24px); /* 总高 108 − 上下 padding 12×2 */
+      pointer-events: auto;
+      display: flex;
+      align-items: stretch;
+      gap: 9px;
+      width: fit-content;
+      max-width: 100%;
+      box-sizing: border-box;
+      height: 108px;
+      min-height: 108px;
+      padding: 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(9px);
+      -webkit-backdrop-filter: blur(9px);
+      text-decoration: none;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.22s var(--ease), box-shadow 0.22s, background 0.22s;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    }
+    .sticky-book-shell:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+    .sticky-book-shell:active {
+      transform: scale(0.988);
+    }
+    .sticky-book-main {
+      flex: 0 1 auto;
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      min-height: var(--book-inner-h);
+      min-width: 0;
+      padding: 0 28px;
+      border-radius: 999px;
+      background: #000;
+      font-size: 25px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .sticky-book-main .sticky-book-t-strong {
+      font-weight: 600;
+    }
+    .sticky-book-main .sticky-book-t-flight {
+      margin-left: 0.28em;
+      font-weight: 400;
+    }
+    .sticky-book-orbit {
+      flex-shrink: 0;
+      align-self: stretch;
+      box-sizing: border-box;
+      width: auto;
+      aspect-ratio: 1 / 1;
+      min-width: 0;
+      min-height: 0;
+      border-radius: 50%;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .sticky-book-orbit svg {
+      box-sizing: border-box;
+      width: 48px;
+      height: 48px;
+      display: block;
+      flex-shrink: 0;
+      color: #fff;
+    }
+    @media (max-width: 380px) {
+      .sticky-book-shell {
+        --book-inner-h: calc(96px - 20px);
+        height: 96px;
+        min-height: 96px;
+        padding: 10px;
+        gap: 9px;
+      }
+      .sticky-book-main {
+        font-size: 21px;
+        padding: 0 20px;
+        white-space: normal;
+        text-align: center;
+      }
+    }
+
+    /* ── FOOTER (inside S5) ─────────────────── */
+    .end-strip {
+      margin-top: 48px; padding-top: 48px;
+      border-top: 1px solid var(--line); text-align: center;
+    }
+    .end-strip h2 { font-size: 44px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 16px; }
+    .end-strip .sub { font-size: 26px; color: var(--text-2); margin-bottom: 32px; }
+    .end-strip .cta-btn { margin-bottom: 48px; }
+    .footer-line { width: 40px; height: 1px; background: var(--gold); margin: 0 auto 24px; opacity: 0.4; }
+    .source { font-size: 22px; color: var(--text-3); line-height: 1.8; opacity: 0.5; }
+
+    /* ── 窄屏 / 网页端小视口（750 设计外仍可读） ── */
+    @media (max-width: 520px) {
+      .menu-card {
+        grid-template-columns: 1fr;
+      }
+      .menu-card-img {
+        width: 100%;
+        height: min(200px, 52vw);
+      }
+      .pillars-grid,
+      .facility-grid {
+        grid-template-columns: 1fr;
+      }
+      .cabin-gallery img {
+        width: min(240px, 70vw);
+      }
+      .dg-item,
+      .dg-item img {
+        width: min(220px, 62vw);
+      }
+      .dg-item img {
+        height: auto;
+        aspect-ratio: 4/3;
+      }
+      .kicker { font-size: 18px; }
+      .t-sec { font-size: clamp(28px, 7vw, 40px); }
+      .brand-text { font-size: 24px; }
+      .pillar-num { font-size: 36px; }
+      .pillar-name { font-size: 22px; }
+      .pillar-desc { font-size: 20px; }
+      .cabin-copy { font-size: 22px; }
+      .dining-tagline { font-size: 24px; }
+      .hero-title { font-size: clamp(28px, 8vw, 40px); }
+      .hero-support { font-size: clamp(18px, 3.6vw, 22px); }
+    }
+    @media (max-width: 400px) {
+      .fc-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+      .fc-price-block { text-align: left; }
+      .fc-times { gap: 10px; }
+    }
+    @media (max-width: 360px) {
+      .spec-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      .spec-val { text-align: left; }
+    }
+
+    /* ── NOISE OVERLAY ──────────────────────── */
+    body::after {
+      content: ''; position: fixed; inset: 0; z-index: 9999; pointer-events: none; opacity: 0.018;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-repeat: repeat; background-size: 200px 200px;
+    }
+  </style>
+</head>
+<body>
+<script>
+(function(){
+  try{
+    if(/\bfigma=1\b/.test(location.search)||/\bfigmacapture\b/i.test(location.hash)){
+      document.documentElement.classList.add('figma-capture');
+    } else {
+      var standalone =
+        (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+        window.navigator.standalone === true;
+      if (standalone) document.documentElement.classList.add('ios-standalone');
+    }
+  }catch(e){}
+})();
+</script>
+
+<div class="progress"><div class="progress-fill" id="pf"></div></div>
+
+<nav class="nav-dots" id="dots">
+  <div class="nav-dot active" data-i="0"></div>
+  <div class="nav-dot" data-i="1"></div>
+  <div class="nav-dot" data-i="2"></div>
+  <div class="nav-dot" data-i="3"></div>
+  <div class="nav-dot" data-i="4"></div>
+</nav>
+
+<header class="hero-top-group" aria-label="页面顶栏">
+  <div class="hero-status hero-status--simulated" role="img" aria-label="状态栏，时间 9:41">
+    <img
+      class="hero-status__svg"
+      src="assets/Tab%20bar.svg"
+      width="750"
+      height="88"
+      alt=""
+      decoding="async"
+      fetchpriority="high"
+    />
+  </div>
+  <div class="hero-nav-row">
+    <button type="button" class="hero-back" aria-label="返回">
+      <svg class="hero-back-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M15.35 19.1 8.2 12l7.15-7.1" />
+      </svg>
+    </button>
+    <p class="hero-nav-title">国泰航空 CX857</p>
+    <button type="button" class="hero-share" aria-label="分享">
+      <img
+        class="hero-share-icon"
+        src="assets/fenxiang/%E5%88%86%E4%BA%AB.svg"
+        width="48"
+        height="48"
+        alt=""
+        decoding="async"
+      />
+    </button>
+  </div>
+</header>
+
+<div class="sticky-book-bar is-hidden" role="region" aria-label="快速预订">
+  <a class="sticky-book-shell" href="javascript:void(0)" aria-label="立即预订 CX857">
+    <span class="sticky-book-main">
+      <span class="sticky-book-t-strong">立即预订</span>
+      <span class="sticky-book-t-flight">CX857</span>
+    </span>
+    <span class="sticky-book-orbit" aria-hidden="true">
+      <svg viewBox="-3.6 -3.6 27.2 27.2" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+        <path d="M16.8336 6.29137C16.2298 6.00004 15.4795 5.9162 14.9375 5.89587C14.4581 5.87471 14 6.00004 13.5833 6.20837L10.521 7.60404L5.85474 6.16687C5.79208 6.14571 5.72942 6.14571 5.68791 6.18803L4.77158 6.6462C4.70892 6.6877 4.64625 6.75036 4.64625 6.83337C4.64625 6.91638 4.66741 6.97904 4.72926 7.0417L7.60447 9.12504L4.64635 10.6875L2.70868 9.39604C2.62567 9.35453 2.54185 9.35453 2.45885 9.39604L1.77118 9.8542C1.66701 9.91687 1.64585 10.0625 1.70852 10.1667L3.54202 12.875C3.58352 12.9377 3.66734 12.9792 3.75035 12.9792L5.79218 12.7497C5.81334 12.7497 5.83369 12.7497 5.85485 12.7285L9.10526 11.3117L8.43876 15.4369C8.4176 15.4996 8.43876 15.5622 8.48027 15.6241C8.52177 15.6656 8.58443 15.7071 8.6471 15.7071H9.83443C9.91744 15.7071 10.0013 15.6656 10.0428 15.5818L12.7298 9.74845L16.2715 8.20711C16.5425 8.1241 16.8135 7.91578 17.0633 7.64478C17.2717 7.41528 17.3547 7.29078 17.2928 6.99861C17.292 6.66657 17.1049 6.43709 16.8339 6.29143L16.8336 6.29137Z" fill="currentColor"></path>
+      </svg>
+    </span>
+  </a>
+</div>
+
+<!-- ═══════════════════════════════════════════http://127.0.0.1:5500/H5/assets/a350-seatmap.webp
+     S1 · HERO
+     ═══════════════════════════════════════════ -->
+<section class="sec s-hero" data-scene="0">
+  <div class="sec-bg">
+    <img class="hero-poster" src="assets/%E8%83%8C%E6%99%AF%EF%BC%8C%E5%BA%A7%E6%A4%85%E8%83%8C%E6%99%AF.jpg" alt="" loading="eager">
+    <video
+      class="hero-bg-video"
+      autoplay
+      muted
+      loop
+      playsinline
+      webkit-playsinline
+      preload="auto"
+      fetchpriority="high"
+      aria-label="沉浸式光线背景"
+    >
+      <source src="assets/光线的演绎（裁切）.mp4" type="video/mp4" />
+    </video>
+    <script>
+      (function () {
+        var v = document.currentScript && document.currentScript.previousElementSibling;
+        if (!v || v.tagName !== "VIDEO") return;
+        try {
+          v.muted = true;
+          v.setAttribute("muted", "");
+          v.load();
+        } catch (e) {}
+        function tryPlay() {
+          var p = v.play && v.play();
+          if (p && typeof p.catch === "function") p.catch(function () {});
+        }
+        if (v.readyState >= 2) tryPlay();
+        else v.addEventListener("canplay", tryPlay, { once: true });
+      })();
+    </script>
+    <div class="ov"></div>
+  </div>
+  <div class="sec-inner s-hero-inner">
+    <div class="hero-bottom-stack">
+      <div class="hero-content">
+        <h1 class="hero-title rv" data-d="2">
+          <span class="hero-title-line">多花 <span class="hero-price">¥1999</span></span>
+          <span class="hero-title-line">换来真正能休息的</span>
+          <span class="hero-title-line">长途体验</span>
+        </h1>
+        <p class="hero-support rv" data-d="3">
+          北京直飞新加坡 6 小时 30 分。如果你更在意<span class="hero-em">能让孩子和老人在机上更好休息</span>，国泰 A350-1000 商务舱值得考虑的最佳方案。
+        </p>
+        <blockquote class="hero-quote rv" data-d="4">
+          <p>&#8220;商务舱平躺床位睡眠质量很好，长途飞行不再疲惫。&#8221;</p>
+          <cite>— 来自 FlightData/国泰航空 CX/A350-1000 旅客评价</cite>
+        </blockquote>
+      </div>
+    </div>
+    <div class="scroll-cue rv" data-d="5">
+      <span>下滑探索</span>
+      <span class="scroll-cue-arrow" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     S2 · CORE VALUE
+     ═══════════════════════════════════════════ -->
+<section class="sec s-value" id="part-value" data-scene="1">
+  <div class="sec-inner">
+    <div class="brand-line rv-line"></div>
+    <p class="brand-text rv" data-d="1">
+      国泰航空 A350-1000——机队中<strong>旅客评分最高的宽体机型</strong>。<br>
+    </p>
+
+    <div class="pillars-grid">
+      <div class="pillar rv" data-d="2">
+        <div class="pillar-num">180°</div>
+        <h3 class="pillar-name">全平躺</h3>
+        <p class="pillar-desc">可转换为全平睡床，6 小时长途中获得深度睡眠</p>
+      </div>
+      <div class="pillar rv" data-d="3">
+        <div class="pillar-num">20"</div>
+        <h3 class="pillar-name">座椅宽度</h3>
+        <p class="pillar-desc">51cm 宽度，比经济舱宽 0.8 倍，兼具私密与舒适</p>
+      </div>
+      <div class="pillar rv" data-d="4">
+        <div class="pillar-num">1-2-1</div>
+        <h3 class="pillar-name">全通道直达</h3>
+        <p class="pillar-desc">46 座商务舱布局，每个座位均可直通走道</p>
+      </div>
+      <div class="pillar rv" data-d="5">
+        <div class="pillar-num" data-counter="4.62" data-decimals="2">0</div>
+        <h3 class="pillar-name">旅客评分</h3>
+        <p class="pillar-desc">基于 480 条真实评价，五星好评率 76%</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     S3 · CABIN & SPECS
+     ═══════════════════════════════════════════ -->
+<section class="sec s-cabin" data-scene="2">
+  <div class="sec-inner">
+    <div class="cabin-label rv">BUSINESS CLASS</div>
+    <h2 class="t-sec rv" data-d="1">
+      全新尔雅公务舱<br><span class="gold">座椅可全平躺</span>
+    </h2>
+    <div class="cabin-model rv" data-d="2">
+      <span class="model-brand">Airbus</span>
+      <span class="model-type">A350-1000</span>
+    </div>
+    <p class="cabin-copy rv" data-d="3">
+      46 座全平躺商务舱，专为长途旅客设计。45–75 英寸的座椅间距，从起飞到着陆，始终处于被照顾的状态。碳纤维机身带来同级最安静的客舱环境。
+    </p>
+    <div class="cabin-gallery rv" data-d="4">
+      <img src="assets/a350-seat-09.webp" alt="座椅细节" />
+      <img src="assets/a350-seat-10.webp" alt="座椅细节" />
+      <img src="assets/a350-seat-11.webp" alt="座椅细节" />
+      <img src="assets/a350-seat-12.webp" alt="座椅细节" />
+    </div>
+
+    <div class="spec-grid rv" data-d="5">
+      <div class="spec-row">
+        <span class="spec-label">座椅间距</span>
+        <span class="spec-val">45–75" (114–190cm)</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">商务舱座位</span>
+        <span class="spec-val">46 座</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">盥洗室</span>
+        <span class="spec-val">10 间 · 旅客比 1:33</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">机上娱乐</span>
+        <span class="spec-val">Wi-Fi · USB · IFE</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-label">充电设施</span>
+        <span class="spec-val">全座位独立端口</span>
+      </div>
+    </div>
+
+    <div class="blueprint-wrap rv-scale" data-d="6">
+      <img src="assets/a350-seatmap.webp" alt="A350-1000 座椅布局图" />
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     S4 · DINING & EXPERIENCE
+     ═══════════════════════════════════════════ -->
+<section class="sec s-service" data-scene="3">
+  <div class="sec-inner">
+
+    <div class="kicker rv">DINING EXPERIENCE</div>
+    <h2 class="t-sec rv" data-d="1">空中飨宴<br><span class="gold">不止于味觉</span></h2>
+
+    <div class="dining-hero-img rv-scale" data-d="2">
+      <img src="assets/cx-dining/cx-chinese-classics-hero.jpg" alt="中华经典菜式" />
+      <div class="ov-gradient"></div>
+    </div>
+
+    <p class="dining-tagline rv" data-d="2">
+      与<strong>香港名店与名厨合作</strong>的餐饮理念——前菜、主菜、甜品逐道呈现，搭配<strong>屡获殊荣的酒窖</strong>与茗茶咖啡。近年持续强化「港味」「国际精选」与<strong>中华经典</strong>三大主题。
+    </p>
+
+    <div class="menu-cards">
+      <div class="menu-card rv" data-d="3">
+        <div class="menu-card-img">
+          <img src="assets/cx-dining/cx-dining-ifd-plating.jpg" alt="主厨精选" />
+        </div>
+        <div class="menu-card-body">
+          <div class="menu-card-tag">Signature</div>
+          <h3>多道式正餐</h3>
+          <p>个性化点餐，前菜→主菜→甜品逐道呈现，如同空中私人餐厅</p>
+        </div>
+      </div>
+      <div class="menu-card rv" data-d="4">
+        <div class="menu-card-img">
+          <img src="assets/cx-dining/cx-dining-chinese-classics.jpg" alt="中华经典" />
+        </div>
+        <div class="menu-card-body">
+          <div class="menu-card-tag">Chinese Classics</div>
+          <h3>中华经典菜系</h3>
+          <p>川闽苏浙鲁粤皖湘，每月轮换一道大师级中式佳肴</p>
+        </div>
+      </div>
+      <div class="menu-card rv" data-d="5">
+        <div class="menu-card-img">
+          <img src="assets/cx-dining/cx-dining-hk-flavour.jpg" alt="港味经典" />
+        </div>
+        <div class="menu-card-body">
+          <div class="menu-card-tag">Hong Kong Flavours</div>
+          <h3>香港味道</h3>
+          <p>点心、鲜虾云吞面、经典蛋挞——将港味带上三万五千尺</p>
+        </div>
+      </div>
+      <div class="menu-card rv" data-d="6">
+        <div class="menu-card-img">
+          <img src="assets/cx-dining/cx-business-wine.jpg" alt="精选酒窖" />
+        </div>
+        <div class="menu-card-body">
+          <div class="menu-card-tag">Wine Cellar</div>
+          <h3>屡获殊荣的酒窖</h3>
+          <p>精选香槟、葡萄酒与 Betsy Beer——专为三万五千英尺酿造</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dining-gallery-strip rv" data-d="7">
+      <div class="dg-item">
+        <img src="assets/cx-dining/cx-dining-ifd-hero.jpg" alt="主菜" />
+        <span>主厨精选</span>
+      </div>
+      <div class="dg-item">
+        <img src="assets/cx-dining/cx-jing-tea.jpg" alt="茗茶" />
+        <span>中式茗茶</span>
+      </div>
+      <div class="dg-item">
+        <img src="assets/cx-dining/cx-business-dessert.jpg" alt="甜品" />
+        <span>甜品时刻</span>
+      </div>
+      <div class="dg-item">
+        <img src="assets/cx-dining/cx-dining-eggtart.jpg" alt="蛋挞" />
+        <span>港式蛋挞</span>
+      </div>
+      <div class="dg-item">
+        <img src="assets/cx-dining/cx-signature-coffee.jpg" alt="咖啡" />
+        <span>手冲咖啡</span>
+      </div>
+      <div class="dg-item">
+        <img src="assets/cx-dining/cx-chinese-wine.jpg" alt="中式酒" />
+        <span>中式佐餐酒</span>
+      </div>
+      <div class="dg-item">
+        <img src="assets/cx-dining/cx-craftsmanship.jpg" alt="匠心" />
+        <span>匠心工艺</span>
+      </div>
+    </div>
+
+    <div class="section-divider rv-line"></div>
+
+    <div class="kicker rv">ONBOARD EXPERIENCE</div>
+    <h2 class="t-sec rv" data-d="1">万米高空的<br><span class="gold">五星体验</span></h2>
+
+    <div class="facility-grid">
+      <div class="fac-card rv" data-d="2">
+        <div class="fac-card-img">
+          <img src="assets/cx-facilities/cx-business-ife.jpg" alt="StudioCX 娱乐系统" />
+        </div>
+        <div class="fac-card-body">
+          <h4>StudioCX 娱乐</h4>
+          <p>海量片库与触控大屏，部分机型支持 4K HDR 内容</p>
+        </div>
+      </div>
+      <div class="fac-card rv" data-d="3">
+        <div class="fac-card-img">
+          <img src="assets/cx-facilities/cx-wifi-banner.jpg" alt="机上 Wi-Fi" />
+        </div>
+        <div class="fac-card-body">
+          <h4>全程高速联网</h4>
+          <p>商务舱含免费 Wi-Fi 额度，万米高空也能上网</p>
+        </div>
+      </div>
+      <div class="fac-card rv" data-d="4">
+        <div class="fac-card-img">
+          <img src="assets/cx-facilities/cx-lavatory-atmosphere.jpg" alt="阿联酋航空 A380 机上淋浴间（展会展示，作宽体盥洗空间参考）" />
+        </div>
+        <div class="fac-card-body">
+          <h4>机上洗浴</h4>
+          <p>每位旅客可享用15分钟的机上沐浴时光。</p>
+        </div>
+      </div>
+      <div class="fac-card rv" data-d="5">
+        <div class="fac-card-img">
+          <img src="assets/cx-facilities/cx-bamford-amenity.jpg" alt="Bamford 护理套装" />
+        </div>
+        <div class="fac-card-body">
+          <h4>Bamford 护理</h4>
+          <p>天然护理品与 400 支纱精梳棉寝具，安心入眠</p>
+        </div>
+      </div>
+      <div class="fac-card wide rv" data-d="6">
+        <div class="fac-card-img">
+          <img src="assets/cx-facilities/cx-aria-bedding.jpg" alt="全平躺寝具" />
+        </div>
+        <div class="fac-card-body">
+          <h4>全平躺寝具</h4>
+          <p>约 75 英寸睡床 + 可拓展睡眠面，长途飞行也能深度休息</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     S5 · JOURNEY + CTA
+     ═══════════════════════════════════════════ -->
+<section class="sec s-route" data-scene="4">
+  <div class="sec-inner">
+    <div class="kicker rv">YOUR JOURNEY</div>
+    <h2 class="t-sec rv" data-d="1">确认当前行程</h2>
+
+    <div class="flight-card rv" data-d="2">
+      <div class="fc-head">
+        <span>商务舱 · 直飞</span>
+        <span>国泰航空 CX</span>
+      </div>
+      <div class="fc-times">
+        <div>
+          <div class="fc-time">09:55</div>
+          <div class="fc-ap">北京首都 T3</div>
+        </div>
+        <div class="fc-mid">
+          <div>6h30m</div>
+          <div class="fc-bar"></div>
+        </div>
+        <div class="fc-right">
+          <div class="fc-time">16:25</div>
+          <div class="fc-ap">新加坡樟宜 T1</div>
+        </div>
+      </div>
+      <div class="fc-footer">
+        <div class="fc-meta">
+          A350-1000 商务舱<br>
+          经济舱 ¥2,480<br>
+          商务舱 ¥3,479
+        </div>
+        <div class="fc-price-block">
+          <div class="fc-price-label">升级价差</div>
+          <div class="fc-price-val"><span class="yen">¥</span>1999</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="proof-block rv" data-d="3">
+      <div class="proof-head">
+        <div class="proof-score" data-counter="4.62" data-decimals="2">0</div>
+        <div class="proof-meta">/ 5 分 480 条评论</div>
+      </div>
+      <div class="proof-quotes">
+        <div class="pq">
+          &#8220;商务舱平躺床位睡眠质量很好，长途飞行不再疲惫。&#8221;
+          <cite>— 国泰航空 A350-1000 旅客评价</cite>
+        </div>
+        <div class="pq">
+          &#8220;机组人员服务专业，餐饮质量超出预期。&#8221;
+          <cite>— 国泰航空 A350-1000 旅客评价</cite>
+        </div>
+      </div>
+    </div>
+
+    <div class="pe-hint cta-btn cta-btn--ghost rv" data-d="4">
+      <span class="ghost-row-text"><span class="ghost-accent">预算有限，</span>看看优选经济舱。</span>
+      <span class="arrow" aria-hidden="true">
+        <svg viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5L7.5 8l-6 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </div>
+
+    <a class="cta-btn cta-btn--ghost rv" data-d="5" href="javascript:void(0)">
+      <span class="ghost-row-text">查看更多低价公务舱</span>
+      <span class="arrow" aria-hidden="true">
+        <svg viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5L7.5 8l-6 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+
+    <div class="end-strip rv" data-d="6">
+      <h2>舒适之旅，由此开始</h2>
+      <p class="sub">国泰航空 A350-1000 商务舱</p>
+      <a class="cta-btn" href="javascript:void(0)">
+        立即预订 <span class="arrow">→</span>
+      </a>
+      <div class="footer-line"></div>
+      <div class="source">
+        数据来源：FlightData · 价格为演示数据，实际以搜索结果为准
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     SCRIPTS
+     ═══════════════════════════════════════════ -->
+<script>
+(function () {
+  var sections = document.querySelectorAll('.sec');
+  var dots     = document.querySelectorAll('.nav-dot');
+  var pf       = document.getElementById('pf');
+  var currentScene = -1;
+
+  var stickyBookBar = document.querySelector('.sticky-book-bar');
+  var heroSection = document.querySelector('.s-hero');
+  var footerBookCta = document.querySelector('.end-strip a.cta-btn');
+  var stickyHeroInView = true;
+  var stickyFooterInView = false;
+
+  function syncStickyBookBar() {
+    if (!stickyBookBar) return;
+    if (document.documentElement.classList.contains('figma-capture')) {
+      stickyBookBar.classList.remove('is-hidden');
+      return;
+    }
+    var hide = stickyHeroInView || stickyFooterInView;
+    stickyBookBar.classList.toggle('is-hidden', hide);
+  }
+
+  if (stickyBookBar) {
+    if (document.documentElement.classList.contains('figma-capture')) {
+      stickyBookBar.classList.remove('is-hidden');
+    } else {
+      if (heroSection) {
+        var heroIo = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (e) {
+              stickyHeroInView = e.isIntersecting;
+              syncStickyBookBar();
+            });
+          },
+          { threshold: 0, rootMargin: '0px 0px 0px 0px' }
+        );
+        heroIo.observe(heroSection);
+      } else {
+        stickyHeroInView = false;
+      }
+      if (footerBookCta) {
+        var stickyBarIo = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (e) {
+              stickyFooterInView = e.isIntersecting;
+              syncStickyBookBar();
+            });
+          },
+          { threshold: 0.12, rootMargin: '0px 0px 8px 0px' }
+        );
+        stickyBarIo.observe(footerBookCta);
+      }
+      syncStickyBookBar();
+    }
+  }
+
+  var rvEls = document.querySelectorAll('.rv, .rv-scale, .rv-line');
+
+  function resetCounter(el) {
+    if (el._countRaf) {
+      cancelAnimationFrame(el._countRaf);
+      el._countRaf = null;
+    }
+    delete el._counted;
+    var decimals = parseInt(el.getAttribute('data-decimals') || '0', 10);
+    el.textContent = (0).toFixed(decimals);
+  }
+
+  function animateCounter(el) {
+    if (el._counted) return;
+    el._counted = true;
+    if (el._countRaf) {
+      cancelAnimationFrame(el._countRaf);
+      el._countRaf = null;
+    }
+    var target   = parseFloat(el.getAttribute('data-counter'));
+    var decimals = parseInt(el.getAttribute('data-decimals') || '0', 10);
+    var duration = 1400;
+    var start    = performance.now();
+    function tick(now) {
+      var t = Math.min((now - start) / duration, 1);
+      var ease = 1 - Math.pow(1 - t, 3);
+      el.textContent = (ease * target).toFixed(decimals);
+      if (t < 1) el._countRaf = requestAnimationFrame(tick);
+      else el._countRaf = null;
+    }
+    el._countRaf = requestAnimationFrame(tick);
+  }
+
+  function resetRevealTarget(el) {
+    el.classList.remove('vis');
+    el.querySelectorAll('.bar-fill[data-w]').forEach(function (b) {
+      b.style.width = '';
+    });
+    el.querySelectorAll('[data-counter]').forEach(resetCounter);
+  }
+
+  if (document.documentElement.classList.contains('figma-capture')) {
+    rvEls.forEach(function (el) { el.classList.add('vis'); });
+    document.querySelectorAll('[data-counter]').forEach(function (c) {
+      delete c._counted;
+      animateCounter(c);
+    });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('vis');
+          var bars = e.target.querySelectorAll('.bar-fill[data-w]');
+          bars.forEach(function (b) { b.style.width = b.getAttribute('data-w') + '%'; });
+          e.target.querySelectorAll('[data-counter]').forEach(function (c) { animateCounter(c); });
+        } else {
+          resetRevealTarget(e.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -48px 0px' });
+    rvEls.forEach(function (el) { io.observe(el); });
+  }
+
+  var heroTopGroup = document.querySelector('.hero-top-group');
+  var heroTopScrollIdleTimer = null;
+
+  function onScroll() {
+    var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    pf.style.width = (docHeight > 0 ? scrollTop / docHeight * 100 : 0) + '%';
+
+    var vh = window.innerHeight, best = 0, bestDst = Infinity;
+    sections.forEach(function (sec, i) {
+      var rect = sec.getBoundingClientRect();
+      var d = Math.abs(rect.top + rect.height / 2 - vh / 2);
+      if (d < bestDst) { bestDst = d; best = i; }
+    });
+    if (best !== currentScene) {
+      currentScene = best;
+      dots.forEach(function (d, i) { d.classList.toggle('active', i === best); });
+    }
+
+    sections.forEach(function (sec) {
+      if (sec.classList && sec.classList.contains('s-hero')) return;
+      var bg = sec.querySelector('.sec-bg img');
+      if (!bg) return;
+      var rect = sec.getBoundingClientRect();
+      var ratio = -rect.top / (rect.height || 1);
+      bg.style.transform = 'scale(' + (1 + Math.abs(ratio) * 0.05) + ') translateY(' + (ratio * 50) + 'px)';
+    });
+  }
+
+  var ticking = false;
+  window.addEventListener('scroll', function () {
+    if (heroTopGroup && !document.documentElement.classList.contains('figma-capture')) {
+      heroTopGroup.classList.add('hero-top-group--scroll-dim');
+      if (heroTopScrollIdleTimer) clearTimeout(heroTopScrollIdleTimer);
+      heroTopScrollIdleTimer = setTimeout(function () {
+        heroTopScrollIdleTimer = null;
+        if (heroTopGroup) heroTopGroup.classList.remove('hero-top-group--scroll-dim');
+      }, 160);
+    }
+    if (!ticking) {
+      requestAnimationFrame(function () {
+        onScroll();
+        syncHeroTopStuck();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
+
+  function clearHeroTopScrollDim() {
+    if (!heroTopGroup || document.documentElement.classList.contains('figma-capture')) return;
+    if (heroTopScrollIdleTimer) {
+      clearTimeout(heroTopScrollIdleTimer);
+      heroTopScrollIdleTimer = null;
+    }
+    heroTopGroup.classList.remove('hero-top-group--scroll-dim');
+  }
+  window.addEventListener('scrollend', clearHeroTopScrollDim, { passive: true });
+
+  dots.forEach(function (dot) {
+    dot.addEventListener('click', function () {
+      var i = parseInt(dot.dataset.i, 10);
+      if (sections[i]) sections[i].scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  var heroBack = document.querySelector('.hero-back');
+  if (heroBack) {
+    heroBack.addEventListener('click', function () {
+      if (window.history.length > 1) window.history.back();
+    });
+  }
+
+  var heroShare = document.querySelector('.hero-share');
+  if (heroShare) {
+    heroShare.addEventListener('click', function () {
+      var url = window.location.href;
+      var title = document.title || '';
+      if (navigator.share) {
+        navigator.share({ title: title, url: url, text: title }).catch(function () {});
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).catch(function () {});
+      }
+    });
+  }
+
+  function syncHeroTopStuck() {
+    if (!heroTopGroup || document.documentElement.classList.contains('figma-capture')) return;
+    var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+    heroTopGroup.classList.toggle('hero-top-group--stuck', y > 2);
+  }
+
+  onScroll();
+  syncHeroTopStuck();
+})();
+</script>
+<script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+</body>
+</html>

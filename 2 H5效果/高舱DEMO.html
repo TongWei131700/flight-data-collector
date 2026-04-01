@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5, user-scalable=yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta name="color-scheme" content="dark">
+  <title>高舱 DEMO — Jesko 开屏 + CX857 商务舱</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈</text></svg>">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      font-size: 10px;
+      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: #0a0a0f;
+      color: #f0f1f5;
+      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      line-height: 1.4;
+    }
+    #section-b777 {
+      max-width: 750px;
+      margin: 0 auto;
+      padding-bottom: calc(192px + env(safe-area-inset-bottom, 0px));
+      opacity: 0;
+    }
+    /* 组合模式下禁止 Jesko 完成时出现暗色 overlay（交叉溶解代替） */
+    html.jesko-complete #section-jesko .hero-viewport::after {
+      opacity: 0 !important;
+    }
+    #section-b777 .hero-top-group,
+    #section-b777 .progress,
+    #section-b777 .nav-dots,
+    #section-b777 .sticky-book-bar {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    #section-b777.entered .hero-top-group,
+    #section-b777.entered .progress,
+    #section-b777.entered .nav-dots,
+    #section-b777.entered .sticky-book-bar {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .demo-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #0a0a0f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1.2rem;
+      transition: opacity 0.5s ease;
+    }
+    .demo-loader.fade { opacity: 0; pointer-events: none; }
+    .demo-loader span {
+      font-size: 1.4rem;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: rgba(240,241,245,0.5);
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js"></script>
+</head>
+<body>
+
+  <div class="demo-loader" id="demoLoader"><span>Loading...</span></div>
+  <div id="section-jesko"></div>
+  <div id="section-b777"></div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    var SKIP_SRC = ["gsap", "ScrollTrigger", "figma.com"];
+
+    function shouldSkipScript(el) {
+      if (!el.src) return false;
+      for (var i = 0; i < SKIP_SRC.length; i++) {
+        if (el.src.indexOf(SKIP_SRC[i]) !== -1) return true;
+      }
+      return false;
+    }
+
+    function stripBodyHtmlRules(css) {
+      return css
+        .replace(/(?:^|\})\s*html\s*\{[^}]*\}/g, "")
+        .replace(/(?:^|\})\s*body\s*\{[^}]*\}/g, "");
+    }
+
+    function activateScripts(container) {
+      var scripts = Array.from(container.querySelectorAll("script"));
+      var chain = Promise.resolve();
+
+      scripts.forEach(function (old) {
+        if (shouldSkipScript(old)) { old.remove(); return; }
+
+        chain = chain.then(function () {
+          return new Promise(function (resolve) {
+            var ns = document.createElement("script");
+            if (old.src) {
+              ns.src = old.src;
+              if (old.async) ns.async = true;
+              ns.onload = ns.onerror = resolve;
+            } else {
+              ns.textContent = old.textContent;
+            }
+            old.parentNode.replaceChild(ns, old);
+            if (!old.src) resolve();
+          });
+        });
+      });
+
+      return chain;
+    }
+
+    function injectPreloads(doc) {
+      doc.querySelectorAll('link[rel="preload"]').forEach(function (link) {
+        var cl = link.cloneNode(true);
+        document.head.appendChild(cl);
+      });
+    }
+
+    async function loadSection(url, containerId) {
+      var resp = await fetch(url);
+      var text = await resp.text();
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(text, "text/html");
+      var container = document.getElementById(containerId);
+
+      injectPreloads(doc);
+
+      doc.querySelectorAll("style").forEach(function (styleEl) {
+        var s = document.createElement("style");
+        s.textContent = stripBodyHtmlRules(styleEl.textContent);
+        container.appendChild(s);
+      });
+
+      var tmp = document.createElement("div");
+      tmp.innerHTML = doc.body.innerHTML;
+      while (tmp.firstChild) {
+        container.appendChild(tmp.firstChild);
+      }
+
+      await activateScripts(container);
+    }
+
+    (async function () {
+      await loadSection("jesko-window-demo.html", "section-jesko");
+      await loadSection("business-upgrade-editorial-b777.html", "section-b777");
+
+      var jeskoViewport = document.querySelector("#section-jesko .hero-viewport");
+      if (jeskoViewport) jeskoViewport.style.setProperty("--bg", "#05060d");
+
+      var b777 = document.getElementById("section-b777");
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          b777.classList.toggle("entered", e.isIntersecting);
+        });
+      }, { threshold: 0.05 });
+      obs.observe(b777);
+
+      window.addEventListener("jesko:complete", function () {
+        gsap.to("#section-jesko .sky-bg", {
+          opacity: 0, duration: 0.3, ease: "power2.in"
+        });
+        gsap.to("#section-b777", {
+          opacity: 1, duration: 0.3, ease: "power2.out"
+        });
+      }, { once: true });
+
+      var loader = document.getElementById("demoLoader");
+      loader.classList.add("fade");
+      setTimeout(function () { loader.remove(); }, 600);
+    })();
+  })();
+  </script>
+</body>
+</html>

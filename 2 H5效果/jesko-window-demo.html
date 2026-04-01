@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5, user-scalable=yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta name="color-scheme" content="dark">
+  <title>国泰航空 CX857 · 商务舱体验</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈</text></svg>">
+
+  <link rel="preload" href="assets/jesko/img_sky-hero.webp"   as="image" type="image/webp" fetchpriority="high">
+  <link rel="preload" href="assets/jesko/img_hero-front.webp" as="image" type="image/webp" fetchpriority="high">
+
+  <style>
+    :root {
+      --ease-out:  cubic-bezier(0.25, 1, 0.5, 1);
+      --ease-io:   cubic-bezier(0.76, 0, 0.24, 1);
+      --bg:        #0a0a0f;
+      --text:      #f0f1f5;
+      --text-dim:  rgba(240,241,245,0.5);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      font-size: 10px;
+      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      line-height: 1.4;
+    }
+
+    @supports (-webkit-touch-callout: none) {
+      .hero-window,
+      .hero-text {
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+      }
+    }
+
+    /* ── PRELOADER ─────────────────────────── */
+    .preloader {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    .preloader-text {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 300;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      opacity: 0;
+      filter: blur(20px);
+    }
+    .preloader-sub {
+      font-size: clamp(1.2rem, 3vw, 1.6rem);
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      opacity: 0;
+      filter: blur(20px);
+    }
+
+    /* ── HERO SCROLL AREA ──────────────────── */
+    .hero-scroll-area {
+      position: relative;
+      height: 180vh;
+    }
+
+    .hero-viewport {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      background: var(--bg);
+      --overlay-opacity: 0;
+    }
+    .hero-viewport::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 50;
+      background: var(--bg);
+      opacity: var(--overlay-opacity);
+      pointer-events: none;
+    }
+
+    /* ── WINDOW BACK (inner rim, behind frame, inside hero-window) */
+    .hero-window .window-back {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      z-index: 0;
+    }
+
+    /* ── WINDOW LAYER (scales up) ──────────── */
+    .hero-window {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      transform-origin: 50% 46%;
+      will-change: transform;
+      pointer-events: none;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+    }
+    .hero-window .window-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      z-index: 1;
+    }
+    .hero-window .window-front-over {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      z-index: 3;
+    }
+    .hero-window .window-vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        50% 50% at 50% 50%,
+        rgba(255,255,255,0) 0%,
+        rgba(0,0,0,0.15) 75%,
+        rgba(0,0,0,0.30) 100%
+      );
+      z-index: 2;
+    }
+
+    /* ── WINDOW SHADE (knob area — inside hero-window, scales with it) */
+    .hero-shade {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 24%;
+      width: 30%;
+      z-index: 5;
+      will-change: transform;
+    }
+    .hero-shade img {
+      width: 100%;
+      display: block;
+    }
+    .hero-shade .knob-open  { position: relative; }
+    .hero-shade .knob-close {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+    }
+
+    /* ── TEXT LAYER ─────────────────────────── */
+    .hero-text {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      transform-origin: center center;
+      will-change: transform;
+      padding: 0 6%;
+    }
+    .hero-text h1,
+    .hero-text h2 {
+      font-size: clamp(2.8rem, 7vw, 5.6rem);
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      text-align: center;
+      white-space: nowrap;
+      will-change: transform, opacity;
+    }
+    .hero-text h1 { align-self: center; }
+    .hero-text h2 { align-self: center; }
+
+    .hero-scroll-hint {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: max(env(safe-area-inset-bottom, 20px), 4rem);
+      z-index: 25;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      opacity: 0;
+      color: rgba(214, 223, 234, 0.5);
+      font-size: 22px;
+      letter-spacing: 1.32px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .hero-scroll-hint span {
+      font-size: inherit;
+      font-weight: 300;
+      letter-spacing: inherit;
+      color: inherit;
+    }
+    .scroll-cue-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(214, 223, 234, 0.45);
+      animation: heroBounce 2.4s ease-in-out infinite;
+    }
+    .scroll-cue-arrow svg {
+      width: 30px;
+      height: 30px;
+      display: block;
+    }
+    @keyframes heroBounce {
+      0%, 100% { transform: translateY(0); opacity: 0.65; }
+      50%      { transform: translateY(6px); opacity: 1; }
+    }
+
+    /* ── SKY BACKGROUND (bright blue sky + clouds) ── */
+    .sky-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      background: #5b98c4;
+      transform-origin: center center;
+    }
+    .sky-bg > img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      transform: scale(1.08);
+      transform-origin: center center;
+    }
+    .sky-clouds {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 200%;
+      height: 30%;
+      white-space: nowrap;
+      will-change: transform;
+      animation: cloudMarquee 48s linear infinite;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .sky-clouds img {
+      width: 50%;
+      height: 100%;
+      object-fit: cover;
+      display: inline-block;
+      vertical-align: bottom;
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+      mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+    }
+    @keyframes cloudMarquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    .sky-grad-over {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        180deg,
+        transparent 0%,
+        transparent 50%,
+        rgba(0,0,0,0.15) 80%,
+        rgba(0,0,0,0.35) 100%
+      );
+      pointer-events: none;
+    }
+
+    /* ── COMPLETION STATE ─────────────────── */
+    html.jesko-complete .hero-viewport::after { opacity: 1; }
+
+    @media (max-width: 360px) {
+      .hero-text h1, .hero-text h2 {
+        font-size: clamp(2rem, 6.5vw, 3.6rem);
+      }
+      .hero-scroll-hint {
+        font-size: 18px;
+        gap: 8px;
+      }
+      .scroll-cue-arrow svg {
+        width: 24px;
+        height: 24px;
+      }
+      .preloader-text { font-size: 1.4rem; }
+      .preloader-sub { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ PRELOADER ═══ -->
+  <div class="preloader" id="preloader">
+    <div class="preloader-text">CATHAY PACIFIC</div>
+    <div class="preloader-sub">CX857 · 商务舱体验</div>
+  </div>
+
+  <!-- ═══ HERO — SCROLL-DRIVEN WINDOW EFFECT ═══ -->
+  <div class="hero-scroll-area">
+    <div class="hero-viewport">
+
+      <!-- L0: Bright sky + animated clouds (furthest back) -->
+      <div class="sky-bg">
+        <img src="assets/jesko/img_sky-hero.webp" alt="" loading="eager">
+        <div class="sky-clouds">
+          <img src="assets/jesko/clouds.webp" alt="">
+          <img src="assets/jesko/clouds.webp" alt="">
+        </div>
+        <div class="sky-grad-over"></div>
+      </div>
+
+      <!-- L1+L2: Window composite (all layers scale together) -->
+      <div class="hero-window">
+        <!-- Inner-rim glass (behind frame, inside scaling container) -->
+        <img class="window-back" src="assets/jesko/img_hero-back.webp" alt="" loading="eager">
+        <!-- Cabin wall with transparent window cutout -->
+        <img class="window-frame" src="assets/jesko/img_hero-front.webp" alt="" loading="eager">
+        <div class="window-vignette"></div>
+        <img class="window-front-over" src="assets/jesko/img_hero-front-over.webp" alt="" loading="eager">
+        <!-- Shade / knob -->
+        <div class="hero-shade" id="heroShade">
+          <img class="knob-open"  src="assets/jesko/img_window-knob-2.webp" alt="">
+          <img class="knob-close" src="assets/jesko/img_window-knob.webp"   alt="">
+        </div>
+      </div>
+
+      <!-- L3: Text (scales 1→8, titles fly apart) -->
+      <div class="hero-text">
+        <h1>让飞行</h1>
+        <h2>成为享受</h2>
+      </div>
+
+      <!-- L4: Scroll hint (aligned with B777 scroll-cue style) -->
+      <div class="hero-scroll-hint" id="scrollHint">
+        <span>下滑探索</span>
+        <span class="scroll-cue-arrow" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ GSAP + ScrollTrigger ═══ -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    gsap.registerPlugin(ScrollTrigger);
+
+    const autoplay = window.__JESKO_AUTOPLAY__ === true;
+
+    const preloader     = document.getElementById("preloader");
+    const preloaderText = preloader.querySelector(".preloader-text");
+    const preloaderSub  = preloader.querySelector(".preloader-sub");
+    const shade         = document.getElementById("heroShade");
+    const scrollHint    = document.getElementById("scrollHint");
+    const isRevisit     = sessionStorage.getItem("jk_visited");
+    const preDelay      = isRevisit ? 0.6 : 1.8;
+
+    sessionStorage.setItem("jk_visited", "1");
+    document.body.style.overflow = "hidden";
+
+    const plTl = gsap.timeline({
+      onComplete() {
+        gsap.to(preloader, {
+          autoAlpha: 0,
+          duration: 0.5,
+          ease: "power2.out",
+          onComplete() {
+            preloader.style.display = "none";
+            document.body.style.overflow = "";
+            if (autoplay) {
+              runAutoplay();
+            } else {
+              initHeroScroll();
+              revealScrollHint();
+            }
+          }
+        });
+      }
+    });
+
+    plTl
+      .fromTo(preloaderText,
+        { opacity: 0, filter: "blur(20px)" },
+        { opacity: 1, filter: "blur(0px)", duration: 0.8, ease: "power2.out" }, 0)
+      .fromTo(preloaderSub,
+        { opacity: 0, filter: "blur(20px)" },
+        { opacity: 0.6, filter: "blur(0px)", duration: 0.8, ease: "power2.out" }, 0.15)
+      .to(preloaderText,
+        { opacity: 0, filter: "blur(16px)", duration: 0.5, ease: "power2.in" }, preDelay)
+      .to(preloaderSub,
+        { opacity: 0, filter: "blur(16px)", duration: 0.5, ease: "power2.in" }, preDelay + 0.05)
+      .fromTo(shade,
+        { yPercent: 0, scaleY: 1 },
+        { yPercent: -92, scaleY: 0.5, duration: 1, ease: "power3.inOut" }, preDelay + 0.3)
+      .fromTo(".hero-window .window-front-over",
+        { opacity: 1 },
+        { opacity: 0, duration: 0.8, ease: "power2.inOut" }, preDelay + 0.7);
+
+    function revealScrollHint() {
+      gsap.to(scrollHint, { opacity: 1, duration: 1, delay: 0.6, ease: "power2.out" });
+    }
+
+    function fireComplete() {
+      document.documentElement.classList.add("jesko-complete");
+      window.dispatchEvent(new CustomEvent("jesko:complete"));
+    }
+
+    /* ── Scroll-driven mode (standalone) ──── */
+    function initHeroScroll() {
+      const tl = buildHeroTimeline();
+
+      tl.scrollTrigger && tl.scrollTrigger.kill();
+
+      ScrollTrigger.create({
+        trigger: ".hero-scroll-area",
+        start: "top top",
+        end: "bottom bottom",
+        scrub: true,
+        invalidateOnRefresh: true,
+        animation: tl,
+        onComplete: fireComplete
+      });
+
+      ScrollTrigger.refresh();
+    }
+
+    /* ── Autoplay mode (embedded in 高舱DEMO) */
+    function runAutoplay() {
+      scrollHint && gsap.set(scrollHint, { opacity: 0 });
+
+      const tl = buildHeroTimeline();
+      tl.duration(3.2);
+      tl.eventCallback("onComplete", fireComplete);
+
+      window.__jeskoAutoTl = tl;
+
+      const abortAutoplay = function () {
+        if (tl.progress() >= 1) return;
+        tl.progress(1);
+        fireComplete();
+        window.removeEventListener("touchstart", abortAutoplay);
+        window.removeEventListener("wheel", abortAutoplay);
+      };
+      window.addEventListener("touchstart", abortAutoplay, { passive: true, once: true });
+      window.addEventListener("wheel", abortAutoplay, { passive: true, once: true });
+    }
+
+    /* ── Shared timeline builder ───────────── */
+    function buildHeroTimeline() {
+      const tl = gsap.timeline();
+      const isMobile  = window.innerWidth < 768;
+      const winScale  = isMobile ? 12  : 6.5;
+      const txtScale  = isMobile ? 14  : 8;
+      const txtSpread = isMobile ? 80  : 50;
+
+      tl.fromTo(".hero-window",
+        { scale: 1, xPercent: 0, z: 100 },
+        { scale: winScale, xPercent: -2, z: 100, ease: "none", duration: 1 }, 0);
+
+      tl.fromTo(".hero-text",
+        { scale: 1 },
+        { scale: txtScale, ease: "none", duration: 1 }, 0);
+
+      tl.fromTo(".hero-text h1",
+        { x: "0vw", opacity: 1 },
+        { x: -txtSpread + "vw", opacity: 0, ease: "power2.in", duration: 0.3 }, 0);
+
+      tl.fromTo(".hero-text h2",
+        { x: "0vw", opacity: 1 },
+        { x: txtSpread + "vw", opacity: 0, ease: "power2.in", duration: 0.3 }, 0);
+
+      tl.to("#scrollHint", { opacity: 0, duration: 0.12, ease: "none" }, 0);
+
+      tl.fromTo(".sky-bg",
+        { scale: 1 },
+        { scale: 1.25, ease: "none", duration: 1 }, 0);
+
+      tl.fromTo(".sky-bg",
+        { opacity: 1 },
+        { opacity: 0, ease: "power2.in", duration: 0.35 }, 0.65);
+
+      return tl;
+    }
+  })();
+  </script>
+</body>
+</html>

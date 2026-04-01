@@ -1,0 +1,44 @@
+---
+description: Qwen 设计稿 / 页面交互 — 启用 gstack 设计向技能做思考与指导
+globs:
+  - H5/**
+  - "**/*.html"
+  - "**/high-cabin*"
+  - "**/设计*.md"
+  - "**/*task*.md"
+  - "**/figma*"
+alwaysApply: false
+---
+
+# gstack × 设计稿与交互
+
+在本项目（Qwen）中，当任务涉及 **UI/UX 设计稿、信息架构、交互流程、状态/动效、Figma 与实现稿对齐** 时，在给出方案或改稿前 **必须用 Read 打开** 下方对应技能，并按其中的流程、维度与检查清单执行（**不要求**用户先输入 `/` 命令；技能入口与 [garrytan/gstack](https://github.com/garrytan/gstack) 一致）。
+
+## 按场景选技能（路径均相对本目录 `Qwen/`）
+
+| 场景 | 先读技能 |
+|------|-----------|
+| 评审/打磨 **方案或 PRD 里的界面与体验** | `.cursor/skills/gstack-plan-design-review/SKILL.md` |
+| 补齐 **交互边界、异常流、数据流、可测性** | `.cursor/skills/gstack-plan-eng-review/SKILL.md` |
+| 从 0 定 **设计系统 / 视觉语言** | `.cursor/skills/gstack-design-consultation/SKILL.md` |
+| 需要 **多方案对比、探索方向** | `.cursor/skills/gstack-design-shotgun/SKILL.md` |
+| 已有 **实现稿/H5** 做视觉与体验走查 | `.cursor/skills/gstack-design-review/SKILL.md` |
+| 收窄需求、澄清用户场景（设计前） | `.cursor/skills/gstack-office-hours/SKILL.md` |
+| 用户明确要求 **CEO+设计+工程一轮自动评审** | `.cursor/skills/gstack-autoplan/SKILL.md` |
+| 总览与索引 | `.cursor/skills/gstack/SKILL.md` |
+
+## 与 Figma 的配合
+
+- 读/链 Figma 时仍遵守 `.cursor/skills/figma-link-workflow/SKILL.md`。
+- gstack 负责 **体验与交互层面的结构化思考**；Figma MCP 负责 **稿面与节点事实**。二者同时需要时，先 gstack 维度想清楚，再落到稿面或代码。
+
+## 本仓库路径说明
+
+- 技能实体与 browse 等运行时：`Qwen/.agents/skills/gstack/`（及同目录下 `gstack-*`  symlink 目标）。
+- 若技能正文里的 shell preamble 仍写 `~/.codex/skills/gstack`，以 **本仓库** `Qwen/.agents/skills/gstack` 为准。
+- 技能原文多为英文时：**产出可用中文**，但审计维度与检查项须与技能一致，不省略步骤。
+
+## 维护
+
+- 技能不生效或需重建：在 `Qwen/.agents/skills/gstack` 执行 `./setup --host codex`（需已安装 Bun）。
+- 上游更新：可对 `gstack` 目录重新同步官方仓库后再执行同上 `setup`。

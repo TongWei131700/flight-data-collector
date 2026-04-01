@@ -1,0 +1,49 @@
+{
+  "version": "1.1",
+  "source": "餐食：cathaypacific.com 公开 CDN；设施 Demo：本地 webp + CSS Mock",
+  "lastUpdated": "2026-03-31",
+  "usage": "Demo only — 非承运承诺",
+  "dining": [
+    {"file": "cx-dining/cx-dining-collage.jpg", "label": "商务舱餐饮全景", "desc": "多道式精致餐饮体验"},
+    {"file": "cx-dining/cx-dining-ifd-hero.jpg", "label": "主厨精选主菜", "desc": "机上餐饮视觉素材"},
+    {"file": "cx-dining/cx-dining-ifd-plating.jpg", "label": "精致摆盘", "desc": "手工摆盘呈现"},
+    {"file": "cx-dining/cx-chinese-classics-hero.jpg", "label": "中华经典", "desc": "中华经典主题视觉"},
+    {"file": "cx-dining/cx-chinese-wine.jpg", "label": "中式佐餐酒", "desc": "中式酒与餐搭配示意"},
+    {"file": "cx-dining/cx-jing-tea.jpg", "label": "茗茶时光", "desc": "茗茶服务示意"},
+    {"file": "cx-dining/cx-dining-chinese-classics.jpg", "label": "中华经典推广", "desc": "官网主题图"},
+    {"file": "cx-dining/cx-dining-business-service.jpg", "label": "商务舱服务", "desc": "餐饮服务示意"},
+    {"file": "cx-dining/cx-dining-first-class.jpg", "label": "随心点餐", "desc": "Choose My Meal 相关视觉"},
+    {"file": "cx-dining/cx-dining-hk-flavour.jpg", "label": "港味经典", "desc": "香港风味主题"},
+    {"file": "cx-dining/cx-dining-eggtart.jpg", "label": "经典蛋挞", "desc": "港式蛋挞示意"},
+    {"file": "cx-dining/cx-business-wine.jpg", "label": "精选酒单", "desc": "商务舱酒窖示意"},
+    {"file": "cx-dining/cx-business-dessert.jpg", "label": "甜品时刻", "desc": "甜品与轻食示意"},
+    {"file": "cx-dining/cx-craftsmanship.jpg", "label": "匠心工艺", "desc": "餐饮匠心主题"},
+    {"file": "cx-dining/cx-signature-coffee.jpg", "label": "咖啡与饮品", "desc": "饮品服务示意"},
+    {"file": "cx-dining/cx-dining-sustainability.jpg", "label": "可持续餐饮", "desc": "可持续理念视觉"},
+    {"file": "cx-dining/01-business-meal-beef-cheek.jpg", "label": "区域线餐食参考", "desc": "第三方评测图，仅作氛围参考"}
+  ],
+  "facilitiesDemo": {
+    "strategy": "客舱/座椅/布局用本地 webp；IFE、Wi-Fi、Bamford、寝具用 cx-facilities 中国泰官网公开示意图；盥洗室为页面内 CSS Mock（无图文件）。",
+    "cards": [
+      {"type": "image", "file": "a350-hero.webp", "label": "客舱全景"},
+      {"type": "image", "file": "a350-seat-09.webp", "label": "座椅收纳"},
+      {"type": "image", "file": "cx-facilities/cx-business-ife.jpg", "label": "StudioCX 娱乐"},
+      {"type": "image", "file": "cx-facilities/cx-wifi-banner.jpg", "label": "联网示意"},
+      {"type": "image", "file": "a350-seat-11.webp", "label": "平躺示意"},
+      {"type": "mock", "label": "盥洗室", "note": ".fac-mock.fac-mock--lav"},
+      {"type": "image", "file": "cx-facilities/cx-bamford-amenity.jpg", "label": "Bamford 护理"},
+      {"type": "image", "file": "cx-facilities/cx-aria-bedding.jpg", "label": "寝具示意"},
+      {"type": "image", "file": "a350-seatmap.webp", "label": "座位图"}
+    ]
+  },
+  "optionalOfficialFacilities": "cx-facilities/ 内尚有贵宾室拼图、Aria 缩略图、Wi-Fi 覆盖图等，可按需换入 H5。",
+  "existingAssets": [
+    {"file": "a350-hero.webp", "label": "A350外观"},
+    {"file": "a350-seatmap.webp", "label": "座椅布局图"},
+    {"file": "hero-b777.webp", "label": "商务舱实景"},
+    {"file": "a350-seat-09.webp", "label": "座椅细节1"},
+    {"file": "a350-seat-10.webp", "label": "座椅细节2"},
+    {"file": "a350-seat-11.webp", "label": "座椅细节3"},
+    {"file": "a350-seat-12.webp", "label": "座椅细节4"}
+  ]
+}
