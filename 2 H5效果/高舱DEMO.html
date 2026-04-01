@@ -37,103 +37,49 @@
       position: relative;
       z-index: 1;
       --b777-reveal: 0;
-      opacity: var(--b777-reveal);
-      transform: translateY(calc((1 - var(--b777-reveal)) * 32px)) scale(calc(0.985 + var(--b777-reveal) * 0.015));
-      transform-origin: center top;
+      --b777-section-visibility: 0;
+      opacity: var(--b777-section-visibility);
       pointer-events: none;
-      will-change: opacity, transform;
+      will-change: opacity;
     }
     #section-b777.transition-visible { pointer-events: auto; }
     #section-b777 .s-hero .hero-content {
-      opacity: calc(1 - var(--bridge-block, 0));
-      transition: opacity 0.22s ease;
+      will-change: transform, opacity, filter;
     }
-    #b777CopyBridge {
+    #section-b777 .s-hero .hero-content.is-bridge {
       position: fixed;
       left: 50%;
       bottom: calc(112px + env(safe-area-inset-bottom, 0px));
-      width: min(100%, 750px);
-      transform: translateX(-50%);
-      padding: 0 60px;
+      width: min(654px, calc(100vw - 120px), calc(750px - 120px));
+      max-width: calc(100vw - 120px);
+      margin: 0;
+      padding-bottom: 0;
       z-index: 4;
       pointer-events: none;
-      opacity: 0;
-      --bridge-reveal: 0;
-      --bridge-mask: 0;
+      opacity: var(--copy-bridge, 0);
+      transform: translate3d(-50%, calc((1 - var(--copy-bridge, 0)) * 40px), 0) scale(calc(0.9 + var(--copy-bridge, 0) * 0.1));
+      filter: blur(calc((1 - var(--copy-bridge, 0)) * 8px));
     }
-    #b777CopyBridge.is-active {
+    #section-b777 .s-hero .hero-content.is-bridge .rv,
+    #section-b777 .s-hero .hero-content.bridge-handoff .rv {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
+    #section-b777.bridge-copy-active .hero-top-group,
+    #section-b777.bridge-copy-active .progress,
+    #section-b777.bridge-copy-active .nav-dots,
+    #section-b777.bridge-copy-active .sticky-book-bar,
+    #section-b777.bridge-copy-active .sec:not(.s-hero),
+    #section-b777.bridge-copy-active .s-hero .sec-bg,
+    #section-b777.bridge-copy-active .s-hero .scroll-cue {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
+    }
+    #section-b777.bridge-copy-active .s-hero .hero-content {
       opacity: 1;
-    }
-    #b777CopyBridge .bridge-copy-shell {
-      width: min(654px, 100%);
-      margin: 0;
-      color: #d6dfea;
-      opacity: var(--bridge-reveal);
-      transform: translateY(calc((1 - var(--bridge-reveal)) * 28px));
-      filter: blur(calc((1 - var(--bridge-reveal)) * 10px));
-      transition: opacity 0.16s linear, transform 0.16s linear, filter 0.16s linear;
-      -webkit-mask-image: linear-gradient(
-        180deg,
-        rgba(0,0,0,calc(0.58 + var(--bridge-mask) * 0.42)) 0%,
-        rgba(0,0,0,1) 24%,
-        rgba(0,0,0,1) 100%
-      );
-      mask-image: linear-gradient(
-        180deg,
-        rgba(0,0,0,calc(0.58 + var(--bridge-mask) * 0.42)) 0%,
-        rgba(0,0,0,1) 24%,
-        rgba(0,0,0,1) 100%
-      );
-    }
-    #b777CopyBridge .bridge-title {
-      margin: 0;
-      font-size: clamp(40px, 9.6vw, 72px);
-      line-height: 1.06;
-      letter-spacing: -2.16px;
-      font-weight: 600;
-      color: #d6dfea;
-      text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
-    }
-    #b777CopyBridge .bridge-title-line {
-      display: block;
-    }
-    #b777CopyBridge .bridge-title-line + .bridge-title-line {
-      margin-top: 12px;
-    }
-    #b777CopyBridge .bridge-price {
-      color: #e5d6a6;
-    }
-    #b777CopyBridge .bridge-support {
-      margin: 24px 0 0;
-      font-size: clamp(22px, 4vw, 30px);
-      line-height: clamp(40px, 6.8vw, 51px);
-      color: rgba(214, 223, 234, 0.8);
-      font-weight: 400;
-    }
-    #b777CopyBridge .bridge-support strong {
-      font-weight: 600;
-      color: #e8e6e3;
-    }
-    #b777CopyBridge .bridge-quote {
-      margin: 32px 0 0;
-      padding: 0 0 0 31px;
-      border-left: 3px solid rgba(255, 255, 255, 0.25);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    #b777CopyBridge .bridge-quote p {
-      margin: 0;
-      font-size: clamp(22px, 3.73vw, 28px);
-      line-height: clamp(34px, 6.16vw, 46.2px);
-      color: #d6dfea;
-      font-weight: 400;
-    }
-    #b777CopyBridge .bridge-quote cite {
-      font-size: clamp(18px, 2.93vw, 22px);
-      font-style: normal;
-      color: rgba(214, 223, 234, 0.5);
-      font-weight: 400;
+      transition: opacity 0.22s ease;
     }
     html.jesko-complete #section-jesko .hero-viewport::after {
       opacity: 0 !important;
@@ -180,22 +126,6 @@
 
   <div class="demo-loader" id="demoLoader"><span>Loading...</span></div>
   <div id="section-jesko"></div>
-  <div id="b777CopyBridge" aria-hidden="true">
-    <div class="bridge-copy-shell">
-      <h2 class="bridge-title">
-        <span class="bridge-title-line">多花 <span class="bridge-price">¥1999</span></span>
-        <span class="bridge-title-line">换来真正能休息的</span>
-        <span class="bridge-title-line">长途体验</span>
-      </h2>
-      <p class="bridge-support">
-        北京直飞新加坡 6 小时 30 分。如果你更在意<strong>能让孩子和老人在机上更好休息</strong>，国泰 A350-1000 商务舱值得考虑的最佳方案。
-      </p>
-      <blockquote class="bridge-quote">
-        <p>“商务舱平躺床位睡眠质量很好，长途飞行不再疲惫。”</p>
-        <cite>— 来自 FlightData/国泰航空 CX/A350-1000 旅客评价</cite>
-      </blockquote>
-    </div>
-  </div>
   <div id="section-b777"></div>
 
   <script>
@@ -287,23 +217,26 @@
       }
 
       var b777 = document.getElementById("section-b777");
-      var bridgeCopy = document.getElementById("b777CopyBridge");
       var jeskoArea = document.querySelector("#section-jesko .hero-scroll-area");
       var b777Hero = document.querySelector("#section-b777 .s-hero");
+      var b777HeroContent = document.querySelector("#section-b777 .s-hero .hero-content");
+      var b777HeroRevealItems = b777HeroContent ? Array.from(b777HeroContent.querySelectorAll(".rv")) : [];
       var docEl = document.documentElement;
       var revealStart = 0.64;
       var revealSpan = 0.24;
-      var bridgeRevealStart = 0.48;
-      var bridgeRevealSpan = 0.18;
+      var copyBridgeStart = 0.48;
+      var copyBridgeSpan = 0.18;
       var transitionEndY = 0;
       var landingResistanceDistance = 0;
       var anchorSettleDistance = 0;
       var reverseUnlockDistance = 0;
-      var bridgeExitDistance = 0;
       var lastKnownScrollY = 0;
       var anchorHoldUntil = 0;
       var wheelGestureLock = false;
       var wheelUnlockTimer = 0;
+      var copyHandoffTimer = 0;
+      var copyHandoffActive = false;
+      var copyHandoffDone = false;
       var b777Entered = false;
       var b777Visible = false;
       var b777Anchored = false;
@@ -333,6 +266,88 @@
           scrollY: scrollY,
           endY: scrollY + rect.top + range
         };
+      }
+
+      function clearCopyHandoffTimer() {
+        if (!copyHandoffTimer) return;
+        clearTimeout(copyHandoffTimer);
+        copyHandoffTimer = 0;
+      }
+
+      function clearHeroContentInlineStyles() {
+        if (!b777HeroContent) return;
+        b777HeroContent.style.removeProperty("--copy-bridge");
+        b777HeroContent.style.removeProperty("transform");
+        b777HeroContent.style.removeProperty("transition");
+        b777HeroContent.style.removeProperty("transform-origin");
+        b777HeroContent.style.removeProperty("opacity");
+        b777HeroContent.style.removeProperty("filter");
+      }
+
+      function resetCopyBridgeState() {
+        clearCopyHandoffTimer();
+        copyHandoffActive = false;
+        copyHandoffDone = false;
+        if (!b777HeroContent) return;
+        b777HeroContent.classList.remove("is-bridge", "bridge-handoff");
+        clearHeroContentInlineStyles();
+      }
+
+      function prepareHeroContentForBridge() {
+        if (!b777HeroContent) return;
+        b777HeroRevealItems.forEach(function (el) {
+          el.classList.add("vis");
+        });
+      }
+
+      function setHeroContentBridgeProgress(progressValue) {
+        if (!b777HeroContent || copyHandoffActive || copyHandoffDone) return;
+        prepareHeroContentForBridge();
+        b777HeroContent.classList.add("is-bridge");
+        b777HeroContent.classList.remove("bridge-handoff");
+        b777HeroContent.style.setProperty("--copy-bridge", progressValue.toFixed(4));
+      }
+
+      function startCopyHandoff() {
+        if (!b777HeroContent || copyHandoffActive || copyHandoffDone || !b777HeroContent.classList.contains("is-bridge")) return;
+
+        clearCopyHandoffTimer();
+        prepareHeroContentForBridge();
+        copyHandoffActive = true;
+        b777.classList.remove("bridge-copy-active");
+
+        var first = b777HeroContent.getBoundingClientRect();
+        b777HeroContent.classList.remove("is-bridge");
+        b777HeroContent.style.removeProperty("--copy-bridge");
+        var last = b777HeroContent.getBoundingClientRect();
+
+        var dx = first.left - last.left;
+        var dy = first.top - last.top;
+        var sx = last.width ? first.width / last.width : 1;
+        var sy = last.height ? first.height / last.height : 1;
+
+        b777HeroContent.classList.add("bridge-handoff");
+        b777HeroContent.style.transformOrigin = "top left";
+        b777HeroContent.style.transition = "none";
+        b777HeroContent.style.transform = "translate(" + dx.toFixed(2) + "px, " + dy.toFixed(2) + "px) scale(" + sx.toFixed(4) + ", " + sy.toFixed(4) + ")";
+        b777HeroContent.style.opacity = "1";
+        b777HeroContent.style.filter = "blur(0px)";
+        b777HeroContent.getBoundingClientRect();
+
+        requestAnimationFrame(function () {
+          if (!b777HeroContent) return;
+          b777HeroContent.style.transition = "transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms linear, filter 220ms linear";
+          b777HeroContent.style.transform = "translate(0px, 0px) scale(1, 1)";
+        });
+
+        copyHandoffTimer = setTimeout(function () {
+          if (!b777HeroContent) return;
+          b777HeroContent.classList.remove("bridge-handoff");
+          clearHeroContentInlineStyles();
+          copyHandoffActive = false;
+          copyHandoffDone = true;
+          copyHandoffTimer = 0;
+        }, 320);
       }
 
       function syncReverseIntent(now, isUpward) {
@@ -452,15 +467,13 @@
         if (!metrics) return;
         var progress = metrics.progress;
         var reveal = clamp((progress - revealStart) / revealSpan, 0, 1);
-        var bridgeReveal = clamp((progress - bridgeRevealStart) / bridgeRevealSpan, 0, 1);
+        var copyBridge = clamp((progress - copyBridgeStart) / copyBridgeSpan, 0, 1);
         var heroTopReached = b777Hero && b777Hero.getBoundingClientRect().top <= window.innerHeight * 0.08;
         transitionEndY = metrics.endY;
         landingResistanceDistance = Math.max(window.innerHeight * 0.92, 360);
         anchorSettleDistance = Math.max(window.innerHeight * 0.72, 300);
         reverseUnlockDistance = Math.max(window.innerHeight * 0.58, 320);
-        bridgeExitDistance = Math.max(window.innerHeight * 0.18, 120);
-        var bridgeExit = clamp((metrics.scrollY - (transitionEndY + window.innerHeight * 0.04)) / bridgeExitDistance, 0, 1);
-        var bridgeVisible = clamp(bridgeReveal * (1 - bridgeExit), 0, 1);
+        var sectionReveal = reveal;
         b777Visible = b777Visible
           ? (reveal > 0.005 || metrics.scrollY > transitionEndY)
           : reveal > 0.018;
@@ -496,20 +509,29 @@
             wheelUnlockTimer = 0;
           }
           touchState.blockCurrentGesture = false;
+          b777.classList.remove("bridge-copy-active");
+          resetCopyBridgeState();
+        }
+
+        if (copyBridge > 0.02 && !copyHandoffDone && !copyHandoffActive) {
+          b777.classList.add("bridge-copy-active");
+          sectionReveal = Math.max(reveal, copyBridge);
+          setHeroContentBridgeProgress(copyBridge);
+        } else if (!copyHandoffActive) {
+          b777.classList.remove("bridge-copy-active");
+        }
+
+        if (!copyHandoffDone && !copyHandoffActive && metrics.scrollY >= transitionEndY - 2 && copyBridge > 0.98) {
+          startCopyHandoff();
         }
 
         lastKnownScrollY = metrics.scrollY;
 
         docEl.classList.toggle("jesko-complete", progress > 0.985);
         b777.style.setProperty("--b777-reveal", reveal.toFixed(4));
-        b777.style.setProperty("--bridge-block", clamp(bridgeVisible * 1.15, 0, 1).toFixed(4));
+        b777.style.setProperty("--b777-section-visibility", sectionReveal.toFixed(4));
         b777.classList.toggle("transition-visible", b777Visible);
         b777.classList.toggle("entered", b777Entered);
-        if (bridgeCopy) {
-          bridgeCopy.style.setProperty("--bridge-reveal", bridgeVisible.toFixed(4));
-          bridgeCopy.style.setProperty("--bridge-mask", bridgeReveal.toFixed(4));
-          bridgeCopy.classList.toggle("is-active", bridgeVisible > 0.02);
-        }
       }
 
       var ticking = false;
