@@ -7,6 +7,7 @@
   <style>
     :root {
       --frame-w: 750px;
+      --frame-h: 1624px;
       --black100: #222;
       --grey50: #999;
       --grey60: #666;
@@ -33,27 +34,30 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    html, body { height: 100vh; overflow: hidden; }
     body {
-      height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 0;
-      overflow: hidden;
-      background: radial-gradient(circle at 12% 10%, #f9fbff 0%, #eef3fb 44%, #e9eff8 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: #fff;
       color: var(--black100);
       font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
       -webkit-font-smoothing: antialiased;
     }
     .stage {
-      width: min(var(--frame-w), 100vw);
-      height: 100dvh;
-      min-height: 100dvh;
+      width: var(--frame-w);
+      height: var(--frame-h);
+      flex-shrink: 0;
       background: #fff;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: var(--shadow);
+      border-radius: 50px;
+      border: 8px solid #1a1a1a;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.12), 0 0 0 2px rgba(0,0,0,0.06);
       position: relative;
+      transform-origin: center center;
     }
 
     /* ========== iOS status bar (reuse 高舱DEMO) ========== */
@@ -319,6 +323,7 @@
     .a350-separator::after { content: ""; display: block; width: 100%; height: 0; border-top: 1px solid #eee; }
     .a350-note { font-size: 20px; line-height: 1.5; color: var(--zinc400); padding-top: 16px; }
     .a350-content-area { max-height: 252px; overflow: hidden; position: relative; transition: max-height 0.4s ease; }
+    .plan3-shell > .a350-content-area { margin-top: 12px; }
     .a350-content-area.expanded { max-height: 3000px; }
     .a350-mask { position: absolute; bottom: 0; left: 0; width: 100%; height: 112px; background: linear-gradient(180deg, rgba(255,255,255,0) 14.286%, #fff 77.232%); pointer-events: none; transition: opacity 0.3s ease; }
     .a350-content-area.expanded .a350-mask { opacity: 0; }
@@ -599,7 +604,7 @@
     /* ===== Local runtime data engine (offline) ===== */
     var ASSET_BASE = 'assets/figma/';
     var PLAN3_ASSETS = {
-      toggleArrowImg: '../../10 切图素材/Arrow.svg',
+      toggleArrowImg: 'arrow-icon.svg',
       seatPhotoImg: 'seat-photo.png',
       seatmapImg: 'seatmap-layout.png',
       followAvatars: ['avatar-1.png', 'avatar-2.png', 'avatar-3.png']
@@ -1788,6 +1793,21 @@
     preloadDemoAssets();
     renderQuickPrompts();
     setEmptyStateVisible(true);
+
+    function fitStage() {
+      var stage = document.querySelector('.stage');
+      if (!stage) return;
+      var vw = window.innerWidth;
+      var vh = window.innerHeight;
+      var sw = 766, sh = 1640;
+      var pad = 40;
+      var scaleX = (vw - pad) / sw;
+      var scaleY = (vh - pad) / sh;
+      var scale = Math.min(scaleX, scaleY, 1);
+      stage.style.transform = scale < 1 ? 'scale(' + scale + ')' : 'none';
+    }
+    window.addEventListener('resize', fitStage);
+    fitStage();
   })();
   </script>
 </body>
