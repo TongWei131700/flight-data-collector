@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Qwen 对话流</title>
+  <style>
+    :root {
+      --frame-w: 750px;
+      --black100: #222;
+      --grey50: #999;
+      --grey60: #666;
+      --brand: #01f;
+      --brand-light: rgba(0,68,255,0.1);
+      --orange100: #ff6b3f;
+      --orange10: rgba(255,107,63,0.1);
+      --user-bubble: #ebf5ff;
+      --card-border: #eee;
+      --card-border-alpha: rgba(238,238,238,0.93);
+      --panel-bg: #f8f8f8;
+      --light-gray-text: #919499;
+      --dark-text: #0f131a;
+      --zinc400: #a1a1aa;
+      --zinc500: #71717a;
+      --zinc900: #18181b;
+      --radius-l: 24px;
+      --radius-s: 12px;
+      --radius-btn: 8px;
+      --page-px: 40px;
+      --section-gap: 36px;
+      --card-pad: 28px;
+      --shadow: 0 10px 34px rgba(16,24,40,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body {
+      height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at 12% 10%, #f9fbff 0%, #eef3fb 44%, #e9eff8 100%);
+      color: var(--black100);
+      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .stage {
+      width: min(var(--frame-w), 100vw);
+      height: 100dvh;
+      min-height: 100dvh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    /* ========== iOS status bar (reuse 高舱DEMO) ========== */
+    .ios-statusbar {
+      height: 88px;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+    .ios-statusbar img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      filter: brightness(0);
+      opacity: 0.88;
+    }
+
+    /* ========== Top bar ========== */
+    .topbar {
+      height: 88px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      font-weight: 500;
+      position: relative;
+      z-index: 10;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(10px);
+      flex-shrink: 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .topbar-left, .topbar-right {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      color: #667085; font-size: 30px; text-decoration: none; line-height: 1; user-select: none;
+    }
+    .topbar-left { left: 28px; }
+    .topbar-right { right: 28px; }
+
+    /* ========== Scrollable content ========== */
+    .dialog-scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 0 0 20px;
+    }
+
+    /* ========== Content area ========== */
+    .content-area {
+      padding: 16px var(--page-px) 32px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--section-gap);
+      min-height: 100%;
+    }
+
+    /* ========== Empty state (match 千问首页风格) ========== */
+    .empty-state {
+      flex: 1;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 28px;
+      /* content-area has 40px side padding; empty-state should align to 36px from stage */
+      margin-left: calc(-1 * var(--page-px));
+      margin-right: calc(-1 * var(--page-px));
+      padding-left: 36px;
+      padding-right: 36px;
+    }
+    .empty-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    .empty-title {
+      font-size: 56px;
+      line-height: 1.1;
+      font-weight: 600;
+      color: #b8c1d9;
+      letter-spacing: 1px;
+    }
+    .empty-subtitle {
+      font-size: 30px;
+      line-height: 1.4;
+      font-weight: 400;
+      color: #A2A9B6;
+    }
+    .empty-actions {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 18px;
+      margin-top: 10px;
+    }
+    .empty-action-btn {
+      width: fit-content;
+      max-width: 100%;
+      height: 88px;
+      border-radius: 22px;
+      border: 2px solid rgba(15,19,26,0.08);
+      background: #fff;
+      display: flex;
+      align-items: center;
+      padding: 0 26px;
+      font-size: 28px;
+      font-weight: 500;
+      color: #2a2e36;
+      cursor: pointer;
+      user-select: none;
+    }
+    .empty-action-btn:active { transform: translateY(0.5px); }
+
+    /* ========== User bubble ========== */
+    .user-bubble-wrap { display: flex; flex-direction: column; align-items: flex-end; }
+    .user-bubble {
+      background: var(--user-bubble); border-radius: var(--radius-l);
+      padding: 20px 28px; font-size: 32px; line-height: 44px;
+      color: var(--black100); max-width: 568px; min-height: 92px;
+      display: flex; align-items: center;
+    }
+
+    /* ========== AI text ========== */
+    .ai-text { font-size: 32px; line-height: 52px; color: var(--black100); }
+    /* ========== Follow-up prompt text (Figma spec) ========== */
+    .ai-text.fade-in {
+      width: 670px;
+      height: 260px;
+      font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+      font-style: normal;
+      font-weight: 400;
+      font-size: 32px;
+      line-height: 52px;
+      color: #222222;
+      flex: none;
+      order: 5;
+      flex-grow: 0;
+    }
+
+    /* ========== Plan section ========== */
+    .plan-section { display: flex; flex-direction: column; gap: 32px; align-items: center; }
+    .plan-header { width: 100%; display: flex; flex-direction: column; gap: 32px; }
+    .plan-title { font-size: 32px; font-weight: 600; line-height: 52px; color: var(--black100); }
+    .plan-title.strong { font-size: 34px; line-height: normal; color: var(--zinc900); }
+    .plan-reason { font-size: 32px; line-height: 52px; color: var(--black100); }
+    .plan-reason .highlight { color: var(--brand); }
+
+    /* ========== Flight card ========== */
+    .flight-card {
+      width: 670px; background: #fff; border: 2px solid var(--card-border);
+      border-radius: var(--radius-l); padding: var(--card-pad);
+      overflow: hidden; display: flex; flex-direction: column; position: relative;
+    }
+    .flight-card-header { display: flex; gap: 12px; align-items: center; width: 100%; }
+    .flight-date { font-size: 24px; font-weight: 500; line-height: 1.7; color: var(--grey60); }
+    .flight-body { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
+    .flight-info-col { display: flex; flex-direction: column; gap: 16px; width: 420px; }
+
+    /* ========== Route row ========== */
+    .route-row { display: flex; align-items: center; justify-content: space-between; height: 116px; padding-top: 24px; width: 100%; }
+    .route-side { display: flex; flex-direction: column; gap: 16px; width: 123px; height: 100%; }
+    .route-side.right { align-items: flex-end; text-align: right; }
+    .route-time { font-size: 46px; font-weight: 600; line-height: 48px; color: var(--black100); }
+    .route-time-sub { position: relative; }
+    .route-time-sub .local-tag { position: absolute; right: 0; top: -30px; font-size: 24px; font-weight: 400; line-height: 28px; color: var(--black100); }
+    .route-airport { font-size: 26px; font-weight: 400; line-height: 28px; color: var(--black100); }
+    .route-middle { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0 8px; height: 100%; }
+    .route-duration { font-size: 22px; line-height: 24px; color: var(--grey50); text-align: center; width: 166px; }
+    .route-line-wrap { display: flex; align-items: center; height: 24px; max-width: 240px; width: 100%; }
+    .route-line-img { width: 100%; height: 24px; display: block; object-fit: contain; }
+
+    /* ========== Airline / ticket info ========== */
+    .airline-row { display: flex; gap: 6px; align-items: center; }
+    .airline-logo { width: 25px; height: 25px; border-radius: 50%; object-fit: cover; }
+    .airline-name { font-size: 22px; line-height: 32px; color: var(--grey50); }
+    .ticket-info-row { display: flex; gap: 6px; align-items: center; }
+    .ticket-info-text { font-size: 22px; line-height: 32px; color: var(--black100); }
+    .ticket-sep { width: 1px; height: 18px; background: #eee; flex-shrink: 0; }
+
+    /* ========== Price ========== */
+    .price-col { display: flex; flex-direction: column; gap: 16px; align-items: flex-end; justify-content: center; padding-top: 24px; }
+    .price-group { display: flex; flex-direction: column; gap: 16px; align-items: flex-end; }
+    .price-wrap { display: flex; gap: 4px; align-items: baseline; height: 48px; color: var(--orange100); text-align: center; white-space: nowrap; }
+    .price-symbol { font-size: 28px; font-weight: 400; line-height: 40px; }
+    .price-num { font-size: 36px; font-weight: 600; line-height: 56px; }
+    .price-suffix { font-size: 24px; font-weight: 400; line-height: 32px; color: var(--orange100); width: 24px; display: flex; align-items: center; justify-content: center; padding: 8px 0 4px; }
+    .discount-tag { display: flex; gap: 8px; align-items: center; padding: 4px 6px; border-radius: 0 8px 8px 0; background: linear-gradient(90deg, rgba(255,107,63,0) 0%, var(--orange10) 100%); }
+    .discount-tag span { font-size: 20px; line-height: 24px; color: var(--orange100); text-align: center; white-space: nowrap; }
+    .book-btn { width: 120px; height: 52px; background: var(--panel-bg); border-radius: var(--radius-btn); border: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; color: var(--brand); cursor: pointer; }
+
+    /* ========== Transfer card ========== */
+    .transfer-card { width: 670px; background: #fff; border: 2px solid var(--card-border-alpha); border-radius: var(--radius-l); padding: var(--card-pad); overflow: hidden; display: flex; flex-direction: column; gap: 28px; }
+    .transfer-segment { display: flex; flex-direction: column; width: 100%; }
+    .segment-header { display: flex; gap: 12px; align-items: center; width: 100%; }
+    .segment-badge {
+      /* 标签/弱/小号/单字绿 */
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      padding: 2px 6px;
+      gap: 20px;
+      width: 52px;
+      height: 32px;
+      background: rgba(0, 68, 255, 0.1);
+      border-radius: 8px;
+      flex: none;
+      order: 0;
+      flex-grow: 0;
+      z-index: 3;
+    }
+    .segment-badge span {
+      font-size: 20px;
+      font-weight: 500;
+      line-height: 28px;
+      color: var(--brand);
+    }
+    .segment-date { order: 1; font-size: 24px; font-weight: 500; line-height: 1.7; color: var(--grey60); }
+    .transfer-stop { background: rgba(34,34,34,0.03); border-radius: var(--radius-s); height: 60px; display: flex; align-items: center; padding: 12px 18px; width: 100%; }
+    .transfer-stop span { font-size: 22px; font-weight: 500; line-height: 28px; color: var(--black100); }
+    .transfer-divider { display: none; }
+    .transfer-divider img { display: none; }
+    .transfer-ticket-info { display: flex; flex-direction: column; gap: 8px; }
+    .transfer-price-row { display: flex; gap: 20px; align-items: flex-end; justify-content: space-between; width: 100%; }
+    .transfer-price-left { display: flex; flex-direction: column; gap: 6px; }
+    .transfer-price-wrap { display: flex; gap: 4px; align-items: center; width: 434px; }
+    .transfer-price-tag { display: flex; gap: 8px; align-items: center; padding: 4px 6px; border-radius: 8px 0 0 8px; background: linear-gradient(90deg, var(--orange10) 0%, rgba(255,107,63,0) 100%); }
+    .transfer-price-tag span { font-size: 22px; line-height: 24px; color: var(--orange100); white-space: nowrap; }
+    .transfer-subtotal { font-size: 22px; line-height: 26px; color: #ccc; }
+    .transfer-book-btn { width: 160px; height: 72px; background: var(--panel-bg); border-radius: var(--radius-btn); border: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; color: var(--brand); cursor: pointer; }
+
+    /* ========== More button ========== */
+    .more-btn-wrap { width: 100%; padding-bottom: 30px; }
+    .more-btn { width: 670px; height: 80px; background: rgba(34,34,34,0.03); border-radius: 20px; border: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 26px; font-weight: 600; line-height: 32px; color: var(--black100); cursor: pointer; }
+
+    /* ========== Plan 3 intro ========== */
+    .plan3-shell {
+      width: 670px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .plan3-intro { display: flex; flex-direction: column; gap: 20px; width: 670px; overflow: hidden; }
+
+    /* ========== A350 expandable ========== */
+    .a350-inner { background: #fff; display: flex; flex-direction: column; gap: 14px; overflow: hidden; border-top: 0; }
+    .a350-header { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px; }
+    .a350-title { flex: 1; font-size: 34px; font-weight: 600; line-height: normal; color: var(--zinc900); letter-spacing: 0.2px; }
+    .a350-toggle { display: flex; gap: 12px; align-items: center; background: none; border: 0; padding: 0; cursor: pointer; }
+    .a350-toggle-text { font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif; font-size: 24px; font-weight: 500; line-height: 26px; color: var(--light-gray-text); }
+    .a350-toggle-arrow { width: 12px; height: 12px; display: block; flex: none; transform: rotate(90deg); transition: transform 0.3s ease; }
+    .a350-toggle-arrow.expanded { transform: rotate(-90deg); }
+    .a350-body { display: flex; flex-direction: column; gap: 32px; width: 100%; }
+    .a350-text { font-size: 32px; line-height: 52px; color: var(--black100); }
+    .a350-text .highlight { color: var(--brand); }
+    .a350-seat-img { width: 100%; height: 547px; object-fit: cover; border-radius: var(--radius-s); }
+    .a350-seatmap-img { width: 100%; display: block; }
+    .a350-separator { width: 100%; padding: 12px 0; position: relative; }
+    .a350-separator::after { content: ""; display: block; width: 100%; height: 0; border-top: 1px solid #eee; }
+    .a350-note { font-size: 20px; line-height: 1.5; color: var(--zinc400); padding-top: 16px; }
+    .a350-content-area { max-height: 252px; overflow: hidden; position: relative; transition: max-height 0.4s ease; }
+    .a350-content-area.expanded { max-height: 3000px; }
+    .a350-mask { position: absolute; bottom: 0; left: 0; width: 100%; height: 112px; background: linear-gradient(180deg, rgba(255,255,255,0) 14.286%, #fff 77.232%); pointer-events: none; transition: opacity 0.3s ease; }
+    .a350-content-area.expanded .a350-mask { opacity: 0; }
+
+    /* ========== Follow link ========== */
+    .follow-link { display: flex; gap: 12px; align-items: center; padding: 24px 30px 24px 24px; border: 1px solid rgba(15,19,26,0.12); border-radius: var(--radius-l); background: linear-gradient(180deg, #fff 0%, #f9fbff 100%); backdrop-filter: blur(2px); text-decoration: none; color: var(--dark-text); transition: transform 0.12s ease, box-shadow 0.2s ease; cursor: pointer; }
+    .follow-link:hover { box-shadow: 0 2px 10px rgba(15,19,26,0.06); }
+    .follow-link:active { transform: translateY(0.5px); }
+    .follow-text {
+      font-size: 26px;
+      line-height: 1.4;
+      color: var(--dark-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
+    }
+    .follow-avatars { display: flex; align-items: center; padding-right: 11px; flex-shrink: 0; }
+    .follow-avatar { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; margin-right: -11px; position: relative; }
+    .follow-avatar:nth-child(1) { z-index: 3; }
+    .follow-avatar:nth-child(2) { z-index: 2; }
+    .follow-avatar:nth-child(3) { z-index: 1; }
+    .follow-avatar img { width: 105.56%; height: 105.56%; margin: -2.78%; display: block; }
+    .follow-source { font-size: 22px; line-height: 1.4; color: var(--light-gray-text); white-space: nowrap; flex-shrink: 0; }
+    .hero-img { width: 100%; aspect-ratio: 750 / 190; object-fit: cover; display: block; }
+
+    /* ========== NEW: Composer (Figma node 2123:28903) ========== */
+    .composer-area {
+      flex-shrink: 0;
+      background: #fff;
+      padding: 12px 30px 0;
+      padding-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      z-index: 10;
+    }
+    .composer-tools {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow: hidden;
+    }
+    .tool-btn {
+      display: flex; align-items: center; gap: 10px;
+      height: 64px; padding: 12px 24px; border-radius: 18px;
+      border: 2px solid rgba(15,19,26,0.12); background: #fff;
+      font-size: 24px; line-height: 1.4; color: var(--dark-text);
+      cursor: pointer; flex-shrink: 0; white-space: nowrap;
+    }
+    .tool-btn-icon {
+      width: 30px; height: 30px; border-radius: 100px; overflow: hidden;
+      background: linear-gradient(135deg, #e8eef7, #d8e4f6);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .tool-btn-icon svg { width: 18px; height: 18px; }
+    .tool-btn-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .composer-input-row {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 102px; padding: 12px 24px; border-radius: 36px;
+      border: 2px solid #d2d4d9; background: #fff;
+      box-shadow: 0 10px 56px rgba(211,211,211,0.4);
+      overflow: hidden;
+    }
+    .composer-left { display: flex; gap: 18px; align-items: center; flex: 1; min-width: 0; }
+    .composer-icon {
+      width: 48px; height: 48px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .composer-icon svg { width: 28px; height: 28px; }
+    .composer-icon img { width: 48px; height: 48px; display: block; object-fit: contain; }
+    .voice-figma-icon {
+      width: 48px;
+      height: 48px;
+      display: block;
+      object-fit: contain;
+    }
+    .composer-input {
+      flex: 1; border: 0; outline: none; resize: none; background: transparent;
+      color: var(--dark-text); font-size: 30px; line-height: 1.4; font-family: inherit;
+      min-height: 42px; max-height: 78px;
+    }
+    .composer-input::placeholder { color: var(--light-gray-text); }
+    .composer-right { display: flex; gap: 24px; align-items: center; flex-shrink: 0; }
+    .composer-right .composer-icon { opacity: 0.7; }
+    .send-btn {
+      border: 0; border-radius: 999px; min-width: 100px; height: 60px;
+      padding: 0 24px; background: var(--brand); color: #fff;
+      font-size: 26px; font-weight: 600; cursor: pointer; flex-shrink: 0;
+      display: none;
+    }
+    .send-btn.visible { display: block; }
+    .send-btn:disabled { background: #c9d3e8; cursor: not-allowed; }
+    .composer-footer {
+      font-size: 18px;
+      line-height: 1.4;
+      color: #c6c6c6;
+      text-align: center;
+      width: 100%;
+      align-self: stretch;
+    }
+
+    /* ========== iOS indicator bar (simulated) ========== */
+    .ios-indicatorbar {
+      height: 64px;
+      padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    .ios-indicatorbar .bar {
+      width: 268px;
+      height: 10px;
+      border-radius: 10px;
+      background: #0f131a;
+    }
+
+    /* ========== Streaming / animation ========== */
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      animation: fadeSlideIn 0.45s ease forwards;
+    }
+    .stream-block {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    .stream-block.visible {
+      animation: fadeSlideIn 0.45s ease forwards;
+    }
+    .typing-dot {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: flex-start;
+      align-self: flex-start;
+      width: 670px;
+      font-size: 32px;
+      line-height: 52px;
+      color: #7b8797;
+    }
+    .typing-dot .typing-text { display: inline-block; }
+    .typing-dot .typing-dots {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      transform: translateY(2px);
+    }
+    .typing-dot .typing-dots i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.22;
+      animation: blink 1s ease-in-out infinite;
+    }
+    .typing-dot .typing-dots i:nth-child(2) { animation-delay: 0.15s; }
+    .typing-dot .typing-dots i:nth-child(3) { animation-delay: 0.3s; }
+    @media (prefers-reduced-motion: reduce) {
+      .typing-dot .typing-dots i { animation: none; opacity: 0.4; }
+    }
+    @keyframes blink { 0%,100% { opacity: 0.2; } 50% { opacity: 1; } }
+
+    /* ========== Debug overlay (dev only) ========== */
+    .debug-score {
+      position: fixed; top: 20px; right: 20px; z-index: 999;
+      background: rgba(0,0,0,0.75); color: #0f0; font-size: 24px; padding: 12px 20px;
+      border-radius: 12px; font-family: monospace; pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <div class="ios-statusbar" aria-label="iOS 状态栏">
+      <img src="assets/Tab%20bar.svg" width="750" height="88" alt="" decoding="async">
+    </div>
+    <header class="topbar">
+      <a class="topbar-left" id="topbarBack" href="javascript:void(0)" aria-label="返回">
+        <svg width="20" height="36" viewBox="0 0 20 36" fill="none"><path d="M18 2L2 18l16 16" stroke="#667085" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      千问
+      <a class="topbar-right" href="javascript:void(0)" aria-label="更多">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="8" cy="18" r="3" fill="#667085"/><circle cx="18" cy="18" r="3" fill="#667085"/><circle cx="28" cy="18" r="3" fill="#667085"/></svg>
+      </a>
+    </header>
+
+    <div class="dialog-scroll" id="dialogScroll">
+      <div class="content-area" id="contentArea">
+        <section class="empty-state" id="emptyState" aria-label="欢迎页">
+          <div class="empty-copy">
+            <div class="empty-title">我是千问</div>
+            <div class="empty-subtitle">可以帮你订机票</div>
+          </div>
+          <div class="empty-actions" id="quickPrompts" role="list"></div>
+        </section>
+      </div>
+    </div>
+
+    <div class="composer-area" id="composerArea">
+      <div class="composer-tools">
+        <button class="tool-btn" type="button">
+          <span class="tool-btn-icon">
+            <img src="assets/figma/deepthink-icon.png" alt="" aria-hidden="true">
+          </span>
+          深度思考
+        </button>
+      </div>
+      <form class="composer-input-row" id="chatForm">
+        <div class="composer-left">
+          <div class="composer-icon" id="voiceIcon">
+            <img class="voice-figma-icon" src="assets/figma/icon-voice.png" alt="" aria-hidden="true">
+          </div>
+          <textarea id="chatInput" class="composer-input" rows="1" placeholder="发消息或者按住说话..." aria-label="输入对话内容"></textarea>
+        </div>
+        <div class="composer-right" id="composerRight">
+          <div class="composer-icon">
+            <img src="assets/figma/icon-camera.png" alt="" aria-hidden="true">
+          </div>
+          <div class="composer-icon">
+            <img src="assets/figma/icon-plus.png" alt="" aria-hidden="true">
+          </div>
+        </div>
+        <button type="submit" id="sendBtn" class="send-btn" disabled>发送</button>
+      </form>
+      <div class="composer-footer">内容由 AI生成</div>
+    </div>
+    <div class="ios-indicatorbar" aria-label="iOS 底部指示条">
+      <div class="bar" aria-hidden="true"></div>
+    </div>
+  </main>
+
+  <div class="debug-score" id="debugScore" style="display:none;"></div>
+
+  <script>
+  (function () {
+    /* ===== DOM refs ===== */
+    var chatForm    = document.getElementById('chatForm');
+    var chatInput   = document.getElementById('chatInput');
+    var sendBtn     = document.getElementById('sendBtn');
+    var voiceIcon   = document.getElementById('voiceIcon');
+    var composerRight = document.getElementById('composerRight');
+    var dialogScroll = document.getElementById('dialogScroll');
+    var contentArea = document.getElementById('contentArea');
+    var debugScore  = document.getElementById('debugScore');
+    var emptyState = document.getElementById('emptyState');
+    var quickPrompts = document.getElementById('quickPrompts');
+    var topbarBack  = document.getElementById('topbarBack');
+
+    /* ===== State ===== */
+    var state = {
+      running: false,
+      prevUtterance: '',
+      budgetPenaltyApplied: false,
+      plan3Shown: false,
+      turnCount: 0
+    };
+
+    /* ===== B-Score Engine (PRD §6.2) ===== */
+    var KEYWORDS = {
+      comfort:  ['舒适','舒服','躺平','不想太累','宽敞','睡得好','休息好'],
+      crowd:    ['老人','父母','长辈','带娃','小孩','孕妇'],
+      redEye:   ['红眼','夜班','凌晨','早班','长途','十几个小时','国际'],
+      business: ['出差','报销','见客户','会议','商务'],
+      budget:   ['最便宜','低价','学生','预算','省钱','特价','穷游']
+    };
+    var SCORES = { comfort: 25, crowd: 25, redEye: 20, business: 15, budget: -35 };
+
+    /* ===== Local runtime data engine (offline) ===== */
+    var ASSET_BASE = 'assets/figma/';
+    var PLAN3_ASSETS = {
+      toggleArrowImg: '../../10 切图素材/Arrow.svg',
+      seatPhotoImg: 'seat-photo.png',
+      seatmapImg: 'seatmap-layout.png',
+      followAvatars: ['avatar-1.png', 'avatar-2.png', 'avatar-3.png']
+    };
+    var CITY_LIST = ['杭州', '北京', '上海', '广州', '深圳', '成都', '重庆', '西安', '青岛', '三亚', '香港', '新加坡'];
+    var CITY_ALIAS = {
+      杭州: ['杭州', '杭州市', 'hz'],
+      北京: ['北京', 'bj'],
+      上海: ['上海', 'sh'],
+      广州: ['广州', 'gz'],
+      深圳: ['深圳', 'sz'],
+      成都: ['成都', 'cd'],
+      重庆: ['重庆', 'cq'],
+      西安: ['西安', 'xa'],
+      青岛: ['青岛', 'qd'],
+      三亚: ['三亚', 'sy'],
+      香港: ['香港', 'hk'],
+      新加坡: ['新加坡', 'singapore']
+    };
+    var AIRPORT_MAP = {
+      杭州: ['萧山T3', '萧山T4'],
+      北京: ['首都T3', '大兴'],
+      上海: ['浦东T2', '虹桥T2'],
+      广州: ['白云T2'],
+      深圳: ['宝安T3'],
+      成都: ['天府T2', '双流T2'],
+      重庆: ['江北T3'],
+      西安: ['咸阳T5'],
+      青岛: ['胶东'],
+      三亚: ['凤凰T1'],
+      香港: ['香港国际T1'],
+      新加坡: ['樟宜T1']
+    };
+    var AIRLINE_POOL = {
+      economy: [
+        { name: '中国国航', code: 'CA857', logo: 'airline-ca.png' },
+        { name: '中国国航', code: 'CA1296', logo: 'airline-ca.png' }
+      ],
+      business: [
+        { name: '国泰航空', code: 'CX857', logo: 'airline-cx.png' },
+        { name: '国泰航空', code: 'CX719', logo: 'airline-cx.png' }
+      ]
+    };
+    var TRANSFER_HUBS = ['青岛', '上海', '深圳', '广州', '成都'];
+
+    /* ===== 外部快捷栏提示词（不要在 HTML 写死） ===== */
+    var QUICK_PROMPTS = [
+      { label: '清明节带孩出游', prompt: '清明节带孩出游' },
+      { label: '最近便宜的公务舱', prompt: '最近便宜的公务舱' },
+      { label: '看看近期的低价航班', prompt: '看看近期的低价航班' }
+    ];
+
+    function renderQuickPrompts() {
+      if (!quickPrompts) return;
+      quickPrompts.innerHTML = '';
+      for (var i = 0; i < QUICK_PROMPTS.length; i++) {
+        var item = QUICK_PROMPTS[i];
+        var btn = document.createElement('button');
+        btn.className = 'empty-action-btn';
+        btn.type = 'button';
+        btn.setAttribute('data-prompt', item.prompt || item.label || '');
+        btn.textContent = item.label || item.prompt || '';
+        quickPrompts.appendChild(btn);
+      }
+    }
+
+    function computeB(currentText, prevText) {
+      var merged = (currentText + ' ' + (prevText || '')).toLowerCase();
+      var B = 0;
+      function hitAny(group) {
+        var kws = KEYWORDS[group];
+        for (var i = 0; i < kws.length; i++) { if (merged.indexOf(kws[i]) !== -1) return true; }
+        return false;
+      }
+      if (hitAny('comfort'))  B += SCORES.comfort;
+      if (hitAny('crowd'))    B += SCORES.crowd;
+      if (hitAny('redEye'))   B += SCORES.redEye;
+      if (hitAny('business')) B += SCORES.business;
+      if (!state.budgetPenaltyApplied && hitAny('budget')) {
+        B += SCORES.budget;
+        state.budgetPenaltyApplied = true;
+      }
+      return Math.max(-40, Math.min(80, B));
+    }
+
+    /* ===== Helpers ===== */
+    function scrollToBottom() {
+      requestAnimationFrame(function () { dialogScroll.scrollTop = dialogScroll.scrollHeight; });
+    }
+    function delay(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+    function createElement(tag, cls, html) {
+      var el = document.createElement(tag);
+      if (cls) el.className = cls;
+      if (html) el.innerHTML = html;
+      return el;
+    }
+
+    function setEmptyStateVisible(visible) {
+      if (!emptyState) return;
+      emptyState.style.display = visible ? '' : 'none';
+    }
+
+    function appendFollowupAck(userText) {
+      var ackEl = createElement('p', 'ai-text');
+      contentArea.appendChild(ackEl);
+      return streamText(ackEl, '好的，我继续按同一规则为你优化推荐。', 30);
+    }
+
+    function containsAny(text, terms) {
+      for (var i = 0; i < terms.length; i++) {
+        if (text.indexOf(terms[i]) !== -1) return true;
+      }
+      return false;
+    }
+
+    function extractUserFacts(query) {
+      var normalized = (query || '').toLowerCase().replace(/\s+/g, '');
+      var facts = {};
+
+      if (containsAny(normalized, ['亲子', '带娃', '带孩', '小孩', '孩子', '儿童'])) {
+        facts.family_trip = true;
+      }
+      if (containsAny(normalized, ['老人', '父母', '长辈'])) {
+        facts.senior_trip = true;
+      }
+      if (containsAny(normalized, ['经济舱'])) {
+        facts.cabin_economy = true;
+      }
+      if (containsAny(normalized, ['商务舱', '公务舱', '头等舱'])) {
+        facts.cabin_business = true;
+      }
+      if (containsAny(normalized, ['预算', '省钱', '低价', '便宜', '最便宜'])) {
+        facts.budget_sensitive = true;
+      }
+      if (containsAny(normalized, ['直飞'])) {
+        facts.direct_flight = true;
+      }
+      if (containsAny(normalized, ['中转'])) {
+        facts.transfer = true;
+      }
+      if (containsAny(normalized, ['清明', '五一', '国庆', '春节'])) {
+        facts.holiday_trip = true;
+      }
+      if (/\d+\s*大\s*\d+\s*小/.test(normalized) || /[二两2]大[一1]小/.test(normalized)) {
+        facts.party_2_1 = true;
+      }
+      return facts;
+    }
+
+    function normalizeUserText(text) {
+      return String(text == null ? '' : text).replace(/\s+/g, ' ').trim();
+    }
+
+    function hasOverlappedFact(facts, tags) {
+      if (!tags || !tags.length) return false;
+      for (var i = 0; i < tags.length; i++) {
+        if (facts[tags[i]]) return true;
+      }
+      return false;
+    }
+
+    function joinChineseList(items) {
+      if (!items || !items.length) return '';
+      if (items.length === 1) return items[0];
+      if (items.length === 2) return items[0] + '和' + items[1];
+      return items.slice(0, items.length - 1).join('、') + '和' + items[items.length - 1];
+    }
+
+    function buildAiIntroText(query, context, searchParams) {
+      var numPlans = context && context.numPlans ? context.numPlans : 2;
+      var B = context && typeof context.B === 'number' ? context.B : 0;
+      var facts = extractUserFacts(query);
+      var routeText = searchParams ? (searchParams.fromCity + ' - ' + searchParams.toCity) : '';
+      var dateText = searchParams ? searchParams.dateLabel : '';
+      var candidates = [
+        { text: '直飞与中转的性价比差异', tags: ['direct_flight', 'transfer'], shouldShow: true },
+        { text: '行李额度和退改成本', tags: [], shouldShow: true },
+        { text: '舒适度与落地状态', tags: ['cabin_business'], shouldShow: B >= 10 },
+        { text: '节假日高峰时段避堵', tags: ['holiday_trip'], shouldShow: !!facts.holiday_trip },
+        { text: '高舱升级增益', tags: ['cabin_business', 'budget_sensitive'], shouldShow: B >= 10 },
+        { text: '家庭同行便利性', tags: ['family_trip', 'party_2_1', 'senior_trip'], shouldShow: !!facts.family_trip || !!facts.party_2_1 || !!facts.senior_trip }
+      ];
+
+      var selected = [];
+      for (var i = 0; i < candidates.length; i++) {
+        var item = candidates[i];
+        if (!item.shouldShow) continue;
+        if (hasOverlappedFact(facts, item.tags)) continue;
+        selected.push(item.text);
+        if (selected.length >= 2) break;
+      }
+
+      if (!selected.length) {
+        return '基于你在' + (dateText || '近期') + '的' + routeText + '需求，我为你筛出' + numPlans + '个更容易决策的航班方案。';
+      }
+      return '基于你在' + (dateText || '近期') + '的' + routeText + '需求，优先按' + joinChineseList(selected) + '为你筛出' + numPlans + '个航班方案。';
+    }
+
+    function isCathayAirline(airline) {
+      if (!airline) return false;
+      var code = String(airline.code || '').toUpperCase();
+      var name = String(airline.name || '');
+      return code.indexOf('CX') === 0 || name.indexOf('国泰') !== -1;
+    }
+
+    function hashTextToInt(text) {
+      var seed = 2166136261;
+      var input = String(text || '');
+      for (var i = 0; i < input.length; i++) {
+        seed ^= input.charCodeAt(i);
+        seed = Math.imul(seed, 16777619);
+      }
+      return seed >>> 0;
+    }
+
+    function createSeededRandom(seed) {
+      var value = (seed >>> 0) || 123456789;
+      return function () {
+        value = (Math.imul(value, 1664525) + 1013904223) >>> 0;
+        return value / 4294967296;
+      };
+    }
+
+    function pad2(n) {
+      return n < 10 ? '0' + n : String(n);
+    }
+
+    function minutesToTimeText(minutesTotal) {
+      var m = ((minutesTotal % 1440) + 1440) % 1440;
+      var h = Math.floor(m / 60);
+      var min = m % 60;
+      return pad2(h) + ':' + pad2(min);
+    }
+
+    function formatDuration(minutesTotal) {
+      var m = Math.max(35, Math.floor(minutesTotal));
+      var h = Math.floor(m / 60);
+      var min = m % 60;
+      return '总' + h + 'h' + pad2(min) + 'm';
+    }
+
+    function formatLayover(minutesTotal) {
+      var m = Math.max(35, Math.floor(minutesTotal));
+      var h = Math.floor(m / 60);
+      var min = m % 60;
+      return h + 'h' + pad2(min) + 'm';
+    }
+
+    function resolveCityName(raw) {
+      if (!raw) return '';
+      var lower = String(raw).toLowerCase();
+      var keys = Object.keys(CITY_ALIAS);
+      for (var i = 0; i < keys.length; i++) {
+        var city = keys[i];
+        var aliases = CITY_ALIAS[city];
+        for (var j = 0; j < aliases.length; j++) {
+          if (lower.indexOf(String(aliases[j]).toLowerCase()) !== -1) return city;
+        }
+      }
+      return '';
+    }
+
+    function extractRouteCities(query) {
+      var q = String(query || '');
+      var normalized = q.replace(/\s+/g, '');
+      var routeMatch = normalized.match(/([^\d，。,.！？!?]{2,8})(?:到|飞|去|至|->|-)([^\d，。,.！？!?]{2,8})/);
+      if (routeMatch) {
+        var fromByRegex = resolveCityName(routeMatch[1]);
+        var toByRegex = resolveCityName(routeMatch[2]);
+        if (fromByRegex && toByRegex && fromByRegex !== toByRegex) {
+          return { fromCity: fromByRegex, toCity: toByRegex };
+        }
+      }
+
+      var hits = [];
+      for (var i = 0; i < CITY_LIST.length; i++) {
+        var city = CITY_LIST[i];
+        var idx = normalized.indexOf(city);
+        if (idx !== -1) hits.push({ city: city, idx: idx });
+      }
+      hits.sort(function (a, b) { return a.idx - b.idx; });
+
+      if (hits.length >= 2) {
+        for (var h = 0; h < hits.length - 1; h++) {
+          if (hits[h].city !== hits[h + 1].city) {
+            return { fromCity: hits[h].city, toCity: hits[h + 1].city };
+          }
+        }
+      }
+      return { fromCity: '杭州', toCity: '北京' };
+    }
+
+    function parseDatePreference(query) {
+      var q = String(query || '');
+      var holidayMap = {
+        清明: { month: 4, day: 4 },
+        五一: { month: 5, day: 1 },
+        国庆: { month: 10, day: 1 },
+        春节: { month: 2, day: 10 }
+      };
+      var holidayKeys = Object.keys(holidayMap);
+      for (var i = 0; i < holidayKeys.length; i++) {
+        var key = holidayKeys[i];
+        if (q.indexOf(key) !== -1) {
+          return { month: holidayMap[key].month, day: holidayMap[key].day };
+        }
+      }
+
+      var dateMatch = q.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*[日号]?/);
+      if (dateMatch) {
+        return { month: Math.max(1, Math.min(12, Number(dateMatch[1]))), day: Math.max(1, Math.min(31, Number(dateMatch[2]))) };
+      }
+
+      var now = new Date();
+      if (q.indexOf('今天') !== -1) return { month: now.getMonth() + 1, day: now.getDate() };
+      if (q.indexOf('明天') !== -1) {
+        var t1 = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        return { month: t1.getMonth() + 1, day: t1.getDate() };
+      }
+      if (q.indexOf('后天') !== -1) {
+        var t2 = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+        return { month: t2.getMonth() + 1, day: t2.getDate() };
+      }
+      return { month: 4, day: 4 };
+    }
+
+    function formatDateLabel(dateObj) {
+      var year = new Date().getFullYear();
+      var date = new Date(year, dateObj.month - 1, dateObj.day);
+      var weekMap = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+      var weekText = weekMap[date.getDay()];
+      return dateObj.month + '月' + dateObj.day + '日 ' + weekText;
+    }
+
+    function getAirportName(city, rand, avoidName) {
+      var list = AIRPORT_MAP[city] || [city + '机场'];
+      if (list.length === 1) return list[0];
+      var idx = Math.floor(rand() * list.length);
+      var pick = list[idx];
+      if (avoidName && pick === avoidName) {
+        return list[(idx + 1) % list.length];
+      }
+      return pick;
+    }
+
+    function deriveBaseDuration(fromCity, toCity, rand) {
+      if (fromCity === toCity) return 90;
+      var pair = [fromCity, toCity].sort().join('-');
+      var special = {
+        '北京-杭州': 140,
+        '北京-上海': 130,
+        '广州-杭州': 155,
+        '上海-深圳': 150,
+        '北京-深圳': 185,
+        '北京-香港': 210,
+        '北京-新加坡': 360,
+        '杭州-香港': 160,
+        '杭州-新加坡': 320
+      };
+      if (special[pair]) return special[pair];
+      return 145 + Math.floor(rand() * 100);
+    }
+
+    function buildSearchParams(query, B) {
+      var facts = extractUserFacts(query);
+      var route = extractRouteCities(query);
+      var dateObj = parseDatePreference(query);
+      var normalized = String(query || '').toLowerCase();
+      var cabinPreference = facts.cabin_business ? 'business' : (facts.cabin_economy ? 'economy' : 'mixed');
+      var budgetPreference = facts.budget_sensitive ? 'low_price' : (B >= 15 ? 'comfort_first' : 'balanced');
+      var routePreference = facts.direct_flight ? 'direct' : (facts.transfer ? 'transfer' : 'any');
+      var timePreference = containsAny(normalized, ['上午', '早上', '晨']) ? 'morning'
+        : (containsAny(normalized, ['晚上', '夜间', '红眼']) ? 'evening' : 'any');
+      return {
+        rawQuery: query,
+        seed: hashTextToInt(query),
+        facts: facts,
+        fromCity: route.fromCity,
+        toCity: route.toCity,
+        dateObj: dateObj,
+        dateLabel: formatDateLabel(dateObj),
+        cabinPreference: cabinPreference,
+        budgetPreference: budgetPreference,
+        routePreference: routePreference,
+        timePreference: timePreference,
+        wantsBusiness: facts.cabin_business || B >= 10,
+        B: B
+      };
+    }
+
+    function buildFlightCandidates(searchParams) {
+      var rand = createSeededRandom(searchParams.seed);
+      var fromCity = searchParams.fromCity;
+      var toCity = searchParams.toCity;
+      var dateLabel = searchParams.dateLabel;
+      var baseDuration = deriveBaseDuration(fromCity, toCity, rand);
+      var depBase = searchParams.timePreference === 'morning' ? 420 : (searchParams.timePreference === 'evening' ? 1080 : 500);
+      var directDep = depBase + Math.floor(rand() * 170);
+      var directDuration = baseDuration + Math.floor(rand() * 30) - 10;
+      var directArr = directDep + directDuration;
+      var directAirline = AIRLINE_POOL.economy[Math.floor(rand() * AIRLINE_POOL.economy.length)];
+      var directPrice = 560 + Math.floor(rand() * 360) + (searchParams.budgetPreference === 'low_price' ? -60 : 0);
+      if (searchParams.facts.holiday_trip) directPrice += 90;
+
+      var transferHub = TRANSFER_HUBS[Math.floor(rand() * TRANSFER_HUBS.length)];
+      if (transferHub === fromCity || transferHub === toCity) {
+        transferHub = '青岛';
+      }
+      var seg1Duration = Math.max(80, Math.floor(baseDuration * 0.55) + Math.floor(rand() * 25));
+      var seg2Duration = Math.max(80, Math.floor(baseDuration * 0.62) + Math.floor(rand() * 35));
+      var layover = 70 + Math.floor(rand() * 85);
+      var transferDep = depBase + 80 + Math.floor(rand() * 180);
+      var seg1Arr = transferDep + seg1Duration;
+      var seg2Dep = seg1Arr + layover;
+      var seg2Arr = seg2Dep + seg2Duration;
+      var transferPrice = Math.max(399, directPrice - (70 + Math.floor(rand() * 140)));
+      var transferAirline = AIRLINE_POOL.economy[Math.floor(rand() * AIRLINE_POOL.economy.length)];
+
+      var bizDep = depBase + 20 + Math.floor(rand() * 230);
+      var bizDuration = Math.max(120, baseDuration + Math.floor(rand() * 20) - 8);
+      var bizArr = bizDep + bizDuration;
+      var bizAirline = AIRLINE_POOL.business[Math.floor(rand() * AIRLINE_POOL.business.length)];
+      var bizPrice = Math.max(1999, directPrice + 1800 + Math.floor(rand() * 1600) + (searchParams.budgetPreference === 'comfort_first' ? 160 : 0));
+
+      return [
+        {
+          kind: 'direct',
+          cabin: 'economy',
+          fromCity: fromCity,
+          toCity: toCity,
+          dateText: dateLabel + ' ' + fromCity + '-' + toCity,
+          depTime: minutesToTimeText(directDep),
+          arrTime: minutesToTimeText(directArr),
+          durationMinutes: directDuration,
+          depAirport: getAirportName(fromCity, rand),
+          arrAirport: getAirportName(toCity, rand),
+          airline: directAirline,
+          lineImg: 'flight-line-blue.png',
+          ticketInfo: ['经济舱', '托运行李25公斤', '退改¥80起'],
+          price: String(directPrice),
+          discountText: '千问优惠¥' + (60 + Math.floor(rand() * 50))
+        },
+        {
+          kind: 'transfer',
+          cabin: 'economy',
+          fromCity: fromCity,
+          toCity: toCity,
+          transferHub: transferHub,
+          stopMinutes: layover,
+          dateText: dateLabel + ' ' + fromCity + '-' + toCity,
+          segments: [
+            {
+              badge: '1程',
+              dateText: dateLabel + ' ' + fromCity + '-' + transferHub,
+              depTime: minutesToTimeText(transferDep),
+              arrTime: minutesToTimeText(seg1Arr),
+              durationMinutes: seg1Duration,
+              depAirport: getAirportName(fromCity, rand),
+              arrAirport: getAirportName(transferHub, rand),
+              airline: transferAirline,
+              lineImg: 'flight-line.png'
+            },
+            {
+              badge: '2程',
+              dateText: dateLabel + ' ' + transferHub + '-' + toCity,
+              depTime: minutesToTimeText(seg2Dep),
+              arrTime: minutesToTimeText(seg2Arr),
+              durationMinutes: seg2Duration,
+              depAirport: getAirportName(transferHub, rand),
+              arrAirport: getAirportName(toCity, rand),
+              airline: transferAirline,
+              lineImg: 'flight-line.png'
+            }
+          ],
+          ticketInfo: ['经济舱', '托运行李25公斤', '退改¥80起'],
+          price: String(transferPrice),
+          discountText: '千问优惠¥' + (50 + Math.floor(rand() * 40))
+        },
+        {
+          kind: 'business',
+          cabin: 'business',
+          fromCity: fromCity,
+          toCity: toCity,
+          dateText: dateLabel + ' ' + fromCity + '-' + toCity + ' · 商务舱',
+          depTime: minutesToTimeText(bizDep),
+          arrTime: minutesToTimeText(bizArr),
+          durationMinutes: bizDuration,
+          depAirport: getAirportName(fromCity, rand),
+          arrAirport: getAirportName(toCity, rand),
+          airline: bizAirline,
+          lineImg: 'flight-line-blue.png',
+          ticketInfo: ['商务舱', '托运行李40公斤', '免费退改'],
+          price: String(bizPrice),
+          discountText: '千问优惠¥' + (80 + Math.floor(rand() * 60))
+        }
+      ];
+    }
+
+    function rankFlightPlans(candidates, searchParams) {
+      function scoreCandidate(c) {
+        var score = 100;
+        var priceNum = Number(c.price || 0);
+        var duration = c.durationMinutes || 0;
+        if (searchParams.routePreference === 'direct') score += c.kind === 'direct' ? 35 : -20;
+        if (searchParams.routePreference === 'transfer') score += c.kind === 'transfer' ? 30 : -15;
+        if (searchParams.budgetPreference === 'low_price') score -= priceNum / 80;
+        if (searchParams.budgetPreference === 'comfort_first') score += c.cabin === 'business' ? 35 : 0;
+        score -= duration / 18;
+        if (c.kind === 'transfer') {
+          score -= 10;
+          if (searchParams.facts.family_trip || searchParams.facts.senior_trip || searchParams.facts.party_2_1) score -= 15;
+        }
+        if (c.cabin === 'business') score += Math.max(0, searchParams.B / 2);
+        return score;
+      }
+
+      var sorted = candidates.slice().sort(function (a, b) {
+        return scoreCandidate(b) - scoreCandidate(a);
+      });
+      var direct = sorted.find(function (item) { return item.kind === 'direct' && item.cabin === 'economy'; });
+      var transfer = sorted.find(function (item) { return item.kind === 'transfer'; });
+      var business = sorted.find(function (item) { return item.kind === 'business'; });
+      return { direct: direct, transfer: transfer, business: business };
+    }
+
+    function pickPlan3BusinessCandidate(candidates, rankedBusiness) {
+      var businessList = candidates.filter(function (item) { return item.cabin === 'business'; });
+      var cathay = businessList.find(function (item) { return isCathayAirline(item.airline); });
+      if (cathay) return cathay;
+      if (rankedBusiness && rankedBusiness.cabin === 'business') return rankedBusiness;
+      if (businessList.length) return businessList[0];
+      return rankedBusiness || null;
+    }
+
+    function buildPlan3ViewData(searchParams, business) {
+      var facts = searchParams.facts || {};
+      var routeLabel = searchParams.fromCity + ' - ' + searchParams.toCity;
+      var comfortFocus = facts.family_trip || facts.party_2_1 || facts.senior_trip;
+      var aircraftName = business.durationMinutes >= 240 ? 'A350-1000 宽体机' : 'A330-300 宽体机';
+      var seatWidth = business.durationMinutes >= 240 ? 58 : 54;
+      var seatPitch = business.durationMinutes >= 240 ? 198 : 188;
+      var reviewCount = 260 + (searchParams.seed % 90);
+      var positiveRate = 91 + (searchParams.seed % 7);
+      var airlinePrefix = business.airline.name === '国泰航空' ? '国泰' : business.airline.name;
+      var reasonHTML = '如果你更在意落地状态，这班商务舱值得考虑。<span class="highlight">多花 ¥1999，可以换来全平躺座椅、更大的腿部空间</span>，以及更从容的长途体验。';
+      return {
+        title: '方案三：舒适商务舱升级',
+        reasonHTML: reasonHTML,
+        flight: {
+          dateText: business.dateText,
+          depTime: business.depTime,
+          depAirport: business.depAirport,
+          duration: formatDuration(business.durationMinutes),
+          arrTime: business.arrTime,
+          arrAirport: business.arrAirport,
+          lineImg: business.lineImg,
+          hasLocal: false,
+          airlineLogo: business.airline.logo,
+          airlineName: business.airline.name + ' ' + business.airline.code,
+          ticketInfo: business.ticketInfo,
+          price: business.price,
+          discount: business.discountText
+        },
+        a350: {
+          title: airlinePrefix + aircraftName,
+          toggleCollapsedText: '展开',
+          toggleExpandedText: '收起',
+          toggleArrowImg: PLAN3_ASSETS.toggleArrowImg,
+          seatParaHTML: '💺 机舱座椅：可以完全躺平，不用蜷着腿熬时间<span class="highlight">180°全平躺｜' + seatPitch + 'cm腿部空间｜' + seatWidth + 'cm宽座椅</span>',
+          layoutParaHTML: '✈️ 舱内布局<span class="highlight">：</span>每个座位都靠过道，减少打扰更私密。<span class="highlight">1-2-1布局</span>，不需要跨过别人，每个人都有独立空间，长途飞行更安静、更从容。',
+          serviceParaHTML: '🍴用餐体验：飞机上的一顿正餐，而不是一份餐盒优先上餐，多餐型选择，饮品更丰富，飞行时间也能吃得从容。',
+          reviewParaHTML: '⭐️ 航司口碑：多数旅客坐过之后，都会再次选择4.' + (5 + (searchParams.seed % 4)) + '2 / 5 分（' + reviewCount + '条评价）' + positiveRate + '%用户给出正面评价，航班准点率高达99%'
+        },
+        follow: {
+          href: '高舱DEMO.html',
+          text: '提前沉浸式体验本航班',
+          avatars: PLAN3_ASSETS.followAvatars,
+          sourceText: '来源'
+        }
+      };
+    }
+
+    function buildPlanReason(type, params, candidate) {
+      if (type === 'direct') {
+        var directReason = '推荐理由：' + params.fromCity + '直飞' + params.toCity + '，中间环节更少，出行节奏更稳。';
+        if (params.facts.family_trip || params.facts.senior_trip || params.facts.party_2_1) {
+          directReason += ' 对家庭同行更友好，减少中转奔波。';
+        } else {
+          directReason += ' 适合希望快速抵达、减少不确定性的行程。';
+        }
+        return directReason;
+      }
+      if (type === 'transfer') {
+        return '推荐理由：经' + candidate.transferHub + '中转，价格更有优势；若你更看重预算，这条线路性价比更高。';
+      }
+      return '如果你更在意落地状态，这班商务舱值得考虑。<span class="highlight">更舒展的座椅与更完整服务，能明显提升长途体感</span>，适合舒适度优先的出行。';
+    }
+
+    function buildRuntimePlans(query, B) {
+      var searchParams = buildSearchParams(query, B);
+      var candidates = buildFlightCandidates(searchParams);
+      var ranked = rankFlightPlans(candidates, searchParams);
+      var direct = ranked.direct || candidates[0];
+      var transfer = ranked.transfer || candidates[1];
+      var plan3Business = pickPlan3BusinessCandidate(candidates, ranked.business);
+      var business = plan3Business || ranked.business || candidates[2];
+      var showPlan3 = !!(searchParams.wantsBusiness || searchParams.cabinPreference === 'business');
+
+      var plan1 = {
+        title: '方案一：直飞优先',
+        reason: buildPlanReason('direct', searchParams, direct),
+        flight: {
+          dateText: direct.dateText,
+          depTime: direct.depTime,
+          depAirport: direct.depAirport,
+          duration: formatDuration(direct.durationMinutes),
+          arrTime: direct.arrTime,
+          arrAirport: direct.arrAirport,
+          lineImg: direct.lineImg,
+          hasLocal: false,
+          airlineLogo: direct.airline.logo,
+          airlineName: direct.airline.name + ' ' + direct.airline.code,
+          ticketInfo: direct.ticketInfo,
+          price: direct.price,
+          discount: direct.discountText
+        }
+      };
+
+      var s1 = transfer.segments[0];
+      var s2 = transfer.segments[1];
+      var plan2 = {
+        title: '方案二：预算友好中转',
+        reason: buildPlanReason('transfer', searchParams, transfer),
+        stopText: '中转' + transfer.transferHub + ' ' + formatLayover(transfer.stopMinutes),
+        segments: [
+          {
+            badge: s1.badge,
+            dateText: s1.dateText,
+            depTime: s1.depTime,
+            depAirport: s1.depAirport,
+            duration: formatDuration(s1.durationMinutes),
+            arrTime: s1.arrTime,
+            arrAirport: s1.arrAirport,
+            lineImg: s1.lineImg,
+            hasLocal: false,
+            airlineLogo: s1.airline.logo,
+            airlineName: s1.airline.name + ' ' + s1.airline.code
+          },
+          {
+            badge: s2.badge,
+            dateText: s2.dateText,
+            depTime: s2.depTime,
+            depAirport: s2.depAirport,
+            duration: formatDuration(s2.durationMinutes),
+            arrTime: s2.arrTime,
+            arrAirport: s2.arrAirport,
+            lineImg: s2.lineImg,
+            hasLocal: false,
+            airlineLogo: s2.airline.logo,
+            airlineName: s2.airline.name + ' ' + s2.airline.code
+          }
+        ],
+        dividerImg: 'divider-line.png',
+        ticketInfo: transfer.ticketInfo,
+        price: transfer.price,
+        discount: transfer.discountText,
+        subtotalText: '单人总计',
+        moreText: '查看更多经济舱航班'
+      };
+
+      var plan3 = showPlan3 ? buildPlan3ViewData(searchParams, business) : null;
+
+      return {
+        searchParams: searchParams,
+        plan1: plan1,
+        plan2: plan2,
+        plan3: plan3,
+        showPlan3: showPlan3
+      };
+    }
+
+    function buildFirstTurnFollowup(userText, showPlan3, B) {
+      var text = (userText || '').toLowerCase();
+      var careComfort = text.indexOf('舒适') !== -1 || text.indexOf('公务舱') !== -1 || text.indexOf('商务舱') !== -1;
+      var careFamily = text.indexOf('带娃') !== -1 || text.indexOf('小孩') !== -1 || text.indexOf('老人') !== -1 || text.indexOf('父母') !== -1;
+      var careBudget = text.indexOf('便宜') !== -1 || text.indexOf('预算') !== -1 || text.indexOf('低价') !== -1 || text.indexOf('省钱') !== -1;
+
+      if (showPlan3 || B >= 10 || careComfort || careFamily) {
+        return '基于你的诉求，我更建议优先看高舱方案：座椅和休息体验明显更好，落地状态也更稳。要不要我直接帮你把最值得升舱的班次筛出来，并按性价比排好给你？';
+      }
+      if (careBudget) {
+        return '如果你希望控制预算，我可以先锁定当前低价方案；同时给你一版“只多花一点但舒适度明显提升”的高舱对比，方便你一眼决定要不要升舱。要我现在就补上吗？';
+      }
+      return '考虑到你可能会更在意旅途省心（比如带孩出行/行李更多/不想折腾），我建议给你两套推荐：一套更省预算，一套更轻松舒适（尽量直飞或更友好的中转/时刻）。你想先看哪一种？';
+    }
+
+    function buildFirstTurnDecisionOptions(userText, showPlan3, B) {
+      var text = (userText || '').toLowerCase();
+      var careBudget = text.indexOf('便宜') !== -1 || text.indexOf('预算') !== -1 || text.indexOf('低价') !== -1 || text.indexOf('省钱') !== -1;
+
+      if (showPlan3 || B >= 10) {
+        return [
+          { label: '优先看高舱里最划算的', prompt: '优先看高舱里最划算的方案' },
+          { label: '先对比直飞和中转的高舱', prompt: '先对比直飞和中转的高舱方案' },
+          { label: '先保留经济舱最低价', prompt: '先保留经济舱最低价方案' }
+        ];
+      }
+      if (careBudget) {
+        return [
+          { label: '先看最低总价', prompt: '先看最低总价方案' },
+          { label: '看小幅加价但更舒适', prompt: '看小幅加价但更舒适的高舱方案' },
+          { label: '只看可免费退改的', prompt: '只看可免费退改的方案' }
+        ];
+      }
+      return [
+        { label: '先看更省预算的', prompt: '先看更省预算的方案' },
+        { label: '先看更轻松舒适的', prompt: '先看更轻松舒适的高舱方案' },
+        { label: '给我一个综合最优', prompt: '给我一个综合最优方案' }
+      ];
+    }
+
+    function appendDecisionOptions(options) {
+      if (!options || !options.length) return;
+      var wrap = createElement('div', 'empty-actions');
+      wrap.setAttribute('role', 'list');
+      for (var i = 0; i < options.length; i++) {
+        var item = options[i];
+        var btn = document.createElement('button');
+        btn.className = 'empty-action-btn';
+        btn.type = 'button';
+        btn.setAttribute('data-prompt', item.prompt || item.label || '');
+        btn.textContent = item.label || item.prompt || '';
+        wrap.appendChild(btn);
+      }
+      contentArea.appendChild(wrap);
+      scrollToBottom();
+    }
+
+    function resetToHome() {
+      // keep emptyState node, clear dynamic conversation blocks
+      if (contentArea) {
+        var children = Array.prototype.slice.call(contentArea.children || []);
+        for (var i = 0; i < children.length; i++) {
+          var node = children[i];
+          if (emptyState && node === emptyState) continue;
+          contentArea.removeChild(node);
+        }
+      }
+
+      state.running = false;
+      state.prevUtterance = '';
+      state.budgetPenaltyApplied = false;
+      state.plan3Shown = false;
+      state.turnCount = 0;
+
+      setEmptyStateVisible(true);
+      autoGrow();
+      updateSendState();
+      scrollToBottom();
+    }
+
+    /* ===== Streaming text ===== */
+    function streamText(container, text, speed) {
+      speed = speed || 35;
+      return new Promise(function (resolve) {
+        var i = 0;
+        function tick() {
+          if (i < text.length) {
+            container.textContent += text[i];
+            i++;
+            scrollToBottom();
+            setTimeout(tick, speed);
+          } else {
+            resolve();
+          }
+        }
+        tick();
+      });
+    }
+
+    function streamHTML(container, html, speed) {
+      speed = speed || 25;
+      var temp = document.createElement('div');
+      temp.innerHTML = html;
+      var plainText = temp.textContent || '';
+      container.innerHTML = '';
+      return new Promise(function (resolve) {
+        var i = 0;
+        function tick() {
+          if (i < plainText.length) {
+            container.textContent += plainText[i];
+            i++;
+            scrollToBottom();
+            setTimeout(tick, speed);
+          } else {
+            container.innerHTML = html;
+            resolve();
+          }
+        }
+        tick();
+      });
+    }
+
+    function fadeIn(el) {
+      el.classList.add('stream-block');
+      contentArea.appendChild(el);
+      requestAnimationFrame(function () {
+        el.classList.add('visible');
+        scrollToBottom();
+      });
+      return delay(480);
+    }
+
+    var REVEAL_DELAY_FIRST_TURN = 500;
+    var REVEAL_DELAY_FOLLOWUP = 380;
+
+    function buildPlanNode(html) {
+      var wrap = createElement('div', '');
+      wrap.innerHTML = html;
+      return wrap.firstChild;
+    }
+
+    function revealNode(node, ms) {
+      contentArea.appendChild(node);
+      requestAnimationFrame(function () {
+        node.classList.add('visible');
+        scrollToBottom();
+      });
+      return delay(ms);
+    }
+
+    /* ===== Plan HTML Builders ===== */
+    function routeHTML(dep, depApt, dur, arr, arrApt, lineImg, hasLocal) {
+      var rightInner = hasLocal
+        ? '<div class="route-time-sub"><span class="local-tag">当地</span><span class="route-time">' + arr + '</span></div>'
+        : '<span class="route-time">' + arr + '</span>';
+      return '<div class="route-row">'
+        + '<div class="route-side"><span class="route-time">' + dep + '</span><span class="route-airport">' + depApt + '</span></div>'
+        + '<div class="route-middle"><span class="route-duration">' + dur + '</span>'
+        + '<div class="route-line-wrap"><img class="route-line-img" src="assets/figma/route-arrow.svg" alt=""></div></div>'
+        + '<div class="route-side right">' + rightInner + '<span class="route-airport">' + arrApt + '</span></div></div>';
+    }
+    function airlineHTML(logo, name) {
+      return '<div class="airline-row"><img class="airline-logo" src="assets/figma/' + logo + '" alt=""><span class="airline-name">' + name + '</span></div>';
+    }
+    function ticketInfoHTML(items) {
+      return '<div class="ticket-info-row">' + items.map(function (t, i) {
+        return (i > 0 ? '<span class="ticket-sep"></span>' : '') + '<span class="ticket-info-text">' + t + '</span>';
+      }).join('') + '</div>';
+    }
+    function priceHTML(price, suffix) {
+      suffix = suffix || '起';
+      return '<div class="price-wrap"><span class="price-symbol">￥</span><span class="price-num">' + price + '</span><span class="price-suffix">' + suffix + '</span></div>';
+    }
+    function discountHTML(text) {
+      return '<div class="discount-tag"><span>' + text + '</span></div>';
+    }
+
+    function buildPlan1(p) {
+      var f = p.flight;
+      return '<div class="plan-section stream-block">'
+        + '<div class="plan-header"><h2 class="plan-title">' + p.title + '</h2>'
+        + '<p class="plan-reason">' + p.reason + '</p></div>'
+        + '<div class="flight-card">'
+        + '<div class="flight-card-header"><span class="flight-date">' + f.dateText + '</span></div>'
+        + '<div class="flight-body"><div class="flight-info-col">'
+        + routeHTML(f.depTime, f.depAirport, f.duration, f.arrTime, f.arrAirport, f.lineImg, f.hasLocal)
+        + '<div style="display:flex;flex-direction:column;gap:10px;">'
+        + airlineHTML(f.airlineLogo, f.airlineName)
+        + ticketInfoHTML(f.ticketInfo)
+        + '</div></div>'
+        + '<div class="price-col"><div class="price-group">' + priceHTML(f.price) + discountHTML(f.discount) + '</div>'
+        + '<button class="book-btn">订票</button></div></div></div></div>';
+    }
+
+    function buildPlan2(p) {
+      var s1 = p.segments[0];
+      var s2 = p.segments[1];
+      return '<div class="plan-section stream-block">'
+        + '<div class="plan-header"><h2 class="plan-title">' + p.title + '</h2>'
+        + '<p class="plan-reason">' + p.reason + '</p></div>'
+        + '<div class="transfer-card">'
+        /* Segment 1 */
+        + '<div class="transfer-segment"><div class="segment-header"><div class="segment-badge"><span>' + s1.badge + '</span></div><span class="segment-date">' + s1.dateText + '</span></div>'
+        + '<div style="display:flex;flex-direction:column;gap:16px;width:100%;">'
+        + routeHTML(s1.depTime, s1.depAirport, s1.duration, s1.arrTime, s1.arrAirport, s1.lineImg, s1.hasLocal)
+        + airlineHTML(s1.airlineLogo, s1.airlineName) + '</div></div>'
+        /* Transfer stop */
+        + '<div class="transfer-stop"><span>' + p.stopText + '</span></div>'
+        /* Segment 2 */
+        + '<div class="transfer-segment"><div class="segment-header"><div class="segment-badge"><span>' + s2.badge + '</span></div><span class="segment-date">' + s2.dateText + '</span></div>'
+        + '<div style="display:flex;flex-direction:column;gap:16px;width:100%;">'
+        + routeHTML(s2.depTime, s2.depAirport, s2.duration, s2.arrTime, s2.arrAirport, s2.lineImg, s2.hasLocal)
+        + airlineHTML(s2.airlineLogo, s2.airlineName) + '</div></div>'
+        /* Divider */
+        + '<div class="transfer-divider"><img src="' + ASSET_BASE + p.dividerImg + '" alt=""></div>'
+        /* Ticket info + price */
+        + '<div class="transfer-ticket-info">' + ticketInfoHTML(p.ticketInfo) + '</div>'
+        + '<div class="transfer-price-row"><div class="transfer-price-left">'
+        + '<div class="transfer-price-wrap">' + priceHTML(p.price)
+        + '<div class="transfer-price-tag"><span>' + p.discount + '</span></div></div>'
+        + '<span class="transfer-subtotal">' + p.subtotalText + '</span></div>'
+        + '<button class="transfer-book-btn">订票</button></div>'
+        + '</div>'
+        /* More button */
+        + '<div class="more-btn-wrap"><button class="more-btn">' + p.moreText + '</button></div>'
+        + '</div>';
+    }
+
+    function buildPlan3(p) {
+      var f = p.flight;
+      return '<div class="plan-section stream-block" style="gap:36px;">'
+        + '<div class="plan3-shell"><div class="plan3-intro"><p class="plan-title strong">' + p.title + '</p>'
+        + '<p class="plan-reason">' + p.reasonHTML + '</p></div>'
+        /* Business flight card */
+        + '<div class="flight-card">'
+        + '<div class="flight-card-header"><span class="flight-date">' + f.dateText + '</span></div>'
+        + '<div class="flight-body"><div class="flight-info-col">'
+        + routeHTML(f.depTime, f.depAirport, f.duration, f.arrTime, f.arrAirport, f.lineImg, f.hasLocal)
+        + '<div style="display:flex;flex-direction:column;gap:10px;">'
+        + airlineHTML(f.airlineLogo, f.airlineName)
+        + ticketInfoHTML(f.ticketInfo)
+        + '</div></div>'
+        + '<div class="price-col"><div class="price-group">' + priceHTML(f.price) + discountHTML(f.discount) + '</div>'
+        + '<button class="book-btn">订票</button></div></div></div>'
+        /* A350 expandable */
+        + '<div class="a350-content-area expanded" data-role="a350Area">'
+        + '<div class="a350-inner"><div class="a350-header"><h3 class="a350-title">' + p.a350.title + '</h3>'
+        + '<button class="a350-toggle" data-role="a350Toggle" type="button" aria-expanded="true">'
+        + '<span class="a350-toggle-text" data-role="a350ToggleText">' + p.a350.toggleExpandedText + '</span>'
+        + '<img class="a350-toggle-arrow expanded" data-role="a350Arrow" src="' + ASSET_BASE + p.a350.toggleArrowImg + '" alt=""></button></div>'
+        + '<div class="a350-body">'
+        + '<p class="a350-text">' + p.a350.seatParaHTML + '</p>'
+        + '<p class="a350-text">' + p.a350.layoutParaHTML + '</p>'
+        + '<p class="a350-text">' + p.a350.serviceParaHTML + '</p>'
+        + '<p class="a350-text">' + p.a350.reviewParaHTML + '</p>'
+        + '</div></div><div class="a350-mask"></div></div>'
+        /* Follow link */
+        + '<div style="display:flex;">'
+        + '<a class="follow-link" href="' + p.follow.href + '" aria-label="' + p.follow.text + '">'
+        + '<span class="follow-text">' + p.follow.text + '</span>'
+        + '<div class="follow-avatars">'
+        + '<div class="follow-avatar"><img src="' + ASSET_BASE + p.follow.avatars[0] + '" alt=""></div>'
+        + '<div class="follow-avatar"><img src="' + ASSET_BASE + p.follow.avatars[1] + '" alt=""></div>'
+        + '<div class="follow-avatar"><img src="' + ASSET_BASE + p.follow.avatars[2] + '" alt=""></div></div>'
+        + '<span class="follow-source">' + p.follow.sourceText + '</span></a></div>'
+        + '</div></div>';
+    }
+
+    /* ===== Bind A350 toggle (delegated) ===== */
+    contentArea.addEventListener('click', function (e) {
+      var toggle = e.target.closest('[data-role="a350Toggle"]');
+      if (!toggle) return;
+      var area = toggle.closest('.a350-content-area');
+      var arrow = area ? area.querySelector('[data-role="a350Arrow"]') : null;
+      var text = area ? area.querySelector('[data-role="a350ToggleText"]') : null;
+      if (!area) return;
+      var expanded = area.classList.toggle('expanded');
+      if (arrow) arrow.classList.toggle('expanded', expanded);
+      if (text) text.textContent = expanded ? '收起' : '展开';
+      toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    });
+
+    /* ===== Offline performance: preload assets ===== */
+    function uniq(arr) {
+      var seen = {};
+      var out = [];
+      for (var i = 0; i < arr.length; i++) {
+        var v = arr[i];
+        if (!v || seen[v]) continue;
+        seen[v] = true;
+        out.push(v);
+      }
+      return out;
+    }
+    function preloadImages(urls) {
+      for (var i = 0; i < urls.length; i++) {
+        var img = new Image();
+        img.decoding = 'async';
+        img.loading = 'eager';
+        img.src = urls[i];
+      }
+    }
+    function preloadDemoAssets() {
+      var urls = [];
+      // composer icons
+      urls.push(ASSET_BASE + 'deepthink-icon.png');
+      urls.push(ASSET_BASE + 'icon-voice.png');
+      urls.push(ASSET_BASE + 'icon-camera.png');
+      urls.push(ASSET_BASE + 'icon-plus.png');
+      // shared
+      urls.push(ASSET_BASE + 'route-arrow.svg');
+      urls.push(ASSET_BASE + 'flight-line-blue.png');
+      urls.push(ASSET_BASE + 'flight-line.png');
+      urls.push(ASSET_BASE + 'divider-line.png');
+      urls.push(ASSET_BASE + 'airline-ca.png');
+      urls.push(ASSET_BASE + 'airline-cx.png');
+      urls.push(ASSET_BASE + PLAN3_ASSETS.toggleArrowImg);
+      urls.push(ASSET_BASE + PLAN3_ASSETS.seatPhotoImg);
+      urls.push(ASSET_BASE + PLAN3_ASSETS.seatmapImg);
+      urls.push(ASSET_BASE + PLAN3_ASSETS.followAvatars[0]);
+      urls.push(ASSET_BASE + PLAN3_ASSETS.followAvatars[1]);
+      urls.push(ASSET_BASE + PLAN3_ASSETS.followAvatars[2]);
+      preloadImages(uniq(urls));
+    }
+
+    /* ===== Main response flow ===== */
+    async function playResponse(userText) {
+      state.running = true;
+      updateSendState();
+      state.turnCount++;
+      setEmptyStateVisible(false);
+
+      var safeUserText = normalizeUserText(userText);
+      var B = computeB(safeUserText, state.prevUtterance);
+      state.prevUtterance = safeUserText;
+
+      debugScore.style.display = 'block';
+      debugScore.textContent = 'B=' + B + ' | turn=' + state.turnCount;
+
+      var runtimePlans = buildRuntimePlans(safeUserText, B);
+      var showPlan3 = runtimePlans.showPlan3;
+
+      /* User bubble */
+      var bubbleWrap = createElement('div', 'user-bubble-wrap fade-in');
+      var bubble = createElement('div', 'user-bubble');
+      bubble.textContent = safeUserText || '未命名需求';
+      bubbleWrap.appendChild(bubble);
+      contentArea.appendChild(bubbleWrap);
+      scrollToBottom();
+      await delay(300);
+
+      /* Typing indicator */
+      var typingEl = createElement('div', 'typing-dot');
+      typingEl.innerHTML = '<span class="typing-text">千问正在生成</span><span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
+      contentArea.appendChild(typingEl);
+      scrollToBottom();
+      await delay(600);
+
+      /* Remove typing, show AI text */
+      contentArea.removeChild(typingEl);
+
+      var numPlans = showPlan3 ? 3 : 2;
+      var aiTextEl = createElement('p', 'ai-text');
+      contentArea.appendChild(aiTextEl);
+      await streamText(aiTextEl, buildAiIntroText(safeUserText, { numPlans: numPlans, B: B }, runtimePlans.searchParams), 30);
+      await delay(300);
+
+      var p1Child = buildPlanNode(buildPlan1(runtimePlans.plan1));
+      var p2Child = buildPlanNode(buildPlan2(runtimePlans.plan2));
+      var p3Child = (showPlan3 && runtimePlans.plan3) ? buildPlanNode(buildPlan3(runtimePlans.plan3)) : null;
+
+      await revealNode(p1Child, REVEAL_DELAY_FIRST_TURN);
+      await revealNode(p2Child, REVEAL_DELAY_FIRST_TURN);
+      if (p3Child) {
+        await revealNode(p3Child, 300);
+        state.plan3Shown = true;
+      }
+
+      // 首轮完成后始终给一条“引导式追问”（按用户诉求偏向高舱）
+      var firstTurnFollowupEl = createElement('p', 'ai-text');
+      contentArea.appendChild(firstTurnFollowupEl);
+      await streamText(firstTurnFollowupEl, buildFirstTurnFollowup(safeUserText, showPlan3, B), 30);
+      appendDecisionOptions(buildFirstTurnDecisionOptions(safeUserText, showPlan3, B));
+
+      state.running = false;
+      updateSendState();
+    }
+
+    /* ===== Multi-turn: 实时重算推荐 ===== */
+    async function playFollowup(userText) {
+      state.running = true;
+      updateSendState();
+      state.turnCount++;
+      setEmptyStateVisible(false);
+
+      var safeUserText = normalizeUserText(userText);
+      var B = computeB(safeUserText, state.prevUtterance);
+      state.prevUtterance = safeUserText;
+
+      debugScore.textContent = 'B=' + B + ' | turn=' + state.turnCount;
+
+      var runtimePlans = buildRuntimePlans(safeUserText, B);
+      var showPlan3 = runtimePlans.showPlan3;
+
+      /* User bubble */
+      var bubbleWrap = createElement('div', 'user-bubble-wrap fade-in');
+      var bubble = createElement('div', 'user-bubble');
+      bubble.textContent = safeUserText || '未命名需求';
+      bubbleWrap.appendChild(bubble);
+      contentArea.appendChild(bubbleWrap);
+      scrollToBottom();
+      await delay(300);
+
+      /* Typing */
+      var typingEl = createElement('div', 'typing-dot');
+      typingEl.innerHTML = '<span class="typing-text">千问正在生成</span><span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
+      contentArea.appendChild(typingEl);
+      scrollToBottom();
+      await delay(600);
+      contentArea.removeChild(typingEl);
+
+      var aiEl = createElement('p', 'ai-text');
+      contentArea.appendChild(aiEl);
+      await streamText(aiEl, '已根据你最新的条件实时更新推荐：', 30);
+      await delay(220);
+
+      var p1Child = buildPlanNode(buildPlan1(runtimePlans.plan1));
+      var p2Child = buildPlanNode(buildPlan2(runtimePlans.plan2));
+      var p3Child = (showPlan3 && runtimePlans.plan3) ? buildPlanNode(buildPlan3(runtimePlans.plan3)) : null;
+
+      await revealNode(p1Child, REVEAL_DELAY_FOLLOWUP);
+      await revealNode(p2Child, REVEAL_DELAY_FOLLOWUP);
+
+      await appendFollowupAck(safeUserText);
+      if (p3Child) {
+        revealNode(p3Child, 0);
+        state.plan3Shown = true;
+      }
+
+      scrollToBottom();
+      state.running = false;
+      updateSendState();
+    }
+
+    /* ===== Composer logic ===== */
+    function autoGrow() {
+      chatInput.style.height = '0px';
+      chatInput.style.height = Math.min(chatInput.scrollHeight, 78) + 'px';
+    }
+    function updateSendState() {
+      var hasText = !!chatInput.value.trim();
+      sendBtn.disabled = !hasText || state.running;
+      sendBtn.classList.toggle('visible', hasText);
+      // “思考状态”下，输入文本时也不隐藏左侧语音按钮（Figma node 2154:28967）
+      voiceIcon.style.display = 'flex';
+      composerRight.style.display = hasText ? 'none' : 'flex';
+    }
+
+    chatInput.addEventListener('input', function () { autoGrow(); updateSendState(); });
+    chatInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!sendBtn.disabled) chatForm.requestSubmit(); }
+    });
+
+    chatForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (state.running) return;
+      var text = chatInput.value.trim();
+      if (!text) return;
+      chatInput.value = '';
+      autoGrow();
+      updateSendState();
+
+      if (state.turnCount === 0) {
+        await playResponse(text);
+      } else {
+        await playFollowup(text);
+      }
+    });
+
+    // Empty state quick prompts
+    contentArea.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest && e.target.closest('.empty-action-btn');
+      if (!btn) return;
+      var prompt = btn.getAttribute('data-prompt') || btn.textContent || '';
+      chatInput.value = (prompt || '').trim();
+      autoGrow();
+      updateSendState();
+      if (!sendBtn.disabled) chatForm.requestSubmit();
+    });
+
+    // Topbar back: browser back if possible, otherwise reset to home
+    if (topbarBack) {
+      topbarBack.addEventListener('click', function () {
+        if (window.history && window.history.length > 1) {
+          window.history.back();
+          return;
+        }
+        resetToHome();
+      });
+    }
+
+    autoGrow();
+    updateSendState();
+    preloadDemoAssets();
+    renderQuickPrompts();
+    setEmptyStateVisible(true);
+  })();
+  </script>
+</body>
+</html>

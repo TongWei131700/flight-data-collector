@@ -1,0 +1,69 @@
+name: Deploy Qwen Dialog H5
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "2 H5效果/**"
+      - ".github/workflows/deploy-qwen-dialog.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare site bundle
+        run: |
+          mkdir -p site
+          cp -R "2 H5效果/." site/
+          cat > site/index.html <<'EOF'
+          <!doctype html>
+          <html lang="zh-CN">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Qwen 对话流</title>
+            <meta http-equiv="refresh" content="0; url=Qwen-%E5%AF%B9%E8%AF%9D%E6%B5%81.html">
+            <script>
+              window.location.replace("Qwen-%E5%AF%B9%E8%AF%9D%E6%B5%81.html");
+            </script>
+          </head>
+          <body>
+            <p>正在跳转到 Qwen 对话流页面...</p>
+            <p><a href="Qwen-%E5%AF%B9%E8%AF%9D%E6%B5%81.html">如果没有自动跳转，点击这里</a></p>
+          </body>
+          </html>
+          EOF
+          touch site/.nojekyll
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
