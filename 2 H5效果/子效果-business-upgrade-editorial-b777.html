@@ -30,12 +30,16 @@
       /* 顶栏显隐：标准缓入缓出（对称 ease-in-out） */
       --ease-io: cubic-bezier(0.42, 0, 0.58, 1);
       --card-r: 20px;
-      --card-bg: rgba(255,255,255,0.025);
+      --card-bg: rgba(255,255,255,0.055);
       --card-bd: 1px solid rgba(255,255,255,0.06);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 10px; }
+    html {
+      font-size: 10px;
+      background: var(--bg);
+      min-height: 100%;
+    }
     body {
       width: 100%;
       max-width: var(--layout-max);

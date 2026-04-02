@@ -11,11 +11,16 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈</text></svg>">
 
   <style>
+    :root {
+      --demo-bg: #BAC1D8;
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html {
       font-size: 10px;
       -webkit-text-size-adjust: 100%;
       -webkit-tap-highlight-color: transparent;
+      /* 与 body 一致，避免第二部分等区块下拉/过滚动时露出默认白底 */
+      background: #0a0a0f;
     }
     body {
       background: #0a0a0f;
@@ -29,11 +34,14 @@
       height: 100vh;
       overflow: hidden;
     }
+    html.is-shell-root {
+      background: var(--demo-bg);
+    }
     body.is-shell {
       display: flex;
       justify-content: center;
       align-items: center;
-      background: #fff;
+      background: var(--demo-bg);
     }
     .phone-shell {
       width: 750px;
@@ -54,6 +62,10 @@
       position: relative;
       z-index: 2;
     }
+    /* Jesko 与 B777 叠层且 viewport 透明时，两层各有一个「下滑探索」会重影；组合稿只保留 B777 .scroll-cue（箭头 heroBounce 动效不变） */
+    #section-jesko .hero-scroll-hint {
+      display: none !important;
+    }
     #section-b777 {
       max-width: 750px;
       margin: 0 auto;
@@ -61,6 +73,8 @@
       padding-bottom: calc(192px + env(safe-area-inset-bottom, 0px));
       position: relative;
       z-index: 1;
+      /* 注入子页会剥掉其 body 背景，此处兜底与商务舱稿 --bg 对齐 */
+      background: #06070b;
       --b777-reveal: 0;
       --b777-section-visibility: 0;
       opacity: var(--b777-section-visibility);

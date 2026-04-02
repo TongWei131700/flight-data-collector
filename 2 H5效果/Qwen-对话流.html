@@ -31,6 +31,7 @@
       --section-gap: 36px;
       --card-pad: 28px;
       --shadow: 0 10px 34px rgba(16,24,40,0.08);
+      --demo-bg: #BAC1D8;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -40,7 +41,7 @@
       justify-content: center;
       align-items: center;
       padding: 20px;
-      background: #fff;
+      background: var(--demo-bg);
       color: var(--black100);
       font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
       -webkit-font-smoothing: antialiased;
@@ -211,7 +212,7 @@
 
     /* ========== Flight card ========== */
     .flight-card {
-      width: 670px; background: #fff; border: 2px solid var(--card-border);
+      width: 670px; background: #fff; border: 2px solid var(--card-border-alpha);
       border-radius: var(--radius-l); padding: var(--card-pad);
       overflow: hidden; display: flex; flex-direction: column; position: relative;
     }
@@ -328,7 +329,7 @@
     .a350-mask { position: absolute; bottom: 0; left: 0; width: 100%; height: 112px; background: linear-gradient(180deg, rgba(255,255,255,0) 14.286%, #fff 77.232%); pointer-events: none; transition: opacity 0.3s ease; }
     .a350-content-area.expanded .a350-mask { opacity: 0; }
 
-    /* ========== Follow link ========== */
+    /* ========== Follow link（内容索引卡片，原始样式） ========== */
     .follow-link { display: flex; gap: 12px; align-items: center; padding: 24px 30px 24px 24px; border: 1px solid rgba(15,19,26,0.12); border-radius: var(--radius-l); background: linear-gradient(180deg, #fff 0%, #f9fbff 100%); backdrop-filter: blur(2px); text-decoration: none; color: var(--dark-text); transition: transform 0.12s ease, box-shadow 0.2s ease; cursor: pointer; }
     .follow-link:hover { box-shadow: 0 2px 10px rgba(15,19,26,0.06); }
     .follow-link:active { transform: translateY(0.5px); }
@@ -349,6 +350,76 @@
     .follow-avatar:nth-child(3) { z-index: 1; }
     .follow-avatar img { width: 105.56%; height: 105.56%; margin: -2.78%; display: block; }
     .follow-source { font-size: 22px; line-height: 1.4; color: var(--light-gray-text); white-space: nowrap; flex-shrink: 0; }
+
+    /* ========== H5 CTA 跳转按钮 ========== */
+    .h5-cta-btn {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      padding: 28px 32px;
+      border-radius: var(--radius-l);
+      background: linear-gradient(135deg, #0044ff 0%, #2563ff 60%, #4f8aff 100%);
+      text-decoration: none;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.15s ease;
+      box-shadow: 0 8px 28px rgba(0, 68, 255, 0.28);
+      position: relative;
+      overflow: hidden;
+      border: 0;
+      margin-top: 20px;
+      margin-bottom: 12px;
+    }
+    .h5-cta-btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 55%);
+      pointer-events: none;
+    }
+    .h5-cta-btn:hover { filter: brightness(1.07); box-shadow: 0 12px 36px rgba(0, 68, 255, 0.36); }
+    .h5-cta-btn:active { transform: scale(0.985); box-shadow: 0 4px 16px rgba(0, 68, 255, 0.22); }
+    .h5-cta-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .h5-cta-icon svg { width: 28px; height: 28px; }
+    .h5-cta-body {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-width: 0;
+    }
+    .h5-cta-title {
+      font-size: 30px;
+      font-weight: 600;
+      line-height: 1.3;
+      color: #fff;
+    }
+    .h5-cta-sub {
+      font-size: 22px;
+      line-height: 1.4;
+      color: rgba(255, 255, 255, 0.72);
+    }
+    .h5-cta-arrow {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .h5-cta-arrow svg { width: 20px; height: 20px; }
     .hero-img { width: 100%; aspect-ratio: 750 / 190; object-fit: cover; display: block; }
 
     /* ========== NEW: Composer (Figma node 2123:28903) ========== */
@@ -588,12 +659,13 @@
       prevUtterance: '',
       budgetPenaltyApplied: false,
       plan3Shown: false,
-      turnCount: 0
+      turnCount: 0,
+      lockScrollFollowing: false
     };
 
     /* ===== B-Score Engine (PRD §6.2) ===== */
     var KEYWORDS = {
-      comfort:  ['舒适','舒服','躺平','不想太累','宽敞','睡得好','休息好'],
+      comfort:  ['舒适','舒服','躺平','不想太累','宽敞','睡得好','休息好','轻松','省心'],
       crowd:    ['老人','父母','长辈','带娃','小孩','孕妇'],
       redEye:   ['红眼','夜班','凌晨','早班','长途','十几个小时','国际'],
       business: ['出差','报销','见客户','会议','商务'],
@@ -692,6 +764,7 @@
 
     /* ===== Helpers ===== */
     function scrollToBottom() {
+      if (state.lockScrollFollowing) return;
       requestAnimationFrame(function () { dialogScroll.scrollTop = dialogScroll.scrollHeight; });
     }
     function delay(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
@@ -706,12 +779,6 @@
     function setEmptyStateVisible(visible) {
       if (!emptyState) return;
       emptyState.style.display = visible ? '' : 'none';
-    }
-
-    function appendFollowupAck(userText) {
-      var ackEl = createElement('p', 'ai-text');
-      contentArea.appendChild(ackEl);
-      return streamText(ackEl, '好的，我继续按同一规则为你优化推荐。', 30);
     }
 
     function containsAny(text, terms) {
@@ -734,7 +801,7 @@
       if (containsAny(normalized, ['经济舱'])) {
         facts.cabin_economy = true;
       }
-      if (containsAny(normalized, ['商务舱', '公务舱', '头等舱'])) {
+      if (containsAny(normalized, ['商务舱', '公务舱', '头等舱', '高舱'])) {
         facts.cabin_business = true;
       }
       if (containsAny(normalized, ['预算', '省钱', '低价', '便宜', '最便宜'])) {
@@ -1213,6 +1280,11 @@
       var plan3Business = pickPlan3BusinessCandidate(candidates, ranked.business);
       var business = plan3Business || ranked.business || candidates[2];
       var showPlan3 = !!(searchParams.wantsBusiness || searchParams.cabinPreference === 'business');
+      var normalizedQ = (query || '').toLowerCase();
+      var qCareComfort = containsAny(normalizedQ, ['舒适','舒服','躺平','轻松','省心','宽敞','高舱','商务舱','公务舱']);
+      var qCareFamily = containsAny(normalizedQ, ['带娃','小孩','老人','父母','长辈']);
+      var preferBusinessFirst = showPlan3 || B >= 15 || qCareComfort || qCareFamily;
+      if (preferBusinessFirst) showPlan3 = true;
 
       var plan1 = {
         title: '方案一：直飞优先',
@@ -1283,7 +1355,8 @@
         plan1: plan1,
         plan2: plan2,
         plan3: plan3,
-        showPlan3: showPlan3
+        showPlan3: showPlan3,
+        preferBusinessFirst: preferBusinessFirst
       };
     }
 
@@ -1308,22 +1381,22 @@
 
       if (showPlan3 || B >= 10) {
         return [
-          { label: '优先看高舱里最划算的', prompt: '优先看高舱里最划算的方案' },
-          { label: '先对比直飞和中转的高舱', prompt: '先对比直飞和中转的高舱方案' },
-          { label: '先保留经济舱最低价', prompt: '先保留经济舱最低价方案' }
+          { label: '优先看高舱里最划算的', prompt: '优先看高舱里最划算的' },
+          { label: '先对比直飞和中转的高舱', prompt: '先对比直飞和中转的高舱' },
+          { label: '先保留经济舱最低价', prompt: '先保留经济舱最低价' }
         ];
       }
       if (careBudget) {
         return [
-          { label: '先看最低总价', prompt: '先看最低总价方案' },
-          { label: '看小幅加价但更舒适', prompt: '看小幅加价但更舒适的高舱方案' },
-          { label: '只看可免费退改的', prompt: '只看可免费退改的方案' }
+          { label: '先看最低总价', prompt: '先看最低总价' },
+          { label: '看小幅加价但更舒适', prompt: '看小幅加价但更舒适' },
+          { label: '只看可免费退改的', prompt: '只看可免费退改的' }
         ];
       }
       return [
-        { label: '先看更省预算的', prompt: '先看更省预算的方案' },
-        { label: '先看更轻松舒适的', prompt: '先看更轻松舒适的高舱方案' },
-        { label: '给我一个综合最优', prompt: '给我一个综合最优方案' }
+        { label: '先看更省预算的', prompt: '先看更省预算的' },
+        { label: '先看更轻松舒适的', prompt: '先看更轻松舒适的' },
+        { label: '给我一个综合最优', prompt: '给我一个综合最优' }
       ];
     }
 
@@ -1360,6 +1433,7 @@
       state.budgetPenaltyApplied = false;
       state.plan3Shown = false;
       state.turnCount = 0;
+      state.lockScrollFollowing = false;
 
       setEmptyStateVisible(true);
       autoGrow();
@@ -1369,7 +1443,7 @@
 
     /* ===== Streaming text ===== */
     function streamText(container, text, speed) {
-      speed = speed || 35;
+      speed = speed || 45;
       return new Promise(function (resolve) {
         var i = 0;
         function tick() {
@@ -1377,7 +1451,8 @@
             container.textContent += text[i];
             i++;
             scrollToBottom();
-            setTimeout(tick, speed);
+            var d = i < 5 ? speed * 2.2 : (i < 15 ? speed * 1.4 : speed);
+            setTimeout(tick, d);
           } else {
             resolve();
           }
@@ -1419,8 +1494,8 @@
       return delay(480);
     }
 
-    var REVEAL_DELAY_FIRST_TURN = 500;
-    var REVEAL_DELAY_FOLLOWUP = 380;
+    var REVEAL_DELAY_FIRST_TURN = 1500;
+    var REVEAL_DELAY_FOLLOWUP = 1200;
 
     function buildPlanNode(html) {
       var wrap = createElement('div', '');
@@ -1433,6 +1508,32 @@
       requestAnimationFrame(function () {
         node.classList.add('visible');
         scrollToBottom();
+      });
+      return delay(ms);
+    }
+
+    function scrollToCard(node) {
+      requestAnimationFrame(function () {
+        var containerRect = dialogScroll.getBoundingClientRect();
+        var nodeRect = node.getBoundingClientRect();
+        var offset = nodeRect.top - containerRect.top + dialogScroll.scrollTop;
+        dialogScroll.scrollTo({ top: Math.max(0, offset - 16), behavior: 'smooth' });
+      });
+    }
+
+    function revealNodeSilent(node, ms) {
+      contentArea.appendChild(node);
+      requestAnimationFrame(function () {
+        node.classList.add('visible');
+      });
+      return delay(ms);
+    }
+
+    function revealNodeAtTop(anchorEl, node, ms) {
+      contentArea.insertBefore(node, anchorEl.nextSibling);
+      requestAnimationFrame(function () {
+        node.classList.add('visible');
+        scrollToCard(node);
       });
       return delay(ms);
     }
@@ -1543,15 +1644,17 @@
         + '<p class="a350-text">' + p.a350.serviceParaHTML + '</p>'
         + '<p class="a350-text">' + p.a350.reviewParaHTML + '</p>'
         + '</div></div><div class="a350-mask"></div></div>'
-        /* Follow link */
-        + '<div style="display:flex;">'
-        + '<a class="follow-link" href="' + p.follow.href + '" aria-label="' + p.follow.text + '">'
-        + '<span class="follow-text">' + p.follow.text + '</span>'
-        + '<div class="follow-avatars">'
-        + '<div class="follow-avatar"><img src="' + ASSET_BASE + p.follow.avatars[0] + '" alt=""></div>'
-        + '<div class="follow-avatar"><img src="' + ASSET_BASE + p.follow.avatars[1] + '" alt=""></div>'
-        + '<div class="follow-avatar"><img src="' + ASSET_BASE + p.follow.avatars[2] + '" alt=""></div></div>'
-        + '<span class="follow-source">' + p.follow.sourceText + '</span></a></div>'
+        /* Follow link - 已隐藏 */
+        /* H5 CTA 跳转按钮 */
+        + '<a class="h5-cta-btn" href="' + p.follow.href + '" aria-label="进入沉浸式高舱体验">'
+        + '<div class="h5-cta-body">'
+        + '<span class="h5-cta-title">立即体验高舱沉浸式 H5</span>'
+        + '<span class="h5-cta-sub">点击进入 · 继续预订流程</span>'
+        + '</div>'
+        + '<div class="h5-cta-arrow">'
+        + '<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 4l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        + '</div>'
+        + '</a>'
         + '</div></div>';
     }
 
@@ -1636,14 +1739,14 @@
       bubbleWrap.appendChild(bubble);
       contentArea.appendChild(bubbleWrap);
       scrollToBottom();
-      await delay(300);
+      await delay(400);
 
       /* Typing indicator */
       var typingEl = createElement('div', 'typing-dot');
       typingEl.innerHTML = '<span class="typing-text">千问正在生成</span><span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
       contentArea.appendChild(typingEl);
       scrollToBottom();
-      await delay(600);
+      await delay(1500);
 
       /* Remove typing, show AI text */
       contentArea.removeChild(typingEl);
@@ -1651,24 +1754,40 @@
       var numPlans = showPlan3 ? 3 : 2;
       var aiTextEl = createElement('p', 'ai-text');
       contentArea.appendChild(aiTextEl);
-      await streamText(aiTextEl, buildAiIntroText(safeUserText, { numPlans: numPlans, B: B }, runtimePlans.searchParams), 30);
-      await delay(300);
+      await streamText(aiTextEl, buildAiIntroText(safeUserText, { numPlans: numPlans, B: B }, runtimePlans.searchParams), 50);
+      await delay(800);
 
-      var p1Child = buildPlanNode(buildPlan1(runtimePlans.plan1));
-      var p2Child = buildPlanNode(buildPlan2(runtimePlans.plan2));
-      var p3Child = (showPlan3 && runtimePlans.plan3) ? buildPlanNode(buildPlan3(runtimePlans.plan3)) : null;
-
-      await revealNode(p1Child, REVEAL_DELAY_FIRST_TURN);
-      await revealNode(p2Child, REVEAL_DELAY_FIRST_TURN);
-      if (p3Child) {
-        await revealNode(p3Child, 300);
+      state.lockScrollFollowing = false;
+      if (runtimePlans.preferBusinessFirst && showPlan3 && runtimePlans.plan3) {
+        runtimePlans.plan3.title = '方案一：舒适商务舱升级';
+        runtimePlans.plan1.title = '方案二：经济舱 · 直飞优先';
+        runtimePlans.plan2.title = '方案三：经济舱 · 预算友好中转';
+        var bizNode = buildPlanNode(buildPlan3(runtimePlans.plan3));
+        await revealNode(bizNode, REVEAL_DELAY_FIRST_TURN);
+        scrollToCard(bizNode);
+        state.lockScrollFollowing = true;
+        await revealNodeSilent(buildPlanNode(buildPlan1(runtimePlans.plan1)), REVEAL_DELAY_FIRST_TURN);
+        await revealNodeSilent(buildPlanNode(buildPlan2(runtimePlans.plan2)), REVEAL_DELAY_FIRST_TURN);
         state.plan3Shown = true;
+      } else {
+        var planNodes = [];
+        planNodes.push(buildPlanNode(buildPlan1(runtimePlans.plan1)));
+        planNodes.push(buildPlanNode(buildPlan2(runtimePlans.plan2)));
+        if (showPlan3 && runtimePlans.plan3) {
+          planNodes.push(buildPlanNode(buildPlan3(runtimePlans.plan3)));
+          state.plan3Shown = true;
+        }
+        for (var pi = 0; pi < planNodes.length; pi++) {
+          await revealNode(planNodes[pi], REVEAL_DELAY_FIRST_TURN);
+        }
       }
 
       // 首轮完成后始终给一条“引导式追问”（按用户诉求偏向高舱）
+      state.lockScrollFollowing = false;
+
       var firstTurnFollowupEl = createElement('p', 'ai-text');
       contentArea.appendChild(firstTurnFollowupEl);
-      await streamText(firstTurnFollowupEl, buildFirstTurnFollowup(safeUserText, showPlan3, B), 30);
+      await streamText(firstTurnFollowupEl, buildFirstTurnFollowup(safeUserText, showPlan3, B), 45);
       appendDecisionOptions(buildFirstTurnDecisionOptions(safeUserText, showPlan3, B));
 
       state.running = false;
@@ -1691,6 +1810,8 @@
       var runtimePlans = buildRuntimePlans(safeUserText, B);
       var showPlan3 = runtimePlans.showPlan3;
 
+      state.lockScrollFollowing = false;
+
       /* User bubble */
       var bubbleWrap = createElement('div', 'user-bubble-wrap fade-in');
       var bubble = createElement('div', 'user-bubble');
@@ -1698,34 +1819,47 @@
       bubbleWrap.appendChild(bubble);
       contentArea.appendChild(bubbleWrap);
       scrollToBottom();
-      await delay(300);
+      await delay(400);
 
       /* Typing */
       var typingEl = createElement('div', 'typing-dot');
       typingEl.innerHTML = '<span class="typing-text">千问正在生成</span><span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
       contentArea.appendChild(typingEl);
       scrollToBottom();
-      await delay(600);
+      await delay(1500);
       contentArea.removeChild(typingEl);
 
       var aiEl = createElement('p', 'ai-text');
       contentArea.appendChild(aiEl);
-      await streamText(aiEl, '已根据你最新的条件实时更新推荐：', 30);
-      await delay(220);
+      await streamText(aiEl, '已根据你最新的条件实时更新推荐：', 50);
+      await delay(600);
 
-      var p1Child = buildPlanNode(buildPlan1(runtimePlans.plan1));
-      var p2Child = buildPlanNode(buildPlan2(runtimePlans.plan2));
-      var p3Child = (showPlan3 && runtimePlans.plan3) ? buildPlanNode(buildPlan3(runtimePlans.plan3)) : null;
-
-      await revealNode(p1Child, REVEAL_DELAY_FOLLOWUP);
-      await revealNode(p2Child, REVEAL_DELAY_FOLLOWUP);
-
-      await appendFollowupAck(safeUserText);
-      if (p3Child) {
-        revealNode(p3Child, 0);
+      state.lockScrollFollowing = false;
+      if (runtimePlans.preferBusinessFirst && showPlan3 && runtimePlans.plan3) {
+        runtimePlans.plan3.title = '方案一：舒适商务舱升级';
+        runtimePlans.plan1.title = '方案二：经济舱 · 直飞优先';
+        runtimePlans.plan2.title = '方案三：经济舱 · 预算友好中转';
+        var bizNodeF = buildPlanNode(buildPlan3(runtimePlans.plan3));
+        await revealNode(bizNodeF, REVEAL_DELAY_FOLLOWUP);
+        scrollToCard(bizNodeF);
+        state.lockScrollFollowing = true;
+        await revealNodeSilent(buildPlanNode(buildPlan1(runtimePlans.plan1)), REVEAL_DELAY_FOLLOWUP);
+        await revealNodeSilent(buildPlanNode(buildPlan2(runtimePlans.plan2)), REVEAL_DELAY_FOLLOWUP);
         state.plan3Shown = true;
+      } else {
+        var followupNodes = [];
+        followupNodes.push(buildPlanNode(buildPlan1(runtimePlans.plan1)));
+        followupNodes.push(buildPlanNode(buildPlan2(runtimePlans.plan2)));
+        if (showPlan3 && runtimePlans.plan3) {
+          followupNodes.push(buildPlanNode(buildPlan3(runtimePlans.plan3)));
+          state.plan3Shown = true;
+        }
+        for (var fi = 0; fi < followupNodes.length; fi++) {
+          await revealNode(followupNodes[fi], REVEAL_DELAY_FOLLOWUP);
+        }
       }
 
+      state.lockScrollFollowing = false;
       scrollToBottom();
       state.running = false;
       updateSendState();
