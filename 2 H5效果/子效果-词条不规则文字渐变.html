@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>词条不规则文字渐变（对齐 Figma 1411:71110）</title>
+  <style>
+    :root {
+      --text-base: rgb(15, 19, 26);
+      --text-accent: rgb(125, 125, 255);
+      --line-border: #f2f3f5;
+      --page-bg: #fafafa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 32px 20px;
+      background: var(--page-bg);
+      font-family: "PingFang SC", "PingFang TC", "Microsoft YaHei", sans-serif;
+    }
+    h1 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-base);
+      margin: 0 0 8px;
+    }
+    .note {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+      max-width: 42em;
+      margin-bottom: 24px;
+    }
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+      max-width: 720px;
+    }
+    .chip {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 24px 30px;
+      border-radius: 50px;
+      border: 1px solid var(--line-border);
+      background: #fff;
+      backdrop-filter: blur(2px);
+    }
+    /**
+     * Figma 导出（file jGv2WBbUfTf2sOxnP6YQ0a，节点 1411:71110）：
+     * 非单层「紫→黑」，而是底层整字纯色 + 顶层斜向透明→#7d7dff，
+     * 透明处透出底层深色，形成不规则高亮带。
+     */
+    .chip-text {
+      margin: 0;
+      font-size: 30px;
+      font-weight: 400;
+      line-height: 1.4;
+      white-space: nowrap;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      -webkit-background-clip: text;
+      background-color: transparent;
+      background-repeat: no-repeat;
+    }
+    .chip-text--a {
+      background-image:
+        linear-gradient(-20.610348983981083deg, rgba(0, 0, 0, 0) 25.964%, var(--text-accent) 97.644%),
+        linear-gradient(90deg, var(--text-base) 0%, var(--text-base) 100%);
+    }
+    .chip-text--bc {
+      background-image:
+        linear-gradient(-32.07958495719808deg, rgba(0, 0, 0, 0) 25.964%, var(--text-accent) 97.644%),
+        linear-gradient(90deg, var(--text-base) 0%, var(--text-base) 100%);
+    }
+    .arrow {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      color: var(--text-base);
+      opacity: 0.85;
+    }
+  </style>
+</head>
+<body>
+  <h1>不规则文字渐变（Figma 双层 linear-gradient）</h1>
+  <p class="note">
+    来自设计稿「输出」组件：底层 <code>rgb(15,19,26)</code> 铺满字形，顶层约 <code>-20.6°</code> / <code>-32.08°</code> 从 <code>transparent 25.964%</code> 到 <code>#7d7dff 97.644%</code>，与 Figma MCP <code>get_design_context</code> 导出一致。无需 SVG。
+  </p>
+  <div class="list">
+    <div class="chip">
+      <p class="chip-text chip-text--a">北京去周边滑雪，雪质好机票便宜的方案</p>
+      <svg class="arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="chip">
+      <p class="chip-text chip-text--bc">春节从北京回成都，不用抢票的出行方案</p>
+      <svg class="arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="chip">
+      <p class="chip-text chip-text--bc">预算500元，北京出发，顺路沿途多地游玩</p>
+      <svg class="arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

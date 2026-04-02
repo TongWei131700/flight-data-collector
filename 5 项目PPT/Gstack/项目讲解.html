@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Qwen 项目讲解 · 机票沉浸式 Agent</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C9A84C;--gold-light:#E8C97A;--gold-dim:rgba(201,168,76,0.15);
+  --dark:#0A0C14;--dark2:#111420;--dark3:#181C2A;
+  --text:#F0EDE6;--text-dim:rgba(240,237,230,0.6);--text-muted:rgba(240,237,230,0.35);
+  --blue:#4A90D9;--green:#52C97A;--red:#E05C5C;
+  --grid-gap:28px;--card-pad:20px 22px;--slide-px:80px;--slide-py:56px;
+}
+html,body{margin:0;padding:0;overflow:hidden;width:100%;height:100%}
+body{background:var(--dark);font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;color:var(--text)}
+.gold{color:var(--gold)}.blue{color:var(--blue)}.green{color:var(--green)}.red{color:var(--red)}
+
+/* sidenav */
+.sidenav{position:fixed;right:28px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:100}
+.sn-item{display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none;justify-content:flex-end}
+.sn-label{font-size:12px;color:var(--text-muted);opacity:0;transform:translateX(8px);transition:all .2s;white-space:nowrap;font-weight:600}
+.sn-item:hover .sn-label,.sn-item.active .sn-label{opacity:1;transform:translateX(0);color:var(--gold)}
+.sn-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2);transition:all .3s;flex-shrink:0}
+.sn-item.active .sn-dot{background:var(--gold);width:20px;border-radius:3px;box-shadow:0 0 6px var(--gold)}
+
+/* slides */
+.slides{width:100%;height:100vh;overflow:hidden;position:relative}
+.slide{position:absolute;top:0;left:0;width:100%;height:100vh;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-py) var(--slide-px);transition:transform 0.6s cubic-bezier(0.4,0,0.2,1);overflow:hidden}
+.slide.prev{transform:translateY(-100%)}
+.slide.current{transform:translateY(0)}
+.slide.next{transform:translateY(100%)}
+
+/* bg */
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.03) 1px,transparent 1px);background-size:80px 80px;pointer-events:none;z-index:0}
+.bg-glow{position:absolute;border-radius:50%;filter:blur(140px);pointer-events:none;z-index:0}
+.inner{position:relative;z-index:1;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center}
+
+/* typography */
+.sec-tag{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.sec-tag::before{content:"";width:24px;height:2px;background:var(--gold)}
+.sec-title{font-size:44px;font-weight:800;line-height:1.15;margin-bottom:16px}
+.sec-sub{font-size:15px;color:var(--text-dim);line-height:1.6;margin-bottom:24px}
+
+/* grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:var(--grid-gap);align-items:stretch}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--grid-gap)}
+
+/* cards */
+.card{background:var(--dark3);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:var(--card-pad)}
+.card-gold{background:linear-gradient(135deg,rgba(201,168,76,0.1),rgba(201,168,76,0.04));border:1px solid rgba(201,168,76,0.25);border-radius:14px;padding:var(--card-pad)}
+.card-icon{display:flex;align-items:center;gap:14px}
+.card-icon .icon{font-size:26px;flex-shrink:0}
+.card-icon .label{font-size:15px;font-weight:700;margin-bottom:3px}
+.card-icon .desc{font-size:13px;color:var(--text-dim)}
+
+/* skill grid */
+.skill-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--grid-gap);margin-top:8px}
+.skill-card{background:var(--dark3);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:28px 24px;display:flex;flex-direction:column;gap:10px}
+.skill-card .sk{font-size:12px;color:var(--text-muted);font-weight:600;letter-spacing:.08em}
+.skill-card .sv{font-size:22px;font-weight:800;color:var(--text);line-height:1.3}
+.skill-card .sa{font-size:13px;color:var(--text-dim);line-height:1.5;margin-top:4px}
+
+/* num list */
+.num-list{display:flex;flex-direction:column;gap:20px}
+.num-item{display:flex;gap:16px;align-items:flex-start}
+.num-badge{width:32px;height:32px;border-radius:50%;background:var(--gold-dim);border:1px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:var(--gold);flex-shrink:0;margin-top:2px}
+.num-text{font-size:15px;color:var(--text-dim);line-height:1.7}
+.num-text strong{color:var(--text)}
+
+/* rule table */
+.rule-table{width:100%;border-collapse:separate;border-spacing:0;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.07)}
+.rule-table th{background:rgba(201,168,76,0.08);color:var(--gold);font-size:12px;font-weight:700;letter-spacing:.1em;padding:10px 16px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.07)}
+.rule-table td{padding:12px 16px;font-size:13px;color:var(--text-dim);border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top;line-height:1.6}
+.rule-table tr:last-child td{border-bottom:0}
+.rule-table td:first-child{color:var(--text);font-weight:700;font-family:monospace;white-space:nowrap;width:120px}
+.rule-hl td{background:rgba(224,92,92,0.06)}
+
+/* summary */
+.summary-card{background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:28px 32px;position:relative;overflow:hidden}
+.summary-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--gold),rgba(201,168,76,0.2))}
+.sum-row{display:flex;align-items:flex-start;gap:14px;padding:10px 0 10px 16px;border-bottom:1px solid rgba(255,255,255,0.05)}
+.sum-row:last-child{border-bottom:0}
+.sum-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.4);flex-shrink:0;margin-top:6px}
+.sum-dot.gold{background:var(--gold)}
+.sum-text{font-size:15px;color:var(--text-dim);line-height:1.7}
+.sum-text strong{color:var(--text)}
+
+/* video */
+.video-wrap{border-radius:14px;overflow:hidden;border:1px solid rgba(201,168,76,0.2);background:#000;position:relative;flex:1;min-height:0}
+.video-wrap video{width:100%;height:100%;object-fit:contain;display:block}
+.video-label{position:absolute;top:12px;left:12px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.08em;z-index:2}
+
+/* 倾向分 B 页专用 —— 来自推荐规则ppt */
+.wt{display:inline-block;background:rgba(255,255,255,0.06);border-radius:6px;padding:2px 7px;margin:2px 2px;font-size:12px;color:var(--text-dim)}
+.sr{display:flex;align-items:center;gap:11px;border-radius:11px;padding:12px 14px;position:relative;overflow:hidden}
+.sr .stripe{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px}
+.sr .cat{font-size:13px;font-weight:700;width:64px;flex-shrink:0}
+.sr .words{flex:1;font-size:12px;color:var(--text-dim)}
+.sr .note{font-size:10px;color:var(--text-muted);margin-top:3px}
+.sr .bw{width:72px;height:5px;background:rgba(255,255,255,0.08);border-radius:3px;flex-shrink:0}
+.sr .bar{height:100%;border-radius:3px}
+.sr .val{font-size:19px;font-weight:900;width:42px;text-align:right}
+/* 第三槽页专用 —— 来自推荐规则ppt */
+.tb{display:flex;align-items:stretch;min-height:88px;position:relative}
+.tb .tl{width:136px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 10px;border-right:1px solid rgba(255,255,255,0.06)}
+.tb .ts{font-size:17px;font-weight:900;font-family:monospace}
+.tb .tlb{font-size:10px;color:var(--text-muted);margin-top:3px;font-weight:600}
+.tb .tr{flex:1;padding:14px 18px;display:flex;flex-direction:column;justify-content:center;gap:5px}
+.tb .ta{font-size:15px;font-weight:700}
+.tb .td{font-size:12px;color:var(--text-dim);line-height:1.4}
+.tb .ti{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:22px}
+</style>
+</head>
+<body>
+
+<nav class="sidenav" id="sidenav">
+  <a class="sn-item active" data-idx="0" href="#"><span class="sn-label">项目背景</span><span class="sn-dot"></span></a>
+  <a class="sn-item" data-idx="1" href="#"><span class="sn-label">为什么做</span><span class="sn-dot"></span></a>
+  <a class="sn-item" data-idx="2" href="#"><span class="sn-label">Skill 内容</span><span class="sn-dot"></span></a>
+  <a class="sn-item" data-idx="3" href="#"><span class="sn-label">数据爬虫</span><span class="sn-dot"></span></a>
+  <a class="sn-item" data-idx="4" href="#"><span class="sn-label">推荐规则</span><span class="sn-dot"></span></a>
+  <a class="sn-item" data-idx="5" href="#"><span class="sn-label">倾向分 B</span><span class="sn-dot"></span></a>
+  <a class="sn-item" data-idx="6" href="#"><span class="sn-label">第三槽策略</span><span class="sn-dot"></span></a>
+  <a class="sn-item" data-idx="7" href="#"><span class="sn-label">视觉生成</span><span class="sn-dot"></span></a>
+  <a class="sn-item" data-idx="8" href="#"><span class="sn-label">总结</span><span class="sn-dot"></span></a>
+  <a class="sn-item" data-idx="9" href="#"><span class="sn-label">H5 效果演示</span><span class="sn-dot"></span></a>
+</nav>
+
+<div class="slides" id="slides">
+
+<!-- P1 项目背景 -->
+<div class="slide current" style="background:var(--dark)">
+  <div class="bg-grid"></div>
+  <div class="bg-glow" style="width:900px;height:900px;background:rgba(201,168,76,0.07);top:-300px;right:-200px"></div>
+  <div class="inner">
+    <div class="g2" style="align-items:center;height:100%">
+      <div>
+        <div style="display:inline-flex;align-items:center;gap:10px;background:var(--gold-dim);border:1px solid rgba(201,168,76,0.3);border-radius:30px;padding:7px 18px;font-size:13px;font-weight:600;color:var(--gold);margin-bottom:22px">&#9992; 飞猪 &middot; 机票 Agent</div>
+        <div style="font-size:60px;font-weight:900;line-height:1.08;margin-bottom:18px">机票<br><span class="gold">沉浸式 Agent</span><br>项目讲解</div>
+        <div style="font-size:16px;color:var(--text-dim);line-height:1.8;max-width:520px">国泰航空等高端航司在 OTA 平台有强烈的<strong style="color:var(--text)">前舱展示需求</strong>，<br>我们通过 AI Agent 能力，构建可规模化的<strong style="color:var(--text)">高舱展示与推荐体系</strong>。</div>
+        <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap">
+          <div style="background:rgba(82,201,122,0.12);border:1px solid rgba(82,201,122,0.25);border-radius:8px;padding:6px 14px;font-size:13px;color:var(--green);font-weight:600">公务舱销售 YoY +11.2%</div>
+          <div style="background:var(--gold-dim);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:6px 14px;font-size:13px;color:var(--gold);font-weight:600">BD 合作 20&ndash;50w+</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:var(--grid-gap)">
+        <div class="card card-icon">
+          <span class="icon">&#128375;</span>
+          <div><div class="label">Flight Data Collector</div><div class="desc">航司数据爬虫 &middot; 结构化事实库</div></div>
+        </div>
+        <div class="card card-icon">
+          <span class="icon">&#128202;</span>
+          <div><div class="label">Business Class Recommendations</div><div class="desc">商务舱卡片推荐规则引擎</div></div>
+        </div>
+        <div class="card card-icon">
+          <span class="icon">&#127912;</span>
+          <div><div class="label">Flight H5 Creator</div><div class="desc">H5 页面视觉自动生成</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- P2 为什么做 -->
+<div class="slide next" style="background:var(--dark2)">
+  <div class="bg-grid"></div>
+  <div class="bg-glow" style="width:700px;height:700px;background:rgba(74,144,217,0.06);bottom:-200px;left:-100px"></div>
+  <div class="inner">
+    <div class="sec-tag">项目动因</div>
+    <div class="sec-title">为什么想做这个 <span class="gold">Skill</span>？</div>
+    <div class="num-list" style="margin-top:8px">
+      <div class="num-item">
+        <div class="num-badge">01</div>
+        <div class="num-text"><strong>重复性工作 &middot; 数据覆盖低</strong><br>数据分散、字段不全，餐食、座椅布局等关键信息无法完整展示；每次上新都需要人工整理，效率极低。</div>
+      </div>
+      <div class="num-item">
+        <div class="num-badge">02</div>
+        <div class="num-text"><strong>人工成本高 &middot; 开发周期长</strong><br>过去视觉表达依赖 3D 建模，单次建模成本约 <strong>10 万元</strong>，整个项目周期极长，难以规模化复制。</div>
+      </div>
+    </div>
+    <div class="card-gold" style="margin-top:32px;display:flex;align-items:center;gap:18px">
+      <span style="font-size:36px">&#128161;</span>
+      <div style="font-size:15px;color:var(--text-dim);line-height:1.7">
+        <strong style="color:var(--gold);font-size:17px">核心机会</strong>：用 AI Agent 替代人工，实现<strong style="color:var(--text)">数据自动采集 &rarr; 智能推荐 &rarr; 视觉自动生成</strong>的全链路自动化，大幅降低成本并提升覆盖广度。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- P3 Skill 内容 -->
+<div class="slide next" style="background:var(--dark)">
+  <div class="bg-grid"></div>
+  <div class="bg-glow" style="width:800px;height:800px;background:rgba(201,168,76,0.06);top:-200px;right:-200px"></div>
+  <div class="inner">
+    <div class="sec-tag">能力全景</div>
+    <div class="sec-title">Skill 解决什么问题 &middot; <span class="gold">包含什么内容</span></div>
+    <div class="sec-sub">在对话流场景中，作为自动化 Agent，自动生成包含高舱信息的 H5 页面，区别于大模型通用内容，可作为航司合作的商业化窗口。</div>
+    <div class="skill-grid">
+      <div class="skill-card">
+        <div class="sk">SKILL 01 &middot; DATA</div>
+        <div style="font-size:28px;margin-bottom:4px">&#11015;&#65039;</div>
+        <div class="sv">自己爬数据</div>
+        <div class="sa">Flight Data Collector &middot; 把官网分散信息抽取成可验证的结构化事实库</div>
+      </div>
+      <div class="skill-card">
+        <div class="sk">SKILL 02 &middot; STRATEGY</div>
+        <div style="font-size:28px;margin-bottom:4px">&#11015;&#65039;</div>
+        <div class="sv">自己想推荐策略</div>
+        <div class="sa">Business Class Recommendations &middot; 倾向分 B + 禁推规则，不依赖大模型即兴发挥</div>
+      </div>
+      <div class="skill-card">
+        <div class="sk">SKILL 03 &middot; VISUAL</div>
+        <div style="font-size:28px;margin-bottom:4px">&#11015;&#65039;</div>
+        <div class="sv">自己画图</div>
+        <div class="sa">Flight H5 Creator &middot; 自动生成完整展示页面，航司介绍/座椅/餐食/娱乐/亮点</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- P4 数据爬虫 + 视频 -->
+<div class="slide next" style="background:var(--dark2)">
+  <div class="bg-grid"></div>
+  <div class="bg-glow" style="width:700px;height:700px;background:rgba(201,168,76,0.06);bottom:-200px;right:-100px"></div>
+  <div class="inner" style="gap:20px">
+    <div>
+      <div class="sec-tag">子 Skill 01 &middot; Flight Data Collector</div>
+      <div class="sec-title">航司数据 <span class="gold">爬虫能力</span></div>
+    </div>
+    <div class="g2" style="flex:1;min-height:0;align-items:stretch;overflow:hidden">
+      <div class="video-wrap" style="height:100%">
+        <div class="video-label">&#127916; DEMO &middot; 阿联酋航空爬取实录</div>
+        <video controls preload="metadata" style="width:100%;height:100%;object-fit:contain">
+          <source src="file:///Users/dengxinyang/Desktop/AI·Project/D2C/Qwen/阿联酋航空爬取.mp4" type="video/mp4">
+          您的浏览器不支持 HTML5 视频播放。
+        </video>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;height:100%;overflow:hidden">
+        <div style="flex:1;min-height:0;border-radius:14px;overflow:hidden;border:1px solid rgba(201,168,76,0.15);background:var(--dark3);position:relative">
+          <div style="position:absolute;top:8px;left:10px;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.1em;z-index:2;background:rgba(10,12,20,0.7);padding:3px 8px;border-radius:4px">&#128247; 爬取结果</div>
+          <img src="file:///Users/dengxinyang/Desktop/AI·Project/D2C/Qwen/阿联酋航空爬取结果截图.png" alt="阿联酋航空爬取结果截图" style="width:100%;height:100%;object-fit:cover;display:block">
+        </div>
+        <div class="card-gold" style="flex-shrink:0">
+          <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.1em;margin-bottom:10px">&#127919; 爬取目标</div>
+          <div style="font-size:14px;color:var(--text-dim);line-height:1.8">座椅配置 &middot; 餐食信息 &middot; 机上设施<br>机型参数 &middot; 舱位图片 &middot; 用户评分</div>
+        </div>
+        <div class="card" style="flex-shrink:0">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:10px">&#128229; 输入 / &#128228; 输出</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:8px;align-items:flex-start">
+              <span style="color:var(--blue);font-weight:700;font-size:12px;flex-shrink:0;margin-top:1px">IN</span>
+              <span style="font-size:13px;color:var(--text-dim)">官网与产品页、机型配置说明、图片素材</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-start">
+              <span style="color:var(--green);font-weight:700;font-size:12px;flex-shrink:0;margin-top:1px">OUT</span>
+              <span style="font-size:13px;color:var(--text-dim)">airline + aircraft cabin_facts（字段口径统一，可回溯）</span>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="flex-shrink:0">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:10px">&#128737;&#65039; 质量控制</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;gap:8px;align-items:center"><span style="color:var(--gold);font-weight:800;flex-shrink:0">&#9312;</span><span style="font-size:13px;color:var(--text-dim)">缺失字段显式提示，禁止模型补写</span></div>
+            <div style="display:flex;gap:8px;align-items:center"><span style="color:var(--gold);font-weight:800;flex-shrink:0">&#9313;</span><span style="font-size:13px;color:var(--text-dim)">图片白名单 + 内容哈希去重</span></div>
+            <div style="display:flex;gap:8px;align-items:center"><span style="color:var(--gold);font-weight:800;flex-shrink:0">&#9314;</span><span style="font-size:13px;color:var(--text-dim)">原始数据完整保存，语义分类后去重</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- P5 推荐规则 -->
+<div class="slide next" style="background:var(--dark)">
+  <div class="bg-grid"></div>
+  <div class="bg-glow" style="width:800px;height:800px;background:rgba(201,168,76,0.07);top:-200px;right:-200px"></div>
+  <div class="inner">
+    <div class="sec-tag">子 Skill 02 &middot; Business Class Recommendations</div>
+    <div class="sec-title">推荐规则 <span class="gold">判断引擎</span></div>
+    <div class="g2" style="align-items:stretch">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card-gold">
+          <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.1em;margin-bottom:10px">&#128208; 倾向分 B &middot; 排序公式</div>
+          <div style="font-size:18px;font-weight:800;color:var(--gold);font-family:monospace;line-height:2.2">B = clamp(B, &minus;40, 80)<br>R = R&#8320; + w &times; B</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.7">R&#8320; = 业务基础分（价格/时长/直飞/库存）<br>w &isin; [0.3, 0.6]，与 R&#8320; 量级同比缩放</div>
+        </div>
+        <div class="card" style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:12px">&#128203; 关键词规则（无 LLM）</div>
+          <table class="rule-table">
+            <thead><tr><th>类别</th><th>关键词示例</th><th>分值</th></tr></thead>
+            <tbody>
+              <tr><td>舒适意图</td><td style="color:var(--text-dim)">舒服、躺平、宽敞、睡得好</td><td style="color:var(--gold);font-weight:800">+25</td></tr>
+              <tr><td>特殊人群</td><td style="color:var(--text-dim)">老人、父母、带娃、孕妇</td><td style="color:var(--gold);font-weight:800">+25</td></tr>
+              <tr><td>红眼疲劳</td><td style="color:var(--text-dim)">红眼、夜班、凌晨、长途</td><td style="color:var(--blue);font-weight:800">+20</td></tr>
+              <tr><td>商务场景</td><td style="color:var(--text-dim)">出差、报销、见客户</td><td style="color:var(--green);font-weight:800">+15</td></tr>
+              <tr class="rule-hl"><td>价格敏感</td><td style="color:var(--text-dim)">最便宜、省钱、穷游、学生</td><td style="color:var(--red);font-weight:800">&minus;35</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card" style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:12px">&#127919; 第三槽曝光策略</div>
+          <div style="display:flex;flex-direction:column;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.06)">
+            <div style="padding:14px 16px;background:linear-gradient(135deg,rgba(201,168,76,0.12),rgba(201,168,76,0.04));display:flex;justify-content:space-between;align-items:center">
+              <div><div style="font-size:14px;font-weight:700;color:var(--gold)">B &ge; 20 &middot; 高意向</div><div style="font-size:12px;color:var(--text-dim);margin-top:3px">优先展示，可放宽价差阈值</div></div>
+              <span style="font-size:20px">&#127937;</span>
+            </div>
+            <div style="padding:14px 16px;background:rgba(74,144,217,0.06);border-top:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center">
+              <div><div style="font-size:14px;font-weight:700;color:var(--blue)">&minus;20 &lt; B &lt; 20 &middot; 中性</div><div style="font-size:12px;color:var(--text-dim);margin-top:3px">走默认价差策略</div></div>
+              <span style="font-size:20px">&#128309;</span>
+            </div>
+            <div style="padding:14px 16px;background:rgba(224,92,92,0.06);border-top:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center">
+              <div><div style="font-size:14px;font-weight:700;color:var(--red)">B &le; &minus;20 &middot; 价格敏感</div><div style="font-size:12px;color:var(--text-dim);margin-top:3px">隐藏或强降级</div></div>
+              <span style="font-size:20px">&#128308;</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:10px">&#128274; 禁推规则（优先级最高）</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(224,92,92,0.06);border-radius:8px;border:1px solid rgba(224,92,92,0.15)">
+              <span style="font-size:11px;font-weight:700;color:var(--red);flex-shrink:0">&#9312; 无库存</span>
+              <span style="font-size:12px;color:var(--text-dim)">最高优先，无论 B 值多高均不展示</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(224,92,92,0.06);border-radius:8px;border:1px solid rgba(224,92,92,0.15)">
+              <span style="font-size:11px;font-weight:700;color:var(--red);flex-shrink:0">&#9313; 短航程</span>
+              <span style="font-size:12px;color:var(--text-dim)">航段 &lt; 2h，整体模块不渲染</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(201,168,76,0.06);border-radius:8px;border:1px solid rgba(201,168,76,0.15)">
+              <span style="font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0">&#9314; B 分策略</span>
+              <span style="font-size:12px;color:var(--text-dim)">计算 B 值，决定第三槽曝光等级</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- P6 倾向分 B 算法（来自推荐规则ppt第3页） -->
+<div class="slide next" style="background:var(--dark)">
+  <div class="bg-grid"></div>
+  <div class="bg-glow" style="width:800px;height:800px;background:rgba(201,168,76,0.07);top:-200px;right:-200px"></div>
+  <div class="inner">
+    <div class="sec-tag">推荐规则详解 &middot; 倾向分</div>
+    <div class="sec-title">倾向分 <span class="gold">B</span> 算法</div>
+    <div class="g2" style="align-items:stretch">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="sr" style="flex:1;background:var(--dark3);border:1px solid rgba(255,255,255,0.06)">
+          <div class="stripe" style="background:var(--gold)"></div>
+          <div class="cat gold">舒适意图</div>
+          <div class="words"><span class="wt">舒服</span><span class="wt">舒适</span><span class="wt">躺平</span><span class="wt">宽敞</span><span class="wt">睡得好</span><div class="note">命中任意一词，仅计一次</div></div>
+          <div class="bw"><div class="bar" style="width:80%;background:var(--gold)"></div></div>
+          <div class="val gold">+25</div>
+        </div>
+        <div class="sr" style="flex:1;background:var(--dark3);border:1px solid rgba(255,255,255,0.06)">
+          <div class="stripe" style="background:var(--gold)"></div>
+          <div class="cat gold">特殊人群</div>
+          <div class="words"><span class="wt">老人</span><span class="wt">父母</span><span class="wt">长辈</span><span class="wt">带娃</span><span class="wt">孕妇</span><div class="note">命中任意一词，仅计一次</div></div>
+          <div class="bw"><div class="bar" style="width:80%;background:var(--gold)"></div></div>
+          <div class="val gold">+25</div>
+        </div>
+        <div class="sr" style="flex:1;background:var(--dark3);border:1px solid rgba(255,255,255,0.06)">
+          <div class="stripe" style="background:var(--blue)"></div>
+          <div class="cat blue">红眼疲劳</div>
+          <div class="words"><span class="wt">红眼</span><span class="wt">夜班</span><span class="wt">凌晨</span><span class="wt">长途</span><span class="wt">国际</span><div class="note">命中任意一词，仅计一次</div></div>
+          <div class="bw"><div class="bar" style="width:64%;background:var(--blue)"></div></div>
+          <div class="val blue">+20</div>
+        </div>
+        <div class="sr" style="flex:1;background:var(--dark3);border:1px solid rgba(255,255,255,0.06)">
+          <div class="stripe" style="background:var(--green)"></div>
+          <div class="cat green">商务场景</div>
+          <div class="words"><span class="wt">出差</span><span class="wt">报销</span><span class="wt">见客户</span><span class="wt">会议</span><div class="note">「出差+报销」同属一类，合计仅 +15</div></div>
+          <div class="bw"><div class="bar" style="width:48%;background:var(--green)"></div></div>
+          <div class="val green">+15</div>
+        </div>
+        <div class="sr" style="flex:1;background:rgba(224,92,92,0.06);border:1px solid rgba(224,92,92,0.2)">
+          <div class="stripe" style="background:var(--red)"></div>
+          <div class="cat red">价格敏感</div>
+          <div class="words"><span class="wt">最便宜</span><span class="wt">低价</span><span class="wt">学生</span><span class="wt">预算</span><span class="wt">省钱</span><span class="wt">穷游</span><div class="note">整轮仅计一次，不重复惩罚</div></div>
+          <div class="bw"><div class="bar" style="width:100%;background:var(--red)"></div></div>
+          <div class="val red">&#8722;35</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:var(--grid-gap)">
+        <div class="card-gold">
+          <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.1em;margin-bottom:11px">&#128208; 排序公式</div>
+          <div style="font-size:17px;font-weight:800;color:var(--gold);font-family:monospace;line-height:2">B = clamp(B, &#8722;40, 80)<br>R = R&#8320; + w &times; B</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:9px;line-height:1.7">R&#8320; = 业务基础分（价格/时长/直飞/库存）<br>w &isin; [0.3, 0.6]，与 R&#8320; 量级同比缩放</div>
+        </div>
+        <div class="card" style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:11px">&#9888;&#65039; 计分注意事项</div>
+          <div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="color:var(--gold);font-weight:800;flex-shrink:0">&#9312;</span><span style="font-size:12px;color:var(--text-dim)">同类多词命中，<strong style="color:var(--text)">不重复加分</strong>，每类最多 +1 次</span></div>
+          <div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="color:var(--gold);font-weight:800;flex-shrink:0">&#9313;</span><span style="font-size:12px;color:var(--text-dim)">「出差」+「报销」同属商务场景，合计仅 <strong style="color:var(--green)">+15</strong>，不是 +30</span></div>
+          <div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="color:var(--gold);font-weight:800;flex-shrink:0">&#9314;</span><span style="font-size:12px;color:var(--text-dim)">减分整轮计一次，多轮对话不重复惩罚</span></div>
+          <div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="color:var(--gold);font-weight:800;flex-shrink:0">&#9315;</span><span style="font-size:12px;color:var(--text-dim)">可选叠加上一轮一句，增强上下文感知</span></div>
+          <div style="display:flex;gap:8px;padding:7px 0"><span style="color:var(--gold);font-weight:800;flex-shrink:0">&#9316;</span><span style="font-size:12px;color:var(--text-dim)">B 值截断在 [&#8722;40, 80]，防止极端值影响排序</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- P7 第三槽曝光策略（来自推荐规则ppt第4页） -->
+<div class="slide next" style="background:var(--dark2)">
+  <div class="bg-grid"></div>
+  <div class="bg-glow" style="width:700px;height:700px;background:rgba(82,201,122,0.05);bottom:-200px;left:-100px"></div>
+  <div class="inner">
+    <div class="sec-tag">推荐规则详解 &middot; 第三槽</div>
+    <div class="sec-title">第三槽 <span class="gold">曝光策略</span></div>
+    <div class="g2">
+      <div style="border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column">
+        <div class="tb" style="flex:1;background:linear-gradient(135deg,rgba(201,168,76,0.12),rgba(201,168,76,0.04))">
+          <div class="tl"><div class="ts gold">B &ge; 20</div><div class="tlb">高意向</div></div>
+          <div class="tr"><div class="ta gold">优先展示商务舱</div><div class="td">可放宽价差阈值，主动推荐第三槽；排序分 R 显著提升</div></div>
+          <div class="ti">&#127937;</div>
+        </div>
+        <div class="tb" style="flex:1;background:linear-gradient(135deg,rgba(74,144,217,0.08),rgba(74,144,217,0.02));border-top:1px solid rgba(255,255,255,0.06)">
+          <div class="tl"><div class="ts blue" style="font-size:13px">&#8722;20 &lt; B &lt; 20</div><div class="tlb">中性</div></div>
+          <div class="tr"><div class="ta blue">走默认价差策略</div><div class="td">按正常价差规则决定是否展示，不主动放宽也不降级</div></div>
+          <div class="ti">&#128309;</div>
+        </div>
+        <div class="tb" style="flex:1;background:linear-gradient(135deg,rgba(224,92,92,0.1),rgba(224,92,92,0.03));border-top:1px solid rgba(255,255,255,0.06)">
+          <div class="tl"><div class="ts red">B &le; &#8722;20</div><div class="tlb">价格敏感</div></div>
+          <div class="tr"><div class="ta red">隐藏或强降级</div><div class="td">第三槽不展示或降至最低权重，避免强推引发反感</div></div>
+          <div class="ti">&#128308;</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:var(--grid-gap)">
+        <div class="card" style="flex:1;display:flex;flex-direction:column">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px">&#128161; 计算示例</div>
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between">
+            <div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px">「<strong style="color:var(--text)">红眼航班，带老人出行</strong>」</div>
+              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                <span class="chip" style="background:rgba(74,144,217,0.15);color:var(--blue)">红眼 +20</span>
+                <span style="font-size:11px;color:var(--text-muted)">+</span>
+                <span class="chip" style="background:rgba(201,168,76,0.15);color:var(--gold)">老人 +25</span>
+                <span style="font-size:11px;color:var(--text-muted)">=</span>
+                <span style="font-size:15px;font-weight:900;color:var(--gold)">B = 45</span>
+              </div>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:4px">&#8594; 第三槽<strong style="color:var(--gold)">优先展示</strong>，价差阈值放宽</div>
+            </div>
+            <div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px">「<strong style="color:var(--text)">出差，帮我找最便宜的</strong>」</div>
+              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                <span class="chip" style="background:rgba(82,201,122,0.15);color:var(--green)">出差 +15</span>
+                <span style="font-size:11px;color:var(--text-muted)">+</span>
+                <span class="chip" style="background:rgba(224,92,92,0.15);color:var(--red)">最便宜 &#8722;35</span>
+                <span style="font-size:11px;color:var(--text-muted)">=</span>
+                <span style="font-size:15px;font-weight:900;color:var(--red)">B = &#8722;20</span>
+              </div>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:4px">&#8594; 恰好触发阈值，第三槽<strong style="color:var(--red)">隐藏或强降级</strong></div>
+            </div>
+            <div style="padding:10px 0">
+              <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px">「<strong style="color:var(--text)">帮我订去北京的票</strong>」</div>
+              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                <span class="chip" style="background:rgba(255,255,255,0.06);color:var(--text-muted)">无关键词</span>
+                <span style="font-size:11px;color:var(--text-muted)">=</span>
+                <span style="font-size:15px;font-weight:900;color:var(--text-dim)">B = 0</span>
+              </div>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:4px">&#8594; 走<strong style="color:var(--blue)">默认价差策略</strong>，正常判断</div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="flex-shrink:0">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:9px">&#128204; 前提条件</div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.8">以上策略均在<strong style="color:var(--text)">商务舱有库存</strong>时生效。<br>无库存时，无论 B 值多高，第三槽均不展示。<br>价差阈值由产品策略配置，非硬编码。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- P8 视觉生成 -->
+<div class="slide next" style="background:var(--dark2)">
+  <div class="bg-grid"></div>
+  <div class="bg-glow" style="width:700px;height:700px;background:rgba(82,201,122,0.05);bottom:-200px;left:-100px"></div>
+  <div class="inner">
+    <div class="sec-tag">子 Skill 03 &middot; Flight H5 Creator</div>
+    <div class="sec-title">H5 页面 <span class="gold">自动生成</span></div>
+    <div class="sec-sub">自动生成完整展示页面，区别于大模型通用内容，可作为 Fly.AI 机票 Agent 的行业特色能力。</div>
+    <div class="g2" style="align-items:stretch">
+      <div style="display:flex;flex-direction:column;gap:var(--grid-gap)">
+        <div class="card" style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:14px">&#128196; 页面包含模块</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px"><span style="font-size:16px">&#9992;&#65039;</span><span style="font-size:14px;color:var(--text-dim)">航司介绍 &middot; 品牌故事与核心优势</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><span style="font-size:16px">&#128186;</span><span style="font-size:14px;color:var(--text-dim)">座椅展示 &middot; 配置参数与空间图</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><span style="font-size:16px">&#127869;&#65039;</span><span style="font-size:14px;color:var(--text-dim)">餐食体验 &middot; 菜单与摆盘展示</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><span style="font-size:16px">&#127916;</span><span style="font-size:14px;color:var(--text-dim)">机上娱乐 &middot; 系统与内容库</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><span style="font-size:16px">&#11088;</span><span style="font-size:14px;color:var(--text-dim)">核心亮点 &middot; 差异化卖点提炼</span></div>
+          </div>
+        </div>
+        <div class="card-gold">
+          <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.1em;margin-bottom:10px">&#9881;&#65039; 工程落地</div>
+          <div style="font-size:14px;color:var(--text-dim);line-height:1.7">主容器编排子页，统一接管<strong style="color:var(--text)">资源预加载、脚本顺序与滚动状态</strong>，确保页面流畅渲染。</div>
+        </div>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;justify-content:center;align-items:center;gap:20px;background:linear-gradient(135deg,rgba(201,168,76,0.06),rgba(201,168,76,0.02))">
+        <div style="font-size:64px">&#127912;</div>
+        <div style="text-align:center">
+          <div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:8px">从数据到页面，全自动</div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.7;max-width:280px">输入航司 + 机型，自动调用 CabinKB 数据，生成完整 H5 展示页，无需人工介入。</div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+          <span style="background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);border-radius:6px;padding:4px 12px;font-size:12px;color:var(--gold);font-weight:600">国泰航空</span>
+          <span style="background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);border-radius:6px;padding:4px 12px;font-size:12px;color:var(--gold);font-weight:600">阿联酋航空</span>
+          <span style="background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);border-radius:6px;padding:4px 12px;font-size:12px;color:var(--gold);font-weight:600">新加坡航空</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- P9 总结 -->
+<div class="slide next" style="background:var(--dark)">
+  <div class="bg-grid"></div>
+  <div class="bg-glow" style="width:900px;height:900px;background:rgba(201,168,76,0.07);top:-300px;right:-200px"></div>
+  <div class="inner">
+    <div class="sec-tag">项目总结</div>
+    <div class="sec-title" style="margin-bottom:28px">从人工到 <span class="gold">AI 自动化</span></div>
+    <div class="summary-card">
+      <div class="sum-row">
+        <div class="sum-dot"></div>
+        <div class="sum-text"><strong>从</strong>：人工制作页面（3D 建模 10w+，周期长）&nbsp;&rarr;&nbsp;<strong>升级为</strong>：AI Agent 自动生成，成本趋近于零</div>
+      </div>
+      <div class="sum-row">
+        <div class="sum-dot"></div>
+        <div class="sum-text"><strong>从</strong>：静态展示（数据覆盖低，字段不全）&nbsp;&rarr;&nbsp;<strong>升级为</strong>：结构化事实库驱动的动态展示</div>
+      </div>
+      <div class="sum-row">
+        <div class="sum-dot"></div>
+        <div class="sum-text"><strong>从</strong>：无推荐策略（大模型即兴发挥）&nbsp;&rarr;&nbsp;<strong>升级为</strong>：倾向分 B + 禁推规则的确定性推荐引擎</div>
+      </div>
+      <div class="sum-row" style="border-bottom:0;padding-top:16px;margin-top:4px">
+        <div class="sum-dot gold"></div>
+        <div class="sum-text" style="font-size:16px"><strong style="color:var(--text)">最终形成</strong>：可规模化的高舱展示能力，可作为 <strong style="color:var(--gold)">Fly.AI 机票 Agent</strong> 的行业特色，并作为航司商业化合作的核心窗口。</div>
+      </div>
+    </div>
+    <div style="margin-top:24px;display:flex;gap:var(--grid-gap)">
+      <div class="card" style="flex:1;text-align:center;padding:20px">
+        <div style="font-size:32px;font-weight:900;color:var(--gold)">3</div>
+        <div style="font-size:13px;color:var(--text-dim);margin-top:4px">核心子 Skill</div>
+      </div>
+      <div class="card" style="flex:1;text-align:center;padding:20px">
+        <div style="font-size:32px;font-weight:900;color:var(--green)">&infin;</div>
+        <div style="font-size:13px;color:var(--text-dim);margin-top:4px">可扩展航司数量</div>
+      </div>
+      <div class="card" style="flex:1;text-align:center;padding:20px">
+        <div style="font-size:32px;font-weight:900;color:var(--blue)">0</div>
+        <div style="font-size:13px;color:var(--text-dim);margin-top:4px">人工介入（目标）</div>
+      </div>
+      <div class="card-gold" style="flex:2;display:flex;align-items:center;gap:14px;padding:20px 24px">
+        <span style="font-size:32px">&#9992;</span>
+        <div style="font-size:14px;color:var(--text-dim);line-height:1.6">商业化机会：国泰航空 BD 洽谈中，<strong style="color:var(--gold)">20&ndash;50w+</strong> 合作意向，双 11 内地-香港优惠政策</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- P10 H5效果演示 · 千问植入高舱H5 -->
+<div class="slide next" style="background:var(--dark)">
+  <div class="bg-grid"></div>
+  <div class="bg-glow" style="width:900px;height:900px;background:rgba(201,168,76,0.07);top:-300px;right:-200px"></div>
+  <div class="inner" style="gap:20px">
+    <div>
+      <div class="sec-tag">子 Skill 03 &middot; Flight H5 Creator &middot; 效果演示</div>
+      <div class="sec-title">千问植入 <span class="gold">高舱 H5</span> 实录</div>
+    </div>
+    <div class="video-wrap" style="flex:1;min-height:0">
+      <div class="video-label">&#127916; DEMO &middot; 千问植入高舱 H5 效果</div>
+      <video controls preload="metadata" style="width:100%;height:100%;object-fit:contain">
+        <source src="file:///Users/dengxinyang/Desktop/AI·Project/D2C/Qwen/3 其他文件/千问植入高舱H5.mp4" type="video/mp4">
+        您的浏览器不支持 HTML5 视频播放。
+      </video>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const TOTAL = 10;
+let current = 0;
+let animating = false;
+const slides = document.querySelectorAll('.slide');
+const navItems = document.querySelectorAll('.sn-item');
+
+function goTo(idx) {
+  if (animating || idx === current || idx < 0 || idx >= TOTAL) return;
+  animating = true;
+  const dir = idx > current ? 1 : -1;
+  slides[current].classList.remove('current');
+  slides[current].classList.add(dir > 0 ? 'prev' : 'next');
+  slides[idx].classList.remove(dir > 0 ? 'next' : 'prev');
+  slides[idx].classList.add('current');
+  navItems[current].classList.remove('active');
+  navItems[idx].classList.add('active');
+  current = idx;
+  setTimeout(() => { animating = false; }, 650);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+    e.preventDefault(); goTo(current + 1);
+  } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+    e.preventDefault(); goTo(current - 1);
+  }
+});
+
+navItems.forEach(item => {
+  item.addEventListener('click', e => {
+    e.preventDefault();
+    goTo(parseInt(item.dataset.idx));
+  });
+});
+
+let touchStartY = 0;
+document.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
+document.addEventListener('touchend', e => {
+  const dy = touchStartY - e.changedTouches[0].clientY;
+  if (Math.abs(dy) > 40) dy > 0 ? goTo(current + 1) : goTo(current - 1);
+}, { passive: true });
+
+let wheelLock = false;
+document.addEventListener('wheel', e => {
+  e.preventDefault();
+  if (wheelLock) return;
+  wheelLock = true;
+  e.deltaY > 0 ? goTo(current + 1) : goTo(current - 1);
+  setTimeout(() => { wheelLock = false; }, 800);
+}, { passive: false });
+</script>
+</body>
+</html>

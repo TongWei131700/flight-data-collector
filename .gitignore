@@ -2,3 +2,11 @@
 **/.DS_Store
 
 .gstack/
+.git_backup/
+
+# Large local media (keep on disk, do not commit)
+*.mp4
+*.mov
+
+# macOS Finder web location files
+*.webloc

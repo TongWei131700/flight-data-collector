@@ -351,75 +351,69 @@
     .follow-avatar img { width: 105.56%; height: 105.56%; margin: -2.78%; display: block; }
     .follow-source { font-size: 22px; line-height: 1.4; color: var(--light-gray-text); white-space: nowrap; flex-shrink: 0; }
 
-    /* ========== H5 CTA 跳转按钮 ========== */
+    /* ========== H5 CTA 跳转按钮（轻量样式） ========== */
     .h5-cta-btn {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
       width: 100%;
-      padding: 28px 32px;
+      padding: 22px 28px;
       border-radius: var(--radius-l);
-      background: linear-gradient(135deg, #0044ff 0%, #2563ff 60%, #4f8aff 100%);
+      background: linear-gradient(180deg, #f6f8ff 0%, #eef2ff 100%);
+      border: 1px solid rgba(0, 68, 255, 0.12);
       text-decoration: none;
-      color: #fff;
+      color: var(--brand);
       cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.15s ease;
-      box-shadow: 0 8px 28px rgba(0, 68, 255, 0.28);
+      transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+      box-shadow: none;
       position: relative;
       overflow: hidden;
-      border: 0;
-      margin-top: 20px;
-      margin-bottom: 12px;
+      margin-top: 16px;
+      margin-bottom: 8px;
     }
-    .h5-cta-btn::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 55%);
-      pointer-events: none;
-    }
-    .h5-cta-btn:hover { filter: brightness(1.07); box-shadow: 0 12px 36px rgba(0, 68, 255, 0.36); }
-    .h5-cta-btn:active { transform: scale(0.985); box-shadow: 0 4px 16px rgba(0, 68, 255, 0.22); }
+    .h5-cta-btn::before { display: none; }
+    .h5-cta-btn:hover { background: linear-gradient(180deg, #eef2ff 0%, #e4eaff 100%); box-shadow: 0 2px 12px rgba(0, 68, 255, 0.08); }
+    .h5-cta-btn:active { transform: scale(0.985); }
     .h5-cta-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.18);
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(0, 68, 255, 0.08);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
     }
-    .h5-cta-icon svg { width: 28px; height: 28px; }
+    .h5-cta-icon svg { width: 24px; height: 24px; }
     .h5-cta-body {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
       flex: 1;
       min-width: 0;
     }
     .h5-cta-title {
-      font-size: 30px;
-      font-weight: 600;
+      font-size: 26px;
+      font-weight: 500;
       line-height: 1.3;
-      color: #fff;
+      color: var(--brand);
     }
     .h5-cta-sub {
-      font-size: 22px;
+      font-size: 20px;
       line-height: 1.4;
-      color: rgba(255, 255, 255, 0.72);
+      color: var(--light-gray-text);
     }
     .h5-cta-arrow {
-      width: 44px;
-      height: 44px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.18);
+      background: rgba(0, 68, 255, 0.08);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
     }
-    .h5-cta-arrow svg { width: 20px; height: 20px; }
+    .h5-cta-arrow svg { width: 16px; height: 16px; }
     .hero-img { width: 100%; aspect-ratio: 750 / 190; object-fit: cover; display: block; }
 
     /* ========== NEW: Composer (Figma node 2123:28903) ========== */
@@ -724,9 +718,9 @@
 
     /* ===== 外部快捷栏提示词（不要在 HTML 写死） ===== */
     var QUICK_PROMPTS = [
-      { label: '清明节带孩出游', prompt: '清明节带孩出游' },
-      { label: '最近便宜的公务舱', prompt: '最近便宜的公务舱' },
-      { label: '看看近期的低价航班', prompt: '看看近期的低价航班' }
+      { label: '看看近期的低价航班', prompt: '看看近期的低价航班' },
+      { label: '清明节带孩出游，机票怎么买？', prompt: '清明节带孩出游，机票怎么买？' },
+      { label: '新加坡周末游怎么安排最省心', prompt: '新加坡周末游怎么安排最省心' }
     ];
 
     function renderQuickPrompts() {
@@ -765,7 +759,9 @@
     /* ===== Helpers ===== */
     function scrollToBottom() {
       if (state.lockScrollFollowing) return;
-      requestAnimationFrame(function () { dialogScroll.scrollTop = dialogScroll.scrollHeight; });
+      requestAnimationFrame(function () {
+        dialogScroll.scrollTo({ top: dialogScroll.scrollHeight, behavior: 'smooth' });
+      });
     }
     function delay(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
@@ -1372,7 +1368,7 @@
       if (careBudget) {
         return '如果你希望控制预算，我可以先锁定当前低价方案；同时给你一版“只多花一点但舒适度明显提升”的高舱对比，方便你一眼决定要不要升舱。要我现在就补上吗？';
       }
-      return '考虑到你可能会更在意旅途省心（比如带孩出行/行李更多/不想折腾），我建议给你两套推荐：一套更省预算，一套更轻松舒适（尽量直飞或更友好的中转/时刻）。你想先看哪一种？';
+      return '考虑到你可能会更在意旅途省心（比如带孩出行/行李更多/不想折腾），你也可以告诉我你的偏好：';
     }
 
     function buildFirstTurnDecisionOptions(userText, showPlan3, B) {
@@ -1507,7 +1503,20 @@
       contentArea.appendChild(node);
       requestAnimationFrame(function () {
         node.classList.add('visible');
-        scrollToBottom();
+        var titleEl = node.querySelector('.plan-title.strong') || node.querySelector('.plan-title');
+        if (titleEl && !state.lockScrollFollowing) {
+          var containerRect = dialogScroll.getBoundingClientRect();
+          var titleRect = titleEl.getBoundingClientRect();
+          var titleOffset = titleRect.top - containerRect.top + dialogScroll.scrollTop;
+          dialogScroll.scrollTo({ top: Math.max(0, titleOffset - 16), behavior: 'smooth' });
+          setTimeout(function () {
+            if (!state.lockScrollFollowing) {
+              scrollToBottom();
+            }
+          }, Math.min(600, ms * 0.35));
+        } else {
+          scrollToBottom();
+        }
       });
       return delay(ms);
     }
@@ -1517,6 +1526,25 @@
         var containerRect = dialogScroll.getBoundingClientRect();
         var nodeRect = node.getBoundingClientRect();
         var offset = nodeRect.top - containerRect.top + dialogScroll.scrollTop;
+        dialogScroll.scrollTo({ top: Math.max(0, offset - 16), behavior: 'smooth' });
+      });
+    }
+
+    function scrollToPlanTitle(node) {
+      requestAnimationFrame(function () {
+        var target = node.querySelector('.plan-title.strong') || node.querySelector('.plan-title') || node;
+        var containerRect = dialogScroll.getBoundingClientRect();
+        var targetRect = target.getBoundingClientRect();
+        var offset = targetRect.top - containerRect.top + dialogScroll.scrollTop;
+        dialogScroll.scrollTo({ top: Math.max(0, offset - 16), behavior: 'smooth' });
+      });
+    }
+
+    function scrollToElement(el) {
+      requestAnimationFrame(function () {
+        var containerRect = dialogScroll.getBoundingClientRect();
+        var elRect = el.getBoundingClientRect();
+        var offset = elRect.top - containerRect.top + dialogScroll.scrollTop;
         dialogScroll.scrollTo({ top: Math.max(0, offset - 16), behavior: 'smooth' });
       });
     }
@@ -1646,13 +1674,13 @@
         + '</div></div><div class="a350-mask"></div></div>'
         /* Follow link - 已隐藏 */
         /* H5 CTA 跳转按钮 */
-        + '<a class="h5-cta-btn" href="' + p.follow.href + '" aria-label="进入沉浸式高舱体验">'
+        + '<a class="h5-cta-btn" href="' + p.follow.href + '" aria-label="沉浸式体验当前机型">'
         + '<div class="h5-cta-body">'
-        + '<span class="h5-cta-title">立即体验高舱沉浸式 H5</span>'
+        + '<span class="h5-cta-title">沉浸式体验本航班</span>'
         + '<span class="h5-cta-sub">点击进入 · 继续预订流程</span>'
         + '</div>'
         + '<div class="h5-cta-arrow">'
-        + '<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 4l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        + '<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 4l6 6-6 6" stroke="#01f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
         + '</div>'
         + '</a>'
         + '</div></div>';
@@ -1759,15 +1787,15 @@
 
       state.lockScrollFollowing = false;
       if (runtimePlans.preferBusinessFirst && showPlan3 && runtimePlans.plan3) {
-        runtimePlans.plan3.title = '方案一：舒适商务舱升级';
-        runtimePlans.plan1.title = '方案二：经济舱 · 直飞优先';
-        runtimePlans.plan2.title = '方案三：经济舱 · 预算友好中转';
+        runtimePlans.plan1.title = '方案一：经济舱 · 直飞优先';
+        runtimePlans.plan2.title = '方案二：经济舱 · 预算友好中转';
+        runtimePlans.plan3.title = '方案三：舒适商务舱升级';
+        await revealNode(buildPlanNode(buildPlan1(runtimePlans.plan1)), REVEAL_DELAY_FIRST_TURN);
+        await revealNode(buildPlanNode(buildPlan2(runtimePlans.plan2)), REVEAL_DELAY_FIRST_TURN);
         var bizNode = buildPlanNode(buildPlan3(runtimePlans.plan3));
         await revealNode(bizNode, REVEAL_DELAY_FIRST_TURN);
-        scrollToCard(bizNode);
+        scrollToPlanTitle(bizNode);
         state.lockScrollFollowing = true;
-        await revealNodeSilent(buildPlanNode(buildPlan1(runtimePlans.plan1)), REVEAL_DELAY_FIRST_TURN);
-        await revealNodeSilent(buildPlanNode(buildPlan2(runtimePlans.plan2)), REVEAL_DELAY_FIRST_TURN);
         state.plan3Shown = true;
       } else {
         var planNodes = [];
@@ -1836,15 +1864,15 @@
 
       state.lockScrollFollowing = false;
       if (runtimePlans.preferBusinessFirst && showPlan3 && runtimePlans.plan3) {
-        runtimePlans.plan3.title = '方案一：舒适商务舱升级';
-        runtimePlans.plan1.title = '方案二：经济舱 · 直飞优先';
-        runtimePlans.plan2.title = '方案三：经济舱 · 预算友好中转';
+        runtimePlans.plan1.title = '方案一：经济舱 · 直飞优先';
+        runtimePlans.plan2.title = '方案二：经济舱 · 预算友好中转';
+        runtimePlans.plan3.title = '方案三：舒适商务舱升级';
+        await revealNode(buildPlanNode(buildPlan1(runtimePlans.plan1)), REVEAL_DELAY_FOLLOWUP);
+        await revealNode(buildPlanNode(buildPlan2(runtimePlans.plan2)), REVEAL_DELAY_FOLLOWUP);
         var bizNodeF = buildPlanNode(buildPlan3(runtimePlans.plan3));
         await revealNode(bizNodeF, REVEAL_DELAY_FOLLOWUP);
-        scrollToCard(bizNodeF);
+        scrollToPlanTitle(bizNodeF);
         state.lockScrollFollowing = true;
-        await revealNodeSilent(buildPlanNode(buildPlan1(runtimePlans.plan1)), REVEAL_DELAY_FOLLOWUP);
-        await revealNodeSilent(buildPlanNode(buildPlan2(runtimePlans.plan2)), REVEAL_DELAY_FOLLOWUP);
         state.plan3Shown = true;
       } else {
         var followupNodes = [];
