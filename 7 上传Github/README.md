@@ -78,7 +78,42 @@
 
 ## 查看效果
 
+### 对外分享链接（GitHub Pages）
 
+首次开启后，你可以把这个链接发给任何人直接访问：
+
+- 首页（ASCII 入口）：`https://<GitHub用户名>.github.io/<仓库名>/`
+- 直达页面：`https://<GitHub用户名>.github.io/<仓库名>/Qwen-%E5%AF%B9%E8%AF%9D%E6%B5%81.html`
+
+### 一次性启用步骤
+
+1. 把仓库推送到 GitHub（`main` 分支）。
+2. 打开仓库的 **Settings → Pages**。
+3. 在 **Build and deployment** 中选择 **Source: GitHub Actions**。
+4. 确认仓库里存在工作流：`.github/workflows/deploy-qwen-dialog.yml`。
+5. 触发一次 push，等待 Actions 里的 `Deploy Qwen Dialog H5` 执行成功。
+
+### 日常同步更新流程
+
+后续你只需要继续改原文件：
+
+- `2 H5效果/Qwen-对话流.html`
+- 以及它依赖的资源（如 `2 H5效果/assets/**`）
+
+然后执行：
+
+```bash
+git add .
+git commit -m "update qwen dialog h5"
+git push
+```
+
+每次 `git push` 后，GitHub Pages 会自动重新发布，分享链接内容同步更新。
+
+### 说明
+
+- 发布站点根目录来自 `2 H5效果/`，相对路径资源会按原结构一起发布。
+- 工作流会自动生成 `index.html`，用于无中文文件名的入口跳转，便于分享。
 
 ## 未来方向
 
